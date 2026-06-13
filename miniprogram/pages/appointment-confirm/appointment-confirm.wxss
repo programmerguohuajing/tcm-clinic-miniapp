@@ -1,0 +1,26 @@
+.confirm-page {
+  display: flex;
+  align-items: center;
+}
+
+.confirm-card {
+  width: 100%;
+  padding: 60rpx 42rpx;
+  text-align: center;
+}
+
+.seal {
+  width: 120rpx;
+  height: 120rpx;
+  margin: 0 auto 28rpx;
+  border: 2rpx solid rgba(155, 121, 71, 0.72);
+  border-radius: 999rpx;
+  color: #9b7947;
+  font-size: 70rpx;
+  line-height: 120rpx;
+  background: rgba(187, 169, 143, 0.14);
+}
+
+.confirm-card button {
+  margin-top: 42rpx;
+}

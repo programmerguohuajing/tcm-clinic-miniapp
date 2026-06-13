@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>青囊中医馆 PC 管理端</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="seal">青</div>
+          <div>
+            <strong>青囊掌柜台</strong>
+            <span>TCM OPERATIONS</span>
+          </div>
+        </div>
+        <nav id="nav"></nav>
+        <div class="operator-card">
+          <span>当前账号</span>
+          <strong id="operatorName">林青禾</strong>
+          <small>权限由小程序用户绑定</small>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Clinic Command Center</p>
+            <h1 id="pageTitle">经营看板</h1>
+          </div>
+          <div class="toolbar">
+            <select id="storeFilter"></select>
+            <button class="ghost" id="refreshBtn">刷新数据</button>
+          </div>
+        </header>
+
+        <section id="view" class="view"></section>
+      </main>
+    </div>
+
+    <dialog id="editor">
+      <form method="dialog" class="dialog-card">
+        <div class="dialog-head">
+          <div>
+            <p class="eyebrow">编辑资料</p>
+            <h2 id="editorTitle">新增</h2>
+          </div>
+          <button value="cancel" class="icon-btn">×</button>
+        </div>
+        <div id="editorFields" class="form-grid"></div>
+        <menu>
+          <button value="cancel" class="ghost">取消</button>
+          <button id="saveEditor" value="default" class="primary">保存</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <div id="toast" class="toast"></div>
+    <script src="./app.js"></script>
+  </body>
+</html>

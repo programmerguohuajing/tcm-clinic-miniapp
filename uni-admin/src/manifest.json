@@ -1,0 +1,16 @@
+{
+  "name": "青囊掌柜台",
+  "appid": "__UNI__TCMADMIN",
+  "description": "中医馆跨端移动管理端",
+  "versionName": "0.1.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "h5": {
+    "router": {
+      "base": "/h5-admin/"
+    },
+    "title": "青囊掌柜台"
+  },
+  "mp-alipay": {},
+  "mp-toutiao": {}
+}

@@ -1,0 +1,46 @@
+<view class="page">
+  <view class="hero-card booking-hero">
+    <view class="eyebrow">PRIVATE BOOKING</view>
+    <view class="title">选择一段属于身体的安静时光</view>
+    <view class="subtitle">按疗愈项目匹配技师与房间时段，提交后由顾问确认。</view>
+  </view>
+
+  <view class="section-title"><text>选择疗愈项目</text></view>
+  <scroll-view scroll-x class="chip-scroll">
+    <block wx:for="{{services}}" wx:key="id">
+      <view class="service-chip {{selectedService && selectedService.id === item.id ? 'active' : ''}}" bindtap="selectService" data-item="{{item}}">
+        <view>{{item.name}}</view>
+        <text>¥{{item.price}} · {{item.duration_minutes}}分钟</text>
+      </view>
+    </block>
+  </scroll-view>
+
+  <view class="section-title"><text>私人疗愈师</text></view>
+  <block wx:for="{{practitioners}}" wx:key="id">
+    <view class="list-card practitioner-card {{selectedPractitioner && selectedPractitioner.id === item.id ? 'active' : ''}}" bindtap="selectPractitioner" data-item="{{item}}">
+      <image class="avatar" src="{{item.avatar_url}}" mode="aspectFill" />
+      <view class="practitioner-main">
+        <view class="practitioner-name">{{item.name}} <text>{{item.title}}</text></view>
+        <view class="subtitle">{{item.bio}}</view>
+        <view class="tags">
+          <block wx:for="{{item.specialties}}" wx:key="*this">
+            <text>{{item}}</text>
+          </block>
+        </view>
+      </view>
+      <view class="rating">{{item.rating}}</view>
+    </view>
+  </block>
+
+  <view class="section-title"><text>安静房间时段</text><text class="muted">{{date}}</text></view>
+  <view class="slot-grid">
+    <block wx:for="{{slots}}" wx:key="id">
+      <view class="slot {{selectedSlot && selectedSlot.id === item.id ? 'active' : ''}} {{!item.available ? 'disabled' : ''}}" bindtap="selectSlot" data-item="{{item}}">
+        <view>{{item.timeLabel}}</view>
+        <text>{{item.available ? '可约' : '已满'}}</text>
+      </view>
+    </block>
+  </view>
+
+  <button class="primary-button submit-button" bindtap="submit">预约私人调理</button>
+</view>

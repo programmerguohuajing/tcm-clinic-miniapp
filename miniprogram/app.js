@@ -1,0 +1,7 @@
+App({
+  globalData: {
+    apiBaseUrl: "http://127.0.0.1:3000/api",
+    demoUserId: 1,
+    storeId: null
+  }
+});

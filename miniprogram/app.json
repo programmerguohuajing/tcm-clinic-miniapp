@@ -1,0 +1,42 @@
+{
+  "pages": [
+    "pages/home/home",
+    "pages/booking/booking",
+    "pages/appointment-confirm/appointment-confirm",
+    "pages/health/health",
+    "pages/profile/profile",
+    "pages/admin/admin"
+  ],
+  "window": {
+    "navigationBarTitleText": "QI Retreat",
+    "navigationBarBackgroundColor": "#2b2722",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#eee7dc"
+  },
+  "tabBar": {
+    "color": "#8c8172",
+    "selectedColor": "#9b7947",
+    "backgroundColor": "#f2eadf",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/home/home",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/booking/booking",
+        "text": "预约"
+      },
+      {
+        "pagePath": "pages/health/health",
+        "text": "档案"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

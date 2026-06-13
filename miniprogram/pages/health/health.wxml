@@ -1,0 +1,31 @@
+<view class="page">
+  <view class="hero-card health-hero">
+    <view class="eyebrow">WELLNESS ARCHIVE</view>
+    <view class="title">把身体的细微变化，留给下一次疗愈</view>
+    <view class="subtitle">记录体质、症状与问诊备注，让顾问为你安排更合适的调理节奏。</view>
+  </view>
+
+  <view class="section-card form-card">
+    <view class="section-title compact"><text>新增疗愈档案</text></view>
+    <input class="input" placeholder="体质结论，如：气虚夹湿" value="{{form.constitution}}" data-field="constitution" bindinput="onInput" />
+    <input class="input" placeholder="症状，用逗号分隔" value="{{form.symptomsText}}" data-field="symptomsText" bindinput="onInput" />
+    <textarea class="textarea" placeholder="脉诊/问诊备注" value="{{form.pulseNote}}" data-field="pulseNote" bindinput="onInput" />
+    <button class="primary-button" bindtap="submit">保存档案</button>
+  </view>
+
+  <view class="section-title"><text>身体记录</text></view>
+  <block wx:for="{{records}}" wx:key="id">
+    <view class="list-card record-card">
+      <view class="record-top">
+        <view class="record-title">{{item.constitution}}</view>
+        <text class="muted">{{item.dateLabel}}</text>
+      </view>
+      <view class="tags">
+        <block wx:for="{{item.symptoms}}" wx:key="*this">
+          <text>{{item}}</text>
+        </block>
+      </view>
+      <view class="subtitle">{{item.diagnosis_note || item.pulse_note}}</view>
+    </view>
+  </block>
+</view>

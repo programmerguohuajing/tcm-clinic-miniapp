@@ -1,0 +1,14 @@
+{
+  "name": "@tcm-clinic/admin-shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js",
+    "./web": "./src/web.js",
+    "./uni": "./src/uni.js",
+    "./admin-api": "./src/admin-api.js",
+    "./constants": "./src/constants.js",
+    "./format": "./src/format.js"
+  }
+}

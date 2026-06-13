@@ -1,0 +1,8 @@
+<view class="page confirm-page">
+  <view class="hero-card confirm-card">
+    <view class="seal">约</view>
+    <view class="title">私人调理预约已提交</view>
+    <view class="subtitle">订单号 {{orderNo}}。顾问会为你保留当前安静时段，到店后完成核销。</view>
+    <button class="primary-button" bindtap="goProfile">查看我的疗愈预约</button>
+  </view>
+</view>
