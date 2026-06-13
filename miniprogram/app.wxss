@@ -1,0 +1,110 @@
+page {
+  min-height: 100%;
+  color: #2f2b25;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(187, 169, 143, 0.42), transparent 34%),
+    radial-gradient(circle at 92% 8%, rgba(43, 39, 34, 0.16), transparent 30%),
+    linear-gradient(180deg, #eee7dc 0%, #f8f2e8 48%, #dfd4c5 100%);
+  font-family: "Songti SC", "STSong", "PingFang SC", serif;
+}
+
+.page {
+  min-height: 100vh;
+  padding: 34rpx 28rpx 44rpx;
+  box-sizing: border-box;
+}
+
+.hero-card,
+.section-card,
+.list-card {
+  position: relative;
+  overflow: hidden;
+  border: 1rpx solid rgba(47, 43, 37, 0.12);
+  border-radius: 42rpx;
+  background: rgba(255, 250, 243, 0.68);
+  box-shadow: 0 28rpx 80rpx rgba(47, 43, 37, 0.12);
+  backdrop-filter: blur(18rpx);
+}
+
+.hero-card::after {
+  content: "";
+  position: absolute;
+  right: -90rpx;
+  top: -90rpx;
+  width: 280rpx;
+  height: 280rpx;
+  border-radius: 999rpx;
+  background: radial-gradient(circle, rgba(187, 169, 143, 0.42), rgba(187, 169, 143, 0));
+}
+
+.eyebrow {
+  color: #9b7947;
+  font-size: 22rpx;
+  letter-spacing: 6rpx;
+  text-transform: uppercase;
+}
+
+.title {
+  color: #2b2722;
+  font-size: 50rpx;
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -1rpx;
+}
+
+.subtitle {
+  color: #7a7063;
+  font-size: 26rpx;
+  line-height: 1.65;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 48rpx 0 22rpx;
+  color: #2b2722;
+  font-size: 36rpx;
+  font-weight: 700;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44rpx;
+  padding: 0 20rpx;
+  border-radius: 999rpx;
+  color: #6f5836;
+  background: rgba(187, 169, 143, 0.22);
+  font-size: 22rpx;
+}
+
+.primary-button {
+  border: none;
+  border-radius: 999rpx;
+  color: #f8ead1;
+  background: linear-gradient(135deg, #2b2722, #6e604f);
+  box-shadow: 0 20rpx 46rpx rgba(43, 39, 34, 0.24);
+}
+
+.ghost-button {
+  border: 1rpx solid rgba(47, 43, 37, 0.16);
+  border-radius: 999rpx;
+  color: #2b2722;
+  background: rgba(255, 250, 243, 0.48);
+}
+
+.grid-two {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20rpx;
+}
+
+.muted {
+  color: #8c8172;
+}
+
+.price {
+  color: #9b7947;
+  font-weight: 700;
+}

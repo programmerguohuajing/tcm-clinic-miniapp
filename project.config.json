@@ -1,0 +1,13 @@
+{
+  "appid": "touristappid",
+  "projectname": "tcm-clinic-miniapp",
+  "miniprogramRoot": "miniprogram/",
+  "compileType": "miniprogram",
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "postcss": true,
+    "minified": true
+  }
+}
+

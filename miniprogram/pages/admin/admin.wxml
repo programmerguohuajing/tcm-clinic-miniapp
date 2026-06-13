@@ -1,0 +1,34 @@
+<view class="page">
+  <view class="hero-card admin-hero">
+    <view class="eyebrow">ADMIN CONSOLE</view>
+    <view class="title">今日经营脉象</view>
+    <view class="subtitle">营收、订单、技师服务量和用户增长集中查看；入口已绑定后台权限。</view>
+  </view>
+
+  <view class="metric-grid">
+    <view class="metric"><text>¥{{dashboard.cards.revenue}}</text><label>累计营收</label></view>
+    <view class="metric"><text>{{dashboard.cards.orders}}</text><label>预约订单</label></view>
+    <view class="metric"><text>{{dashboard.cards.practitioners}}</text><label>在职技师</label></view>
+    <view class="metric"><text>{{dashboard.cards.users}}</text><label>用户数</label></view>
+  </view>
+
+  <view class="section-title"><text>订单管理</text><text class="muted">支持核销</text></view>
+  <block wx:for="{{orders}}" wx:key="id">
+    <view class="list-card admin-order">
+      <view class="order-title">{{item.service_name}}</view>
+      <view class="subtitle">{{item.user_name}} · {{item.practitioner_name}} · {{item.appointment_date}} {{item.startLabel}}</view>
+      <view class="admin-actions">
+        <text class="pill">{{statusText[item.status] || item.status}}</text>
+        <button
+          class="primary-button mini"
+          loading="{{completingId === item.id}}"
+          disabled="{{!!completingId || item.status === 'completed' || item.status === 'cancelled' || item.status === 'refunded'}}"
+          bindtap="completeOrder"
+          data-id="{{item.id}}"
+        >
+          {{item.status === 'completed' ? '已核销' : '核销完成'}}
+        </button>
+      </view>
+    </view>
+  </block>
+</view>

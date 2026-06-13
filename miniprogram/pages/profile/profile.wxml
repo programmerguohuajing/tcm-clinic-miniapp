@@ -1,0 +1,43 @@
+<view class="page">
+  <view class="hero-card profile-card">
+    <view class="profile-row">
+      <view class="avatar-letter">{{summary.user.initial}}</view>
+      <view>
+        <view class="title small">{{summary.user.nickname}}</view>
+        <view class="subtitle">{{summary.user.member_level}} · {{summary.user.points}} 积分</view>
+      </view>
+    </view>
+    <view class="stats">
+      <view><text>{{summary.stats.appointments}}</text><label>预约</label></view>
+      <view><text>{{summary.stats.coupons}}</text><label>优惠券</label></view>
+      <view><text>{{summary.stats.familyMembers}}</text><label>家人</label></view>
+    </view>
+  </view>
+
+  <view class="grid-two action-grid">
+    <button wx:if="{{canManage}}" class="ghost-button" bindtap="goAdmin">管理端</button>
+    <button class="ghost-button" open-type="share">邀请好友</button>
+  </view>
+
+  <view class="section-title"><text>我的疗愈预约</text></view>
+  <block wx:for="{{appointments}}" wx:key="id">
+    <view class="list-card order-card">
+      <view class="order-top">
+        <view>
+          <view class="order-title">{{item.service_name}}</view>
+          <view class="subtitle">{{item.practitioner_name}} · {{item.appointment_date}} {{item.startLabel}}</view>
+        </view>
+        <text class="pill">{{statusText[item.status] || item.status}}</text>
+      </view>
+      <view class="price">¥{{item.amount}}</view>
+    </view>
+  </block>
+
+  <view class="section-title"><text>同行家人</text></view>
+  <block wx:for="{{familyMembers}}" wx:key="id">
+    <view class="list-card family-card">
+      <text>{{item.name}}</text>
+      <label>{{item.relation}}</label>
+    </view>
+  </block>
+</view>

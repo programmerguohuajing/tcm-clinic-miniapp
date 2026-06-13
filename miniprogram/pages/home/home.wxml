@@ -1,0 +1,54 @@
+<view class="page">
+  <view class="hero-card home-hero">
+    <view class="eyebrow">QI RETREAT</view>
+    <view wx:if="{{store}}" class="pill">{{store.name}} · {{store.business_hours}}</view>
+    <view class="retreat-photo">
+      <view class="moon"></view>
+      <view class="incense-line"></view>
+    </view>
+    <view class="title">{{hero.headline}}</view>
+    <view class="subtitle">{{hero.subtitle}}</view>
+    <button class="primary-button hero-button" bindtap="goBooking">{{hero.button}}</button>
+  </view>
+
+  <view class="ritual-row">
+    <view>耳穴</view>
+    <view>热敷</view>
+    <view>香灸</view>
+  </view>
+
+  <view class="section-title">
+    <text>私人疗愈仪式</text>
+    <text class="pill">RETREAT</text>
+  </view>
+  <scroll-view scroll-x class="activity-scroll">
+    <block wx:for="{{activities}}" wx:key="id">
+      <view class="activity-card">
+        <image class="activity-cover" src="{{item.cover_url}}" mode="aspectFill" />
+        <view class="pill activity-tag">{{item.tag}}</view>
+        <view class="activity-title">{{item.title}}</view>
+        <view class="subtitle">{{item.subtitle}}</view>
+        <view class="activity-bottom">
+          <text class="price">¥{{item.price}}</text>
+          <text class="origin">¥{{item.original_price}}</text>
+        </view>
+      </view>
+    </block>
+  </scroll-view>
+
+  <view class="section-title">
+    <text>疗愈札记</text>
+    <text class="muted">安静阅读</text>
+  </view>
+  <block wx:for="{{articles}}" wx:key="id">
+    <view class="list-card article-card">
+      <image class="article-cover" src="{{item.cover_url}}" mode="aspectFill" />
+      <view class="article-body">
+        <view class="pill">{{item.category}}</view>
+        <view class="article-title">{{item.title}}</view>
+        <view class="subtitle">{{item.summary}}</view>
+        <view class="muted">{{item.read_minutes}} 分钟阅读</view>
+      </view>
+    </view>
+  </block>
+</view>

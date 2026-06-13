@@ -1,0 +1,11 @@
+node_modules/
+.codegraph/
+.env
+.env.local
+dist/
+coverage/
+npm-debug.log*
+miniprogram/miniprogram_npm/
+miniprogram/project.private.config.json
+.postgres-data/
+*.log
