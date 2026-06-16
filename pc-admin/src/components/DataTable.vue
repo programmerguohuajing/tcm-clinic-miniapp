@@ -18,13 +18,14 @@ defineProps({
 <template>
   <div v-if="!rows.length" class="empty">{{ emptyText }}</div>
   <div v-else class="table-card element-table-card">
-    <el-table :data="rows" stripe>
+    <el-table :data="rows" stripe size="small" table-layout="auto" scrollbar-always-on>
       <el-table-column
         v-for="column in columns"
         :key="column.key"
         :label="column.label"
         :prop="column.key"
-        min-width="130"
+        min-width="118"
+        show-overflow-tooltip
       >
         <template #default="{ row }">
           <slot :name="column.key" :row="row">

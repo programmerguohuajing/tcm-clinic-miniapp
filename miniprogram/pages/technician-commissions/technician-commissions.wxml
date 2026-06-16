@@ -1,0 +1,26 @@
+<view class="page">
+  <view class="hero-card commission-hero">
+    <view class="eyebrow">COMMISSION</view>
+    <view class="title">我的提成</view>
+    <view class="subtitle">按已确认和已完成预约预估，最终以门店结算为准。</view>
+  </view>
+
+  <view class="metric-grid">
+    <view class="metric"><text>¥{{summary.grossAmount}}</text><label>服务业绩</label></view>
+    <view class="metric"><text>¥{{summary.commissionAmount}}</text><label>预估提成</label></view>
+  </view>
+
+  <view class="section-title"><text>提成明细</text></view>
+  <view wx:if="{{!rows.length}}" class="list-card empty-card">暂无提成数据</view>
+  <block wx:for="{{rows}}" wx:key="appointment_id">
+    <view class="list-card commission-card">
+      <view class="order-title">{{item.service_name}}</view>
+      <view class="subtitle">{{item.appointment_date}} {{item.startLabel}} · {{item.order_no}}</view>
+      <view class="commission-row">
+        <text>业绩 ¥{{item.gross_amount}}</text>
+        <text>{{item.rateLabel}}</text>
+        <text class="price">¥{{item.commission_amount}}</text>
+      </view>
+    </view>
+  </block>
+</view>

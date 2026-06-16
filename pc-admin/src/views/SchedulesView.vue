@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import DataTable from "../components/DataTable.vue";
 import FormDialog from "../components/FormDialog.vue";
 import PageSection from "../components/PageSection.vue";
@@ -12,8 +12,8 @@ import { dateText, timeText } from "../utils/format";
 
 const props = defineProps({ storeId: [String, Number], showToast: Function });
 const rows = ref([]);
+const filters = reactive({ practitionerId: "", date: "" });
 
-const storeOptions = computed(() => [{ label: "不绑定", value: "" }, ...bootstrapState.stores.map((s) => ({ label: s.name, value: Number(s.id) }))]);
 const practitionerOptions = computed(() => [{ label: "请选择技师", value: "" }, ...bootstrapState.practitioners.map((p) => ({ label: p.name, value: Number(p.id) }))]);
 
 const columns = [
@@ -27,7 +27,13 @@ const columns = [
 
 async function load() {
   await loadBootstrap();
-  rows.value = await adminApi.schedules({ storeId: props.storeId });
+  rows.value = await adminApi.schedules({ storeId: props.storeId, ...filters });
+}
+
+function resetFilters() {
+  filters.practitionerId = "";
+  filters.date = "";
+  load();
 }
 
 const { editor, openEditor, saveEditor } = useCrudEditor({ onSaved: load, showToast: props.showToast });
@@ -49,7 +55,6 @@ function openSingle() {
       status: "open"
     },
     fields: [
-      { name: "storeId", label: "门店", type: "select", options: storeOptions.value },
       { name: "practitionerId", label: "技师", type: "select", options: practitionerOptions.value },
       { name: "workDate", label: "日期", type: "date" },
       { name: "startTime", label: "开始时间", type: "time" },
@@ -73,7 +78,6 @@ function openBulk() {
       slotsText: "09:30-10:30,2\n14:00-15:00,2"
     },
     fields: [
-      { name: "storeId", label: "门店", type: "select", options: storeOptions.value },
       { name: "practitionerId", label: "技师", type: "select", options: practitionerOptions.value },
       { name: "startDate", label: "开始日期", type: "date" },
       { name: "endDate", label: "结束日期", type: "date" },
@@ -99,7 +103,13 @@ watch(() => props.storeId, load);
 <template>
   <PageSection title="排班日历">
     <template #actions>
-      <div class="actions">
+      <div class="toolbar">
+        <el-select v-model="filters.practitionerId" clearable filterable placeholder="技师" style="width: 150px">
+          <el-option v-for="item in practitionerOptions" :key="item.value" :label="item.label" :value="item.value" />
+        </el-select>
+        <el-date-picker v-model="filters.date" value-format="YYYY-MM-DD" placeholder="日期" style="width: 150px" />
+        <button class="primary" @click="load">查询</button>
+        <button class="ghost" @click="resetFilters">重置</button>
         <button class="primary" @click="openSingle">新增排班</button>
         <button class="ghost" @click="openBulk">批量排班</button>
       </div>

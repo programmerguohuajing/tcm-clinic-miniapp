@@ -1,19 +1,25 @@
+const { clearToken, ensureToken } = require("./auth");
+
 function request(path, options = {}) {
   const app = getApp();
   const { method = "GET", data } = options;
 
-  return new Promise((resolve, reject) => {
+  return ensureToken().then((token) => new Promise((resolve, reject) => {
     wx.request({
       url: `${app.globalData.apiBaseUrl}${path}`,
       method,
       data,
       header: {
         "content-type": "application/json",
+        ...(token ? { authorization: `Bearer ${token}` } : {}),
         "x-demo-user-id": app.globalData.demoUserId
       },
       success(response) {
         if (response.statusCode >= 200 && response.statusCode < 300) {
           resolve(response.data.data ?? response.data);
+        } else if (response.statusCode === 401 && !options.__retried) {
+          clearToken();
+          request(path, { ...options, __retried: true }).then(resolve).catch(reject);
         } else {
           console.error("[api] 请求失败", path, response.statusCode, response.data);
           reject({
@@ -27,7 +33,7 @@ function request(path, options = {}) {
         reject(error);
       }
     });
-  });
+  }));
 }
 
 module.exports = {

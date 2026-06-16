@@ -4,6 +4,7 @@ export const navItems = [
   { path: "/services", key: "services", label: "服务项目" },
   { path: "/practitioners", key: "practitioners", label: "技师管理" },
   { path: "/schedules", key: "schedules", label: "技师排班" },
+  { path: "/technician-portal", key: "technicianPortal", label: "技师工作台" },
   { path: "/orders", key: "orders", label: "预约订单" },
   { path: "/commissions", key: "commissions", label: "提成结算" },
   { path: "/homepage", key: "homepage", label: "首页配置" },

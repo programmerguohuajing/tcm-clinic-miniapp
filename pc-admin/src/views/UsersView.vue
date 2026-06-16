@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, reactive, ref } from "vue";
 import DataTable from "../components/DataTable.vue";
 import FormDialog from "../components/FormDialog.vue";
 import PageSection from "../components/PageSection.vue";
@@ -9,11 +9,19 @@ import { statusOptions } from "../constants/status";
 import { adminApi } from "../services/adminApi";
 import { money } from "../utils/format";
 
-const props = defineProps({ showToast: Function });
+const props = defineProps({ storeId: [String, Number], showToast: Function });
 const rows = ref([]);
+const filters = reactive({ keyword: "", adminRole: "", canManage: "" });
 
 async function load() {
-  rows.value = await adminApi.users();
+  rows.value = await adminApi.users(filters);
+}
+
+function resetFilters() {
+  filters.keyword = "";
+  filters.adminRole = "";
+  filters.canManage = "";
+  load();
 }
 
 const { editor, openEditor, saveEditor } = useCrudEditor({ onSaved: load, showToast: props.showToast });
@@ -34,7 +42,21 @@ onMounted(load);
 </script>
 
 <template>
-  <PageSection title="会员权限">
+  <PageSection title="用户管理">
+    <template #actions>
+      <div class="toolbar">
+        <el-input v-model="filters.keyword" clearable placeholder="昵称 / 手机号" style="width: 180px" @keyup.enter="load" />
+        <el-select v-model="filters.adminRole" clearable placeholder="角色" style="width: 150px">
+          <el-option v-for="item in statusOptions.roles" :key="item.value" :label="item.label" :value="item.value" />
+        </el-select>
+        <el-select v-model="filters.canManage" clearable placeholder="管理权限" style="width: 140px">
+          <el-option label="可管理" :value="true" />
+          <el-option label="不可管理" :value="false" />
+        </el-select>
+        <button class="primary" @click="load">查询</button>
+        <button class="ghost" @click="resetFilters">重置</button>
+      </div>
+    </template>
     <DataTable
       :columns="[
         { key: 'nickname', label: '用户' },

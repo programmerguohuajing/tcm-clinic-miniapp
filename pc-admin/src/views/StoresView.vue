@@ -8,7 +8,7 @@ import { useCrudEditor } from "../composables/useCrudEditor";
 import { adminApi } from "../services/adminApi";
 import { statusOptions } from "../constants/status";
 
-const props = defineProps({ showToast: Function });
+const props = defineProps({ storeId: [String, Number], showToast: Function });
 const rows = ref([]);
 
 const columns = [

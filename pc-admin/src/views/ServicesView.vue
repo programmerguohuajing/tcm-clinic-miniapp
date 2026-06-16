@@ -1,10 +1,10 @@
 <script setup>
-import { computed, onMounted, ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import DataTable from "../components/DataTable.vue";
 import FormDialog from "../components/FormDialog.vue";
 import PageSection from "../components/PageSection.vue";
 import StatusPill from "../components/StatusPill.vue";
-import { bootstrapState, loadBootstrap } from "../composables/useBootstrap";
+import { loadBootstrap } from "../composables/useBootstrap";
 import { useCrudEditor } from "../composables/useCrudEditor";
 import { statusOptions } from "../constants/status";
 import { adminApi } from "../services/adminApi";
@@ -12,7 +12,6 @@ import { money } from "../utils/format";
 
 const props = defineProps({ storeId: [String, Number], showToast: Function });
 const rows = ref([]);
-const storeOptions = computed(() => [{ label: "不绑定", value: "" }, ...bootstrapState.stores.map((s) => ({ label: s.name, value: Number(s.id) }))]);
 
 async function load() {
   await loadBootstrap();
@@ -37,7 +36,6 @@ function edit(row = {}) {
       isActive: row.is_active !== false
     },
     fields: [
-      { name: "storeId", label: "所属门店", type: "select", options: storeOptions.value },
       { name: "name", label: "项目名称" },
       { name: "category", label: "分类" },
       { name: "durationMinutes", label: "时长分钟", type: "number" },

@@ -17,8 +17,13 @@
   <block wx:for="{{records}}" wx:key="id">
     <view class="list-card record-card">
       <view class="record-top">
-        <view class="record-title">{{item.constitution}}</view>
-        <text class="muted">{{item.dateLabel}}</text>
+        <view class="record-heading">
+          <view class="record-title">{{item.constitution}}</view>
+        </view>
+        <view class="record-meta-actions">
+          <text class="muted">{{item.dateLabel}}</text>
+          <button class="ghost-button delete-record" data-id="{{item.id}}" bindtap="deleteRecord">删除</button>
+        </view>
       </view>
       <view class="tags">
         <block wx:for="{{item.symptoms}}" wx:key="*this">

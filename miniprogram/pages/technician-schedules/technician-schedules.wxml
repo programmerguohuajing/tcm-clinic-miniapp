@@ -1,0 +1,49 @@
+<view class="page">
+  <view class="hero-card schedule-hero">
+    <view class="eyebrow">SCHEDULE</view>
+    <view class="title">我的排班</view>
+    <view class="subtitle">技师可自主维护自己的可预约时段，容量会参与预约库存控制。</view>
+  </view>
+
+  <view class="list-card form-card">
+    <view class="form-row">
+      <text>日期</text>
+      <picker mode="date" value="{{form.workDate}}" bindchange="updateField" data-field="workDate">
+        <view class="field-value">{{form.workDate}}</view>
+      </picker>
+    </view>
+    <view class="form-row">
+      <text>开始时间</text>
+      <picker mode="time" value="{{form.startTime}}" bindchange="updateField" data-field="startTime">
+        <view class="field-value">{{form.startTime}}</view>
+      </picker>
+    </view>
+    <view class="form-row">
+      <text>结束时间</text>
+      <picker mode="time" value="{{form.endTime}}" bindchange="updateField" data-field="endTime">
+        <view class="field-value">{{form.endTime}}</view>
+      </picker>
+    </view>
+    <view class="form-row">
+      <text>容量</text>
+      <input class="field-input" type="number" value="{{form.capacity}}" bindinput="updateField" data-field="capacity" />
+    </view>
+    <view class="form-row">
+      <text>开放预约</text>
+      <switch checked="{{form.status === 'open'}}" bindchange="switchStatus" color="#2f7d6b" />
+    </view>
+    <button class="primary-button save-button" loading="{{saving}}" disabled="{{saving}}" bindtap="saveSchedule">保存排班</button>
+  </view>
+
+  <view class="section-title"><text>近期排班</text></view>
+  <view wx:if="{{!schedules.length}}" class="list-card empty-card">暂无排班</view>
+  <block wx:for="{{schedules}}" wx:key="id">
+    <view class="list-card schedule-card">
+      <view class="schedule-info">
+        <view class="order-title">{{item.work_date}} {{item.startLabel}}-{{item.endLabel}}</view>
+        <view class="subtitle">{{item.store_name || '未绑定门店'}} · 已约 {{item.booked_count}} / {{item.capacity}}</view>
+      </view>
+      <text class="pill">{{statusText[item.status] || item.status}}</text>
+    </view>
+  </block>
+</view>

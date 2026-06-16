@@ -1,7 +1,6 @@
 packages:
   - "backend"
   - "pc-admin"
-  - "uni-admin"
   - "packages/*"
 allowBuilds:
   '@parcel/watcher': true

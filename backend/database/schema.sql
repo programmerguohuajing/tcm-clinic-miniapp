@@ -8,6 +8,7 @@ create table if not exists users (
   points integer not null default 0,
   admin_role varchar(40) not null default 'member',
   can_manage boolean not null default false,
+  can_technician boolean not null default false,
   invited_by bigint references users(id),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -63,6 +64,7 @@ create table if not exists practitioners (
   specialties text[] not null default '{}',
   certificates jsonb not null default '[]',
   rating numeric(2,1) not null default 5.0,
+  user_id bigint unique references users(id) on delete set null,
   status varchar(20) not null default 'active',
   created_at timestamptz not null default now()
 );
@@ -221,6 +223,9 @@ create table if not exists admin_audit_logs (
   detail jsonb not null default '{}',
   created_at timestamptz not null default now()
 );
+
+alter table users add column if not exists can_technician boolean not null default false;
+alter table practitioners add column if not exists user_id bigint unique references users(id) on delete set null;
 
 create index if not exists idx_schedules_practitioner_date on schedules(practitioner_id, work_date);
 create index if not exists idx_schedules_store_date on schedules(store_id, work_date);

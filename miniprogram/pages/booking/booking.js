@@ -84,9 +84,9 @@ Page({
       const appointment = await request("/appointments", {
         method: "POST",
         data: {
-          serviceId: selectedService.id,
-          practitionerId: selectedPractitioner.id,
-          scheduleId: selectedSlot.id,
+          practitionerId: Number(selectedPractitioner.id),
+          serviceId: Number(selectedService.id),
+          scheduleId: Number(selectedSlot.id),
           note: "小程序端预约"
         }
       });

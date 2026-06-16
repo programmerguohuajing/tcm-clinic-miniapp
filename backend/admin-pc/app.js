@@ -249,10 +249,6 @@ function statusOptions(value, options = [["active", "启用"], ["inactive", "停
   return options.map(([key, label]) => `<option value="${key}" ${value === key ? "selected" : ""}>${label}</option>`).join("");
 }
 
-function storeOptions(value) {
-  return optionList(state.bootstrap.stores, value, "通用/不绑定");
-}
-
 function serviceOptions(selected = []) {
   const set = new Set((selected || []).map(String));
   return state.bootstrap.services.map((s) => `<label><input type="checkbox" name="serviceIds" value="${s.id}" ${set.has(String(s.id)) ? "checked" : ""}/> ${s.name}</label>`).join("");
@@ -277,8 +273,8 @@ const editors = {
     title: (r) => r.id ? "编辑技师" : "新增技师",
     endpoint: (r) => r.id ? `/admin/practitioners/${r.id}` : "/admin/practitioners",
     method: (r) => r.id ? "PATCH" : "POST",
+    useCurrentStore: true,
     fields: (r = {}) => [
-      field("storeId", "所属门店", r.store_id, "text", false, storeOptions(r.store_id)),
       field("name", "技师姓名", r.name),
       field("title", "职称", r.title),
       field("rating", "评分", r.rating || 5, "number"),
@@ -292,8 +288,8 @@ const editors = {
     title: () => "新增排班",
     endpoint: () => "/admin/schedules",
     method: () => "POST",
+    useCurrentStore: true,
     fields: () => [
-      field("storeId", "门店", state.storeId, "text", false, storeOptions(state.storeId)),
       field("practitionerId", "技师", "", "text", false, practitionerOptions()),
       field("workDate", "日期", new Date().toISOString().slice(0, 10), "date"),
       field("startTime", "开始时间", "09:30", "time"),
@@ -306,8 +302,8 @@ const editors = {
     title: () => "批量生成排班",
     endpoint: () => "/admin/schedules/bulk",
     method: () => "POST",
+    useCurrentStore: true,
     fields: () => [
-      field("storeId", "门店", state.storeId, "text", false, storeOptions(state.storeId)),
       field("practitionerId", "技师", "", "text", false, practitionerOptions()),
       field("startDate", "开始日期", new Date().toISOString().slice(0, 10), "date"),
       field("endDate", "结束日期", new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10), "date"),
@@ -341,8 +337,8 @@ const editors = {
     title: (r) => r.id ? "编辑首页配置" : "新增首页配置",
     endpoint: (r) => r.id ? `/admin/homepage-configs/${r.id}` : "/admin/homepage-configs",
     method: (r) => r.id ? "PATCH" : "POST",
+    useCurrentStore: true,
     fields: (r = {}) => [
-      field("storeId", "门店", r.store_id || state.storeId, "text", false, storeOptions(r.store_id || state.storeId)),
       field("sectionKey", "模块标识", r.section_key || "hero"),
       field("title", "标题", r.title),
       field("sortOrder", "排序", r.sort_order || 0, "number"),
@@ -355,8 +351,8 @@ const editors = {
     title: () => "新增活动",
     endpoint: () => "/admin/activities",
     method: () => "POST",
+    useCurrentStore: true,
     fields: () => [
-      field("storeId", "门店", state.storeId, "text", false, storeOptions(state.storeId)),
       field("title", "活动标题"),
       field("subtitle", "副标题", "", "text", true),
       field("price", "活动价", 99, "number"),
@@ -369,8 +365,8 @@ const editors = {
     title: () => "新增文章",
     endpoint: () => "/admin/articles",
     method: () => "POST",
+    useCurrentStore: true,
     fields: () => [
-      field("storeId", "门店", state.storeId, "text", false, storeOptions(state.storeId)),
       field("title", "文章标题"),
       field("category", "分类", "节气养生"),
       field("summary", "摘要", "", "text", true),
@@ -416,6 +412,11 @@ function collectForm(form) {
   return data;
 }
 
+function resolveEditorStoreId(row = {}) {
+  const storeId = row.store_id || row.storeId || state.storeId;
+  return storeId ? Number(storeId) : "";
+}
+
 function openEditor(type, row = {}) {
   const config = editors[type];
   const dialog = $("#editor");
@@ -426,6 +427,10 @@ function openEditor(type, row = {}) {
     event.preventDefault();
     try {
       let data = collectForm(dialog.querySelector("form"));
+      if (config.useCurrentStore && data.storeId === undefined) {
+        const storeId = resolveEditorStoreId(row);
+        if (storeId) data.storeId = storeId;
+      }
       if (config.transform) data = config.transform(data);
       delete data.payloadText;
       delete data.slotsText;

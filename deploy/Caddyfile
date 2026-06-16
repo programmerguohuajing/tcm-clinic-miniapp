@@ -1,0 +1,11 @@
+{$APP_HOST} {
+  encode gzip
+
+  header {
+    X-Content-Type-Options nosniff
+    X-Frame-Options DENY
+    Referrer-Policy strict-origin-when-cross-origin
+  }
+
+  reverse_proxy api:3000
+}

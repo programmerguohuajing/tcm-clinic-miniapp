@@ -12,7 +12,6 @@ import { splitKeywords } from "../utils/format";
 
 const props = defineProps({ storeId: [String, Number], showToast: Function });
 const rows = ref([]);
-const storeOptions = computed(() => [{ label: "不绑定", value: "" }, ...bootstrapState.stores.map((s) => ({ label: s.name, value: Number(s.id) }))]);
 const serviceOptions = computed(() => bootstrapState.services.map((s) => ({ label: s.name, value: Number(s.id) })));
 
 const columns = [
@@ -38,7 +37,7 @@ function edit(row = {}) {
     title: row.id ? "编辑技师" : "新增技师",
     model: {
       id: row.id,
-      storeId: row.store_id ? Number(row.store_id) : "",
+      storeId: row.store_id ? Number(row.store_id) : (props.storeId ? Number(props.storeId) : ""),
       name: row.name || "",
       title: row.title || "",
       rating: row.rating || 5,
@@ -48,7 +47,6 @@ function edit(row = {}) {
       status: row.status || "active"
     },
     fields: [
-      { name: "storeId", label: "所属门店", type: "select", options: storeOptions.value },
       { name: "name", label: "技师姓名" },
       { name: "title", label: "职称" },
       { name: "rating", label: "评分", type: "number" },

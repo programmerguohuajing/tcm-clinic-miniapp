@@ -45,3 +45,19 @@ healthRecordsRouter.post("/health-records", asyncHandler(async (req, res) => {
   res.status(201).json({ data: rows[0] });
 }));
 
+healthRecordsRouter.delete("/health-records/:id", asyncHandler(async (req, res) => {
+  const schema = z.object({ id: z.coerce.number().int().positive() });
+  const { id } = schema.parse(req.params);
+  const { rowCount } = await query(
+    `delete from health_records
+      where id = $1 and user_id = $2`,
+    [id, req.user.id]
+  );
+
+  if (!rowCount) {
+    return res.status(404).json({ message: "档案不存在或无权删除" });
+  }
+
+  res.json({ data: { id } });
+}));
+

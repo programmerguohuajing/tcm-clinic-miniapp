@@ -1,0 +1,16 @@
+node_modules
+**/node_modules
+.git
+.codegraph
+.claude
+.codex
+.postgres-data
+playwright-report
+test-results
+ui-previews
+*.log
+backend/.env
+dist
+**/dist
+miniprogram/miniprogram_npm
+miniprogram/project.private.config.json

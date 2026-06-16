@@ -2,7 +2,7 @@
   <view class="hero-card profile-card">
     <view class="profile-row">
       <view class="avatar-letter">{{summary.user.initial}}</view>
-      <view>
+      <view class="profile-main">
         <view class="title small">{{summary.user.nickname}}</view>
         <view class="subtitle">{{summary.user.member_level}} · {{summary.user.points}} 积分</view>
       </view>
@@ -16,14 +16,16 @@
 
   <view class="grid-two action-grid">
     <button wx:if="{{canManage}}" class="ghost-button" bindtap="goAdmin">管理端</button>
+    <button wx:if="{{canTechnician}}" class="ghost-button" bindtap="goTechnician">技师端</button>
     <button class="ghost-button" open-type="share">邀请好友</button>
   </view>
 
   <view class="section-title"><text>我的疗愈预约</text></view>
+  <view wx:if="{{!appointments.length}}" class="list-card empty-card">暂无预约记录</view>
   <block wx:for="{{appointments}}" wx:key="id">
     <view class="list-card order-card">
       <view class="order-top">
-        <view>
+        <view class="order-info">
           <view class="order-title">{{item.service_name}}</view>
           <view class="subtitle">{{item.practitioner_name}} · {{item.appointment_date}} {{item.startLabel}}</view>
         </view>

@@ -1,34 +1,124 @@
-<view class="page">
+<view class="page admin-page">
   <view class="hero-card admin-hero">
     <view class="eyebrow">ADMIN CONSOLE</view>
-    <view class="title">今日经营脉象</view>
-    <view class="subtitle">营收、订单、技师服务量和用户增长集中查看；入口已绑定后台权限。</view>
+    <view class="title">小程序管理台</view>
+    <view class="subtitle">经营、门店、项目、技师、排班、订单、提成、内容与权限统一在小程序内处理。</view>
   </view>
 
-  <view class="metric-grid">
-    <view class="metric"><text>¥{{dashboard.cards.revenue}}</text><label>累计营收</label></view>
-    <view class="metric"><text>{{dashboard.cards.orders}}</text><label>预约订单</label></view>
-    <view class="metric"><text>{{dashboard.cards.practitioners}}</text><label>在职技师</label></view>
-    <view class="metric"><text>{{dashboard.cards.users}}</text><label>用户数</label></view>
+  <view class="toolbar-card">
+    <view class="store-picker" bindtap="cycleStore">{{storeLabel}}</view>
+    <view class="refresh-button" bindtap="refreshAdmin">刷新</view>
   </view>
 
-  <view class="section-title"><text>订单管理</text><text class="muted">支持核销</text></view>
-  <block wx:for="{{orders}}" wx:key="id">
-    <view class="list-card admin-order">
-      <view class="order-title">{{item.service_name}}</view>
-      <view class="subtitle">{{item.user_name}} · {{item.practitioner_name}} · {{item.appointment_date}} {{item.startLabel}}</view>
-      <view class="admin-actions">
-        <text class="pill">{{statusText[item.status] || item.status}}</text>
-        <button
-          class="primary-button mini"
-          loading="{{completingId === item.id}}"
-          disabled="{{!!completingId || item.status === 'completed' || item.status === 'cancelled' || item.status === 'refunded'}}"
-          bindtap="completeOrder"
-          data-id="{{item.id}}"
-        >
-          {{item.status === 'completed' ? '已核销' : '核销完成'}}
-        </button>
+  <scroll-view class="tabs-scroll" scroll-x enhanced show-scrollbar="false">
+    <view class="tabs-track">
+      <view
+        wx:for="{{navItems}}"
+        wx:key="key"
+        class="tab {{activeKey === item.key ? 'active' : ''}}"
+        data-key="{{item.key}}"
+        bindtap="switchModule"
+      >{{item.label}}</view>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{loading}}" class="loading-card">正在调取经营脉络...</view>
+
+  <block wx:elif="{{activeKey === 'dashboard'}}">
+    <view class="metric-grid">
+      <view wx:for="{{dashboard.cardList}}" wx:key="label" class="metric">
+        <text>{{item.value}}</text>
+        <label>{{item.label}}</label>
+      </view>
+    </view>
+
+    <view class="rank-card">
+      <view class="section-title"><text>门店收入排行</text><text class="muted">Top 8</text></view>
+      <view wx:for="{{dashboard.storeRank}}" wx:key="store_name" class="rank-row">
+        <text>{{item.store_name}}</text>
+        <text class="rank-value">{{item.valueText}}</text>
+      </view>
+      <view wx:if="{{!dashboard.storeRank.length}}" class="empty">暂无排行数据</view>
+    </view>
+
+    <view class="rank-card">
+      <view class="section-title"><text>技师业绩排行</text><text class="muted">Top 8</text></view>
+      <view wx:for="{{dashboard.practitionerRank}}" wx:key="id" class="rank-row">
+        <text>{{item.practitioner_name}}</text>
+        <text class="rank-value">{{item.valueText}}</text>
+      </view>
+      <view wx:if="{{!dashboard.practitionerRank.length}}" class="empty">暂无排行数据</view>
+    </view>
+
+    <view class="rank-card">
+      <view class="section-title"><text>项目收入排行</text><text class="muted">Top 8</text></view>
+      <view wx:for="{{dashboard.serviceRank}}" wx:key="service_name" class="rank-row">
+        <text>{{item.service_name}}</text>
+        <text class="rank-value">{{item.valueText}}</text>
+      </view>
+      <view wx:if="{{!dashboard.serviceRank.length}}" class="empty">暂无排行数据</view>
+    </view>
+  </block>
+
+  <block wx:else>
+    <view class="module-head">
+      <view class="module-title">
+        <view class="section-title"><text>{{activeLabel}}</text><text class="muted">共 {{displayRows.length}} 条</text></view>
+      </view>
+      <view class="head-actions">
+        <view wx:if="{{activeKey !== 'audit' && activeKey !== 'orders' && activeKey !== 'users' && activeKey !== 'reviews'}}" class="primary-action" bindtap="openCreateEditor">
+          新增
+        </view>
+        <view wx:if="{{activeKey === 'schedules' || activeKey === 'content'}}" class="ghost-action" bindtap="openSecondaryEditor">
+          {{activeKey === 'schedules' ? '批量排班' : '新增文章'}}
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{!displayRows.length}}" class="empty-card">暂无数据</view>
+
+    <view wx:for="{{displayRows}}" wx:key="id" class="list-card record-card">
+      <view class="record-main">
+        <view class="record-copy">
+          <view class="record-title">{{item.titleText}}</view>
+          <view class="record-meta">{{item.metaText}}</view>
+        </view>
+        <view class="record-value">{{item.valueText}}</view>
+      </view>
+      <view wx:if="{{item.detailText}}" class="record-detail">{{item.detailText}}</view>
+      <view class="record-actions">
+        <view wx:if="{{activeKey !== 'orders' && activeKey !== 'schedules' && activeKey !== 'content' && activeKey !== 'audit' && activeKey !== 'commissions'}}" class="ghost mini" data-id="{{item.id}}" bindtap="openRowEditor">编辑</view>
+        <view wx:if="{{activeKey === 'commissions' && !item.commission_amount}}" class="ghost mini" data-id="{{item.id}}" bindtap="openRowEditor">编辑规则</view>
+        <view wx:if="{{activeKey === 'orders'}}" class="order-actions">
+          <view class="ghost mini" data-id="{{item.id}}" data-status="confirmed" bindtap="updateOrder">确认</view>
+          <view class="primary mini" data-id="{{item.id}}" data-status="completed" bindtap="updateOrder">核销</view>
+          <view class="danger mini" data-id="{{item.id}}" data-status="cancelled" bindtap="updateOrder">取消</view>
+        </view>
       </view>
     </view>
   </block>
+
+  <view wx:if="{{editor.visible}}" class="sheet-mask" bindtap="closeEditor">
+    <view class="sheet" catchtap="stopTap">
+      <view class="sheet-head">
+        <text>{{editor.title}}</text>
+        <view class="ghost mini" bindtap="closeEditor">关闭</view>
+      </view>
+      <view wx:for="{{editor.fields}}" wx:key="name" wx:for-index="fieldIndex" class="field">
+        <view class="field-label">{{item.label}}</view>
+        <picker wx:if="{{item.type === 'select'}}" range="{{item.options}}" range-key="label" value="{{item.index}}" data-name="{{item.name}}" data-field-index="{{fieldIndex}}" bindchange="updateSelect">
+          <view class="select-box">{{item.display}}</view>
+        </picker>
+        <checkbox-group wx:elif="{{item.type === 'checks'}}" class="checks" data-name="{{item.name}}" data-field-index="{{fieldIndex}}" bindchange="updateChecks">
+          <label wx:for="{{item.options}}" wx:key="value" wx:for-item="option" class="check-item">
+            <checkbox value="{{option.value}}" checked="{{option.checked}}" color="#0e7490" />
+            <text>{{option.label}}</text>
+          </label>
+        </checkbox-group>
+        <textarea wx:elif="{{item.type === 'textarea'}}" class="textarea" value="{{item.value}}" data-name="{{item.name}}" data-field-index="{{fieldIndex}}" bindinput="updateField" auto-height />
+        <input wx:else class="input" type="{{item.type === 'number' ? 'digit' : 'text'}}" value="{{item.value}}" data-name="{{item.name}}" data-type="{{item.type}}" data-field-index="{{fieldIndex}}" bindinput="updateField" />
+      </view>
+      <view class="save-button" bindtap="saveEditor">保存</view>
+    </view>
+  </view>
 </view>

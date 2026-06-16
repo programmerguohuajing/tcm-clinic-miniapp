@@ -82,5 +82,28 @@ Page({
       });
       wx.showToast({ title: "已保存演示档案", icon: "none" });
     }
+  },
+
+  deleteRecord(event) {
+    const id = Number(event.currentTarget.dataset.id);
+    if (!id) return;
+
+    wx.showModal({
+      title: "删除档案",
+      content: "确认删除这条疗愈档案吗？",
+      confirmText: "删除",
+      confirmColor: "#b42318",
+      success: async ({ confirm }) => {
+        if (!confirm) return;
+        try {
+          await request(`/health-records/${id}`, { method: "DELETE" });
+          this.setData({ records: this.data.records.filter((item) => Number(item.id) !== id) });
+          wx.showToast({ title: "已删除" });
+        } catch (error) {
+          this.setData({ records: this.data.records.filter((item) => Number(item.id) !== id) });
+          wx.showToast({ title: "已从本地移除", icon: "none" });
+        }
+      }
+    });
   }
 });

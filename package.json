@@ -8,11 +8,10 @@
     "dev:api": "pnpm --filter tcm-clinic-api dev",
     "dev:pc": "pnpm --filter tcm-clinic-pc-admin dev",
     "build:pc": "pnpm --filter tcm-clinic-pc-admin build",
-    "dev:h5-admin": "pnpm --filter tcm-clinic-uni-admin dev:h5",
-    "build:h5-admin": "pnpm --filter tcm-clinic-uni-admin build:h5",
-    "build:mp-alipay-admin": "pnpm --filter tcm-clinic-uni-admin build:mp-alipay",
-    "build:mp-toutiao-admin": "pnpm --filter tcm-clinic-uni-admin build:mp-toutiao",
-    "build:admin": "pnpm --filter tcm-clinic-pc-admin build && pnpm --filter tcm-clinic-uni-admin build:h5",
+    "build:admin": "pnpm --filter tcm-clinic-pc-admin build",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "verify:all": "pnpm build:pc && pnpm e2e",
     "start:api": "pnpm --filter tcm-clinic-api start",
     "db:init": "pnpm --filter tcm-clinic-api db:init",
     "db:seed": "pnpm --filter tcm-clinic-api db:seed"
@@ -20,7 +19,9 @@
   "workspaces": [
     "backend",
     "pc-admin",
-    "uni-admin",
     "packages/*"
-  ]
+  ],
+  "devDependencies": {
+    "@playwright/test": "^1.60.0"
+  }
 }

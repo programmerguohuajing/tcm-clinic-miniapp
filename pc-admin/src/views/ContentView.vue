@@ -1,10 +1,10 @@
 <script setup>
-import { computed, onMounted, ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import DataTable from "../components/DataTable.vue";
 import FormDialog from "../components/FormDialog.vue";
 import PageSection from "../components/PageSection.vue";
 import StatusPill from "../components/StatusPill.vue";
-import { bootstrapState, loadBootstrap } from "../composables/useBootstrap";
+import { loadBootstrap } from "../composables/useBootstrap";
 import { useCrudEditor } from "../composables/useCrudEditor";
 import { statusOptions } from "../constants/status";
 import { adminApi } from "../services/adminApi";
@@ -13,7 +13,6 @@ import { money } from "../utils/format";
 const props = defineProps({ storeId: [String, Number], showToast: Function });
 const activities = ref([]);
 const articles = ref([]);
-const storeOptions = computed(() => [{ label: "通用/不绑定", value: "" }, ...bootstrapState.stores.map((s) => ({ label: s.name, value: Number(s.id) }))]);
 
 async function load() {
   await loadBootstrap();
@@ -32,7 +31,6 @@ function addActivity() {
     title: "新增活动",
     model: { storeId: props.storeId ? Number(props.storeId) : "", title: "", subtitle: "", price: 99, originalPrice: 199, tag: "新客专享", coverUrl: "" },
     fields: [
-      { name: "storeId", label: "门店", type: "select", options: storeOptions.value },
       { name: "title", label: "活动标题" },
       { name: "subtitle", label: "副标题", wide: true },
       { name: "price", label: "活动价", type: "number" },
@@ -49,7 +47,6 @@ function addArticle() {
     title: "新增文章",
     model: { storeId: props.storeId ? Number(props.storeId) : "", title: "", category: "节气养生", summary: "", content: "", status: "published" },
     fields: [
-      { name: "storeId", label: "门店", type: "select", options: storeOptions.value },
       { name: "title", label: "文章标题" },
       { name: "category", label: "分类" },
       { name: "summary", label: "摘要", wide: true },

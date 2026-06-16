@@ -19,10 +19,11 @@ truncate table
   users
 restart identity cascade;
 
-insert into users (openid, nickname, phone, member_level, points, admin_role, can_manage)
+insert into users (openid, nickname, phone, member_level, points, admin_role, can_manage, can_technician)
 values
-  ('demo-openid-001', '林青禾', '13800000000', '金桂会员', 860, 'owner', true),
-  ('demo-openid-002', '周明远', '13900000000', '青竹会员', 210, 'member', false);
+  ('demo-openid-001', '林青禾', '13800000000', '金桂会员', 860, 'owner', true, true),
+  ('demo-openid-002', '周明远', '13900000000', '青竹会员', 210, 'member', false, false),
+  ('demo-openid-003', '许安和', '13700000000', '技师伙伴', 120, 'member', false, true);
 
 insert into stores (name, city, address, phone, business_hours, latitude, longitude, is_default)
 values
@@ -41,11 +42,11 @@ values
   (1, '体质辨识问诊', '中医问诊', '九种体质测评，生成个性化养生建议。', 30, 99, 'https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?w=900', 70),
   (2, '睡眠安神调理', '综合调理', '通过耳穴、头部放松与草本热敷改善睡眠。', 60, 198, 'https://images.unsplash.com/photo-1519823551278-64ac92734fb1?w=900', 60);
 
-insert into practitioners (store_id, name, title, avatar_url, bio, specialties, certificates, rating)
+insert into practitioners (store_id, name, title, avatar_url, bio, specialties, certificates, rating, user_id)
 values
-  (1, '许安和', '高级中医康复理疗师', 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400', '从业十二年，擅长经络调理与慢性疲劳管理。', array['肩颈调理','艾灸','睡眠管理'], '[{"name":"中医康复理疗师证"}]', 4.9),
-  (1, '沈知夏', '中医体质调养师', 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400', '关注女性体质、节气养生与家庭健康档案管理。', array['体质辨识','药膳建议','女性调理'], '[{"name":"健康管理师"}]', 4.8),
-  (2, '闻柏舟', '推拿正骨技师', 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400', '擅长运动损伤恢复、颈肩腰腿痛调理。', array['推拿','正骨','运动恢复'], '[{"name":"保健按摩师"}]', 4.7);
+  (1, '许安和', '高级中医康复理疗师', 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400', '从业十二年，擅长经络调理与慢性疲劳管理。', array['肩颈调理','艾灸','睡眠管理'], '[{"name":"中医康复理疗师证"}]', 4.9, 1),
+  (1, '沈知夏', '中医体质调养师', 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400', '关注女性体质、节气养生与家庭健康档案管理。', array['体质辨识','药膳建议','女性调理'], '[{"name":"健康管理师"}]', 4.8, 3),
+  (2, '闻柏舟', '推拿正骨技师', 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400', '擅长运动损伤恢复、颈肩腰腿痛调理。', array['推拿','正骨','运动恢复'], '[{"name":"保健按摩师"}]', 4.7, null);
 
 insert into practitioner_stores (practitioner_id, store_id, is_primary)
 values (1, 1, true), (2, 1, true), (3, 2, true);
@@ -61,6 +62,27 @@ select p.store_id, p.id, d::date, t.start_time::time, t.end_time::time, 2, 'open
 from practitioners p
 cross join generate_series(current_date, current_date + interval '9 days', interval '1 day') d
 cross join (values ('09:30','10:30'), ('11:00','12:00'), ('14:00','15:00'), ('15:30','16:30')) as t(start_time, end_time);
+
+insert into appointments (
+  order_no,
+  store_id,
+  user_id,
+  family_member_id,
+  service_id,
+  practitioner_id,
+  schedule_id,
+  appointment_date,
+  start_time,
+  end_time,
+  amount,
+  status,
+  payment_status,
+  note,
+  verification_code
+)
+values
+  ('TCM' || to_char(now(), 'YYYYMMDD') || '0001', 1, 1, 1, 1, 1, 1, current_date, '09:30', '10:30', 168, 'completed', 'paid', '体验很好，适合后续评价展示。', 'HX0001'),
+  ('TCM' || to_char(now(), 'YYYYMMDD') || '0002', 1, 1, 2, 2, 1, 2, current_date, '11:00', '12:00', 128, 'confirmed', 'paid', '肩颈调理预约，等待到店核销。', 'HX0002');
 
 insert into activities (store_id, title, subtitle, cover_url, price, original_price, tag, starts_at, ends_at, sort_order)
 values

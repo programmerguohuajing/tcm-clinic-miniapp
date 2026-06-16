@@ -7,6 +7,7 @@ Page({
       stats: { appointments: 0, coupons: 0, familyMembers: 0 }
     },
     canManage: false,
+    canTechnician: false,
     appointments: [
       {
         id: 1,
@@ -51,6 +52,7 @@ Page({
           }
         },
         canManage: Boolean(summary.user && summary.user.can_manage),
+        canTechnician: Boolean(summary.user && summary.user.can_technician),
         appointments: appointments.map((item) => ({
           ...item,
           startLabel: item.start_time.slice(0, 5)
@@ -70,6 +72,15 @@ Page({
     }
 
     wx.navigateTo({ url: "/pages/admin/admin" });
+  },
+
+  goTechnician() {
+    if (!this.data.canTechnician) {
+      wx.showToast({ title: "暂无技师端权限", icon: "none" });
+      return;
+    }
+
+    wx.navigateTo({ url: "/pages/technician/technician" });
   },
 
   onShareAppMessage() {

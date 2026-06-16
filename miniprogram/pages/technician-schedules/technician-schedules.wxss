@@ -1,0 +1,70 @@
+.schedule-hero {
+  padding: 42rpx;
+  background:
+    linear-gradient(145deg, rgba(255, 253, 248, 0.94), rgba(247, 241, 230, 0.86)),
+    radial-gradient(circle at 82% 12%, rgba(143, 175, 138, 0.14), transparent 230rpx);
+}
+
+.form-card {
+  margin-top: 24rpx;
+  padding: 28rpx;
+}
+
+.form-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 86rpx;
+  border-bottom: 1rpx solid rgba(92, 72, 48, 0.08);
+  color: #24342f;
+  font-size: 28rpx;
+}
+
+.form-row:last-of-type {
+  border-bottom: 0;
+}
+
+.field-value,
+.field-input {
+  min-width: 0;
+  color: #2f7d6b;
+  text-align: right;
+}
+
+.field-input {
+  width: 180rpx;
+}
+
+.save-button {
+  margin-top: 28rpx;
+  height: 82rpx;
+  font-size: 28rpx;
+  line-height: 82rpx;
+}
+
+.schedule-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  margin-bottom: 18rpx;
+  padding: 24rpx;
+}
+
+.schedule-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.order-title {
+  color: #24342f;
+  font-size: 30rpx;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.empty-card {
+  padding: 34rpx;
+  color: #81786b;
+  text-align: center;
+}

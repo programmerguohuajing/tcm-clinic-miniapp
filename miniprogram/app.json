@@ -5,7 +5,10 @@
     "pages/appointment-confirm/appointment-confirm",
     "pages/health/health",
     "pages/profile/profile",
-    "pages/admin/admin"
+    "pages/admin/admin",
+    "pages/technician/technician",
+    "pages/technician-schedules/technician-schedules",
+    "pages/technician-commissions/technician-commissions"
   ],
   "window": {
     "navigationBarTitleText": "QI Retreat",
@@ -14,26 +17,34 @@
     "backgroundColor": "#eee7dc"
   },
   "tabBar": {
-    "color": "#8c8172",
-    "selectedColor": "#9b7947",
-    "backgroundColor": "#f2eadf",
+    "color": "#6F675D",
+    "selectedColor": "#2F7D6B",
+    "backgroundColor": "#FBF7EF",
     "borderStyle": "white",
     "list": [
       {
         "pagePath": "pages/home/home",
-        "text": "首页"
+        "text": "首页",
+        "iconPath": "assets/tabbar/home.png",
+        "selectedIconPath": "assets/tabbar/home-active.png"
       },
       {
         "pagePath": "pages/booking/booking",
-        "text": "预约"
+        "text": "预约",
+        "iconPath": "assets/tabbar/booking.png",
+        "selectedIconPath": "assets/tabbar/booking-active.png"
       },
       {
         "pagePath": "pages/health/health",
-        "text": "档案"
+        "text": "档案",
+        "iconPath": "assets/tabbar/health.png",
+        "selectedIconPath": "assets/tabbar/health-active.png"
       },
       {
         "pagePath": "pages/profile/profile",
-        "text": "我的"
+        "text": "我的",
+        "iconPath": "assets/tabbar/profile.png",
+        "selectedIconPath": "assets/tabbar/profile-active.png"
       }
     ]
   },

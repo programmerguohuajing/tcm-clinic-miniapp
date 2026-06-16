@@ -175,8 +175,23 @@ adminRouter.get("/admin/dashboard", asyncHandler(async (req, res) => {
   });
 }));
 
-adminRouter.get("/admin/stores", asyncHandler(async (_req, res) => {
-  const { rows } = await query(`select * from stores order by is_default desc, id desc`);
+adminRouter.get("/admin/stores", asyncHandler(async (req, res) => {
+  const params = z.object({
+    keyword: z.string().optional(),
+    status: z.enum(["active", "inactive"]).optional()
+  }).parse(req.query);
+  const values = [];
+  const filters = [];
+  if (params.keyword) {
+    values.push(`%${params.keyword}%`);
+    filters.push(`(name ilike $${values.length} or city ilike $${values.length} or address ilike $${values.length})`);
+  }
+  if (params.status) {
+    values.push(params.status);
+    filters.push(`status = $${values.length}`);
+  }
+  const where = filters.length ? `where ${filters.join(" and ")}` : "";
+  const { rows } = await query(`select * from stores ${where} order by is_default desc, id desc`, values);
   res.json({ data: rows });
 }));
 
@@ -491,13 +506,30 @@ adminRouter.patch("/admin/orders/:id/status", asyncHandler(async (req, res) => {
   res.json({ data: rows[0] });
 }));
 
-adminRouter.get("/admin/commission-rules", asyncHandler(async (_req, res) => {
+adminRouter.get("/admin/commission-rules", asyncHandler(async (req, res) => {
+  const params = z.object({
+    keyword: z.string().optional(),
+    status: z.enum(["active", "inactive"]).optional()
+  }).parse(req.query);
+  const values = [];
+  const filters = [];
+  if (params.keyword) {
+    values.push(`%${params.keyword}%`);
+    filters.push(`(cr.name ilike $${values.length} or p.name ilike $${values.length} or s.name ilike $${values.length})`);
+  }
+  if (params.status) {
+    values.push(params.status);
+    filters.push(`cr.status = $${values.length}`);
+  }
+  const where = filters.length ? `where ${filters.join(" and ")}` : "";
   const { rows } = await query(
     `select cr.*, p.name as practitioner_name, s.name as service_name
        from commission_rules cr
        left join practitioners p on p.id = cr.practitioner_id
        left join services s on s.id = cr.service_id
-      order by cr.id desc`
+      ${where}
+      order by cr.id desc`,
+    values
   );
   res.json({ data: rows });
 }));
@@ -644,15 +676,37 @@ adminRouter.post("/admin/articles", asyncHandler(async (req, res) => {
   res.status(201).json({ data: rows[0] });
 }));
 
-adminRouter.get("/admin/users", asyncHandler(async (_req, res) => {
+adminRouter.get("/admin/users", asyncHandler(async (req, res) => {
+  const params = z.object({
+    keyword: z.string().optional(),
+    adminRole: z.enum(["member", "frontdesk", "manager", "owner"]).optional(),
+    canManage: z.coerce.boolean().optional()
+  }).parse(req.query);
+  const values = [];
+  const filters = [];
+  if (params.keyword) {
+    values.push(`%${params.keyword}%`);
+    filters.push(`(u.nickname ilike $${values.length} or u.phone ilike $${values.length})`);
+  }
+  if (params.adminRole) {
+    values.push(params.adminRole);
+    filters.push(`u.admin_role = $${values.length}`);
+  }
+  if (params.canManage !== undefined) {
+    values.push(params.canManage);
+    filters.push(`u.can_manage = $${values.length}`);
+  }
+  const where = filters.length ? `where ${filters.join(" and ")}` : "";
   const { rows } = await query(
     `select u.id, u.nickname, u.phone, u.member_level, u.points, u.admin_role, u.can_manage, u.created_at,
             count(a.id)::int as appointment_count,
             coalesce(sum(a.amount) filter (where a.status in ('confirmed','completed')),0)::numeric(12,2) as total_spend
        from users u
        left join appointments a on a.user_id = u.id
+      ${where}
       group by u.id
-      order by u.id desc`
+      order by u.id desc`,
+    values
   );
   res.json({ data: rows });
 }));
@@ -672,14 +726,36 @@ adminRouter.patch("/admin/users/:id/role", asyncHandler(async (req, res) => {
   res.json({ data: rows[0] });
 }));
 
-adminRouter.get("/admin/reviews", asyncHandler(async (_req, res) => {
+adminRouter.get("/admin/reviews", asyncHandler(async (req, res) => {
+  const params = z.object({
+    keyword: z.string().optional(),
+    status: z.enum(["visible", "hidden"]).optional(),
+    rating: z.coerce.number().int().min(1).max(5).optional()
+  }).parse(req.query);
+  const values = [];
+  const filters = [];
+  if (params.keyword) {
+    values.push(`%${params.keyword}%`);
+    filters.push(`(r.content ilike $${values.length} or u.nickname ilike $${values.length} or p.name ilike $${values.length})`);
+  }
+  if (params.status) {
+    values.push(params.status);
+    filters.push(`r.status = $${values.length}`);
+  }
+  if (params.rating) {
+    values.push(params.rating);
+    filters.push(`r.rating = $${values.length}`);
+  }
+  const where = filters.length ? `where ${filters.join(" and ")}` : "";
   const { rows } = await query(
     `select r.*, u.nickname as user_name, p.name as practitioner_name, st.name as store_name
        from reviews r
        left join users u on u.id = r.user_id
        left join practitioners p on p.id = r.practitioner_id
        left join stores st on st.id = r.store_id
-      order by r.created_at desc`
+      ${where}
+      order by r.created_at desc`,
+    values
   );
   res.json({ data: rows });
 }));
@@ -696,13 +772,45 @@ adminRouter.patch("/admin/reviews/:id", asyncHandler(async (req, res) => {
   res.json({ data: rows[0] });
 }));
 
-adminRouter.get("/admin/audit-logs", asyncHandler(async (_req, res) => {
+adminRouter.get("/admin/audit-logs", asyncHandler(async (req, res) => {
+  const params = z.object({
+    keyword: z.string().optional(),
+    action: z.string().optional(),
+    targetType: z.string().optional(),
+    startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional()
+  }).parse(req.query);
+  const values = [];
+  const filters = [];
+  if (params.keyword) {
+    values.push(`%${params.keyword}%`);
+    filters.push(`(l.action ilike $${values.length} or l.target_type ilike $${values.length} or u.nickname ilike $${values.length})`);
+  }
+  if (params.action) {
+    values.push(params.action);
+    filters.push(`l.action = $${values.length}`);
+  }
+  if (params.targetType) {
+    values.push(params.targetType);
+    filters.push(`l.target_type = $${values.length}`);
+  }
+  if (params.startDate) {
+    values.push(params.startDate);
+    filters.push(`l.created_at >= $${values.length}::date`);
+  }
+  if (params.endDate) {
+    values.push(params.endDate);
+    filters.push(`l.created_at < ($${values.length}::date + interval '1 day')`);
+  }
+  const where = filters.length ? `where ${filters.join(" and ")}` : "";
   const { rows } = await query(
     `select l.*, u.nickname as user_name
        from admin_audit_logs l
        left join users u on u.id = l.user_id
+      ${where}
       order by l.created_at desc
-      limit 100`
+      limit 100`,
+    values
   );
   res.json({ data: rows });
 }));

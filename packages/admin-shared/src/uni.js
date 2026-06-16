@@ -1,6 +1,7 @@
 import { createAdminApi } from "./admin-api.js";
 
 const DEMO_USER_ID = 1;
+const TOKEN_KEY = "tcm_auth_token";
 
 function apiBase() {
   if (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_BASE_URL) {
@@ -12,6 +13,18 @@ function apiBase() {
   return "/api";
 }
 
+function authHeaders() {
+  let token = "";
+  if (typeof window !== "undefined") {
+    token = window.localStorage.getItem(TOKEN_KEY) || "";
+  }
+
+  return {
+    ...(token ? { authorization: `Bearer ${token}` } : {}),
+    ...(typeof import.meta !== "undefined" && import.meta.env?.DEV ? { "x-demo-user-id": DEMO_USER_ID } : {})
+  };
+}
+
 export function request(path, options = {}) {
   return new Promise((resolve, reject) => {
     uni.request({
@@ -20,7 +33,7 @@ export function request(path, options = {}) {
       data: options.data,
       header: {
         "content-type": "application/json",
-        "x-demo-user-id": DEMO_USER_ID
+        ...authHeaders()
       },
       success: (res) => {
         const payload = res.data || {};

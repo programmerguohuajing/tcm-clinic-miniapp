@@ -1,10 +1,10 @@
 <script setup>
-import { computed, onMounted, ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import DataTable from "../components/DataTable.vue";
 import FormDialog from "../components/FormDialog.vue";
 import PageSection from "../components/PageSection.vue";
 import StatusPill from "../components/StatusPill.vue";
-import { bootstrapState, loadBootstrap } from "../composables/useBootstrap";
+import { loadBootstrap } from "../composables/useBootstrap";
 import { useCrudEditor } from "../composables/useCrudEditor";
 import { statusOptions } from "../constants/status";
 import { adminApi } from "../services/adminApi";
@@ -12,7 +12,6 @@ import { jsonText } from "../utils/format";
 
 const props = defineProps({ storeId: [String, Number], showToast: Function });
 const rows = ref([]);
-const storeOptions = computed(() => [{ label: "通用/不绑定", value: "" }, ...bootstrapState.stores.map((s) => ({ label: s.name, value: Number(s.id) }))]);
 
 async function load() {
   await loadBootstrap();
@@ -34,7 +33,6 @@ function edit(row = {}) {
       isActive: row.is_active !== false
     },
     fields: [
-      { name: "storeId", label: "门店", type: "select", options: storeOptions.value },
       { name: "sectionKey", label: "模块标识" },
       { name: "title", label: "标题" },
       { name: "sortOrder", label: "排序", type: "number" },

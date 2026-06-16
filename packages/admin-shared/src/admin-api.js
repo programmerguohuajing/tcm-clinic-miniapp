@@ -11,7 +11,7 @@ export function createAdminApi(request) {
   return {
     bootstrap: () => request("/admin/bootstrap"),
     dashboard: (params) => request(`/admin/dashboard${query(params)}`),
-    stores: () => request("/admin/stores"),
+    stores: (params) => request(`/admin/stores${query(params)}`),
     saveStore: (data) => request(data.id ? `/admin/stores/${data.id}` : "/admin/stores", { method: data.id ? "PATCH" : "POST", data }),
     services: (params) => request(`/admin/services${query(params)}`),
     saveService: (data) => request(data.id ? `/admin/services/${data.id}` : "/admin/services", { method: data.id ? "PATCH" : "POST", data }),
@@ -22,7 +22,7 @@ export function createAdminApi(request) {
     bulkSchedules: (data) => request("/admin/schedules/bulk", { method: "POST", data }),
     orders: (params) => request(`/admin/orders${query(params)}`),
     updateOrderStatus: (id, status) => request(`/admin/orders/${id}/status`, { method: "PATCH", data: { status } }),
-    commissionRules: () => request("/admin/commission-rules"),
+    commissionRules: (params) => request(`/admin/commission-rules${query(params)}`),
     saveCommissionRule: (data) => request(data.id ? `/admin/commission-rules/${data.id}` : "/admin/commission-rules", { method: data.id ? "PATCH" : "POST", data }),
     homepageConfigs: (params) => request(`/admin/homepage-configs${query(params)}`),
     saveHomepageConfig: (data) => request(data.id ? `/admin/homepage-configs/${data.id}` : "/admin/homepage-configs", { method: data.id ? "PATCH" : "POST", data }),
@@ -30,10 +30,15 @@ export function createAdminApi(request) {
     createActivity: (data) => request("/admin/activities", { method: "POST", data }),
     articles: (params) => request(`/admin/articles${query(params)}`),
     createArticle: (data) => request("/admin/articles", { method: "POST", data }),
-    users: () => request("/admin/users"),
+    users: (params) => request(`/admin/users${query(params)}`),
     updateUserRole: (id, data) => request(`/admin/users/${id}/role`, { method: "PATCH", data }),
-    reviews: () => request("/admin/reviews"),
+    reviews: (params) => request(`/admin/reviews${query(params)}`),
     updateReview: (id, data) => request(`/admin/reviews/${id}`, { method: "PATCH", data }),
-    auditLogs: () => request("/admin/audit-logs")
+    auditLogs: (params) => request(`/admin/audit-logs${query(params)}`),
+    technicianSummary: () => request("/technician/me/summary"),
+    technicianAppointments: () => request("/technician/me/appointments"),
+    technicianSchedules: (params) => request(`/technician/me/schedules${query(params)}`),
+    saveTechnicianSchedule: (data) => request("/technician/me/schedules", { method: "POST", data }),
+    technicianCommissions: () => request("/technician/me/commissions")
   };
 }

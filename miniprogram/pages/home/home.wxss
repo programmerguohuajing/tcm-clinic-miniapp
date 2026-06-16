@@ -2,8 +2,8 @@
   min-height: 600rpx;
   padding: 42rpx;
   background:
-    linear-gradient(145deg, rgba(255, 250, 243, 0.72), rgba(221, 211, 197, 0.58)),
-    radial-gradient(circle at 72% 18%, rgba(187, 169, 143, 0.34), transparent 260rpx);
+    linear-gradient(145deg, rgba(255, 253, 248, 0.92), rgba(247, 241, 230, 0.78)),
+    radial-gradient(circle at 76% 14%, rgba(143, 175, 138, 0.16), transparent 250rpx);
 }
 
 .home-hero .title {
@@ -31,22 +31,24 @@
   position: relative;
   height: 260rpx;
   margin: 28rpx 0 8rpx;
-  border-radius: 36rpx;
-  background:
-    linear-gradient(135deg, rgba(187, 169, 143, 0.92), rgba(238, 231, 220, 0.3)),
-    radial-gradient(circle at 24% 24%, rgba(255, 247, 230, 0.82), transparent 110rpx);
   overflow: hidden;
+  border: 1rpx solid rgba(47, 125, 107, 0.1);
+  border-radius: 32rpx;
+  background:
+    linear-gradient(135deg, rgba(255, 253, 248, 0.84), rgba(242, 234, 220, 0.78)),
+    radial-gradient(circle at 26% 24%, rgba(143, 175, 138, 0.22), transparent 120rpx);
 }
 
 .retreat-photo::after {
   content: "";
   position: absolute;
   right: 34rpx;
-  bottom: -50rpx;
+  bottom: -56rpx;
   width: 230rpx;
   height: 230rpx;
+  border: 1rpx solid rgba(47, 125, 107, 0.08);
   border-radius: 999rpx;
-  background: rgba(43, 39, 34, 0.16);
+  background: rgba(143, 175, 138, 0.08);
 }
 
 .moon {
@@ -56,7 +58,7 @@
   width: 112rpx;
   height: 112rpx;
   border-radius: 999rpx;
-  background: radial-gradient(circle at 36% 34%, #fff9ea, #bba98f);
+  background: radial-gradient(circle at 36% 34%, #fffdf8, #d8cfbd);
 }
 
 .incense-line {
@@ -65,8 +67,8 @@
   top: 76rpx;
   width: 2rpx;
   height: 138rpx;
-  background: rgba(47, 43, 37, 0.26);
-  box-shadow: 32rpx 28rpx 0 rgba(47, 43, 37, 0.12), 64rpx -10rpx 0 rgba(47, 43, 37, 0.1);
+  background: rgba(47, 58, 53, 0.2);
+  box-shadow: 32rpx 28rpx 0 rgba(47, 58, 53, 0.1), 64rpx -10rpx 0 rgba(47, 58, 53, 0.08);
 }
 
 .ritual-row {
@@ -78,12 +80,11 @@
 
 .ritual-row view {
   padding: 24rpx 0;
-  border: 1rpx solid rgba(47, 43, 37, 0.1);
+  border: 1rpx solid rgba(47, 125, 107, 0.12);
   border-radius: 999rpx;
-  color: #5d5145;
-  background: rgba(255, 250, 243, 0.52);
+  color: #3f6258;
+  background: rgba(255, 253, 248, 0.72);
   text-align: center;
-  box-shadow: 0 14rpx 34rpx rgba(47, 43, 37, 0.06);
 }
 
 .activity-scroll {
@@ -95,18 +96,18 @@
   width: 520rpx;
   margin-right: 22rpx;
   padding: 18rpx;
-  border: 1rpx solid rgba(47, 43, 37, 0.1);
-  border-radius: 38rpx;
-  background: rgba(255, 250, 243, 0.72);
-  box-shadow: 0 24rpx 58rpx rgba(47, 43, 37, 0.1);
+  border: 1rpx solid rgba(92, 72, 48, 0.12);
+  border-radius: 32rpx;
+  background: rgba(255, 253, 248, 0.86);
+  box-shadow: 0 8rpx 24rpx rgba(62, 49, 34, 0.06);
   vertical-align: top;
 }
 
 .activity-cover {
   width: 100%;
   height: 260rpx;
-  border-radius: 30rpx;
-  filter: saturate(0.72) contrast(0.96);
+  border-radius: 26rpx;
+  filter: saturate(0.78) contrast(0.98);
 }
 
 .activity-tag {
@@ -114,10 +115,17 @@
 }
 
 .activity-title {
+  display: -webkit-box;
   margin-top: 14rpx;
-  color: #2b2722;
+  overflow: hidden;
+  color: #24342f;
   font-size: 32rpx;
   font-weight: 700;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .activity-bottom {
@@ -128,7 +136,7 @@
 }
 
 .origin {
-  color: #a59a8b;
+  color: #9d9284;
   font-size: 24rpx;
   text-decoration: line-through;
 }
@@ -144,17 +152,24 @@
   flex: none;
   width: 180rpx;
   height: 180rpx;
-  border-radius: 30rpx;
-  filter: saturate(0.72);
+  border-radius: 26rpx;
+  filter: saturate(0.76);
 }
 
 .article-body {
+  min-width: 0;
   flex: 1;
 }
 
 .article-title {
+  display: -webkit-box;
   margin-top: 10rpx;
-  color: #2b2722;
+  overflow: hidden;
+  color: #24342f;
   font-size: 30rpx;
   font-weight: 700;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
