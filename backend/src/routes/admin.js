@@ -1,8 +1,9 @@
 import { Router } from "express";
 import { z } from "zod";
-import { query } from "../config/db.js";
+import { pool, query } from "../config/db.js";
 import { asyncHandler } from "../middleware/async-handler.js";
-import { requireAdmin } from "../middleware/auth.js";
+import { requireAdmin, requireRole } from "../middleware/auth.js";
+import { isProduction, maskPhone } from "../config/env.js";
 
 export const adminRouter = Router();
 
@@ -10,6 +11,10 @@ adminRouter.use("/admin", requireAdmin);
 
 const idParam = z.object({ id: z.coerce.number().int().positive() });
 const optionalStoreId = z.object({ storeId: z.coerce.number().int().positive().optional() });
+const paginateSchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  pageSize: z.coerce.number().int().positive().max(100).default(20)
+});
 
 function emptyToNull(value) {
   return value === undefined || value === "" ? null : value;
@@ -26,13 +31,31 @@ function storeWhere(storeId, alias = "") {
   return { sql: ` and ${alias}store_id = $1`, params: [storeId] };
 }
 
+function paginate(req) {
+  const { page, pageSize } = paginateSchema.parse(req.query);
+  const offset = (page - 1) * pageSize;
+  return { page, pageSize, offset, limit: pageSize };
+}
+
+function paginationMeta(page, pageSize, total) {
+  return { page, pageSize, total, totalPages: Math.ceil(total / pageSize) };
+}
+
 async function audit(req, action, targetType, targetId, detail = {}) {
-  await query(
+  query(
     `insert into admin_audit_logs (user_id, action, target_type, target_id, detail)
      values ($1,$2,$3,$4,$5)`,
     [req.user.id, action, targetType, targetId || null, detail]
-  );
+  ).catch((err) => console.error("[audit]", err));
 }
+
+const VALID_STATUS_TRANSITIONS = {
+  pending: ["confirmed", "cancelled"],
+  confirmed: ["completed", "cancelled"],
+  completed: [],
+  cancelled: ["refunded"],
+  refunded: []
+};
 
 adminRouter.get("/admin/bootstrap", asyncHandler(async (_req, res) => {
   const [stores, services, practitioners] = await Promise.all([
@@ -191,7 +214,11 @@ adminRouter.get("/admin/stores", asyncHandler(async (req, res) => {
     filters.push(`status = $${values.length}`);
   }
   const where = filters.length ? `where ${filters.join(" and ")}` : "";
-  const { rows } = await query(`select * from stores ${where} order by is_default desc, id desc`, values);
+  const { rows } = await query(
+    `select id, name, city, address, phone, business_hours, latitude, longitude, is_default, status, created_at, updated_at
+       from stores ${where} order by is_default desc, id desc`,
+    values
+  );
   res.json({ data: rows });
 }));
 
@@ -208,14 +235,24 @@ adminRouter.post("/admin/stores", asyncHandler(async (req, res) => {
     status: z.enum(["active", "inactive"]).default("active")
   });
   const data = schema.parse(req.body);
-  if (data.isDefault) await query(`update stores set is_default = false`);
-  const { rows } = await query(
-    `insert into stores (name, city, address, phone, business_hours, latitude, longitude, is_default, status)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9) returning *`,
-    [data.name, emptyToNull(data.city), data.address, emptyToNull(data.phone), emptyToNull(data.businessHours), data.latitude || null, data.longitude || null, data.isDefault, data.status]
-  );
-  await audit(req, "create_store", "store", rows[0].id, data);
-  res.status(201).json({ data: rows[0] });
+  const client = await pool.connect();
+  try {
+    await client.query("begin");
+    if (data.isDefault) await client.query(`update stores set is_default = false`);
+    const { rows } = await client.query(
+      `insert into stores (name, city, address, phone, business_hours, latitude, longitude, is_default, status)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9) returning *`,
+      [data.name, emptyToNull(data.city), data.address, emptyToNull(data.phone), emptyToNull(data.businessHours), data.latitude || null, data.longitude || null, data.isDefault, data.status]
+    );
+    await client.query("commit");
+    await audit(req, "create_store", "store", rows[0].id, data);
+    res.status(201).json({ data: rows[0] });
+  } catch (error) {
+    await client.query("rollback");
+    throw error;
+  } finally {
+    client.release();
+  }
 }));
 
 adminRouter.patch("/admin/stores/:id", asyncHandler(async (req, res) => {
@@ -231,15 +268,25 @@ adminRouter.patch("/admin/stores/:id", asyncHandler(async (req, res) => {
     isDefault: z.boolean().default(false),
     status: z.enum(["active", "inactive"]).default("active")
   }).parse(req.body);
-  if (data.isDefault) await query(`update stores set is_default = false where id <> $1`, [id]);
-  const { rows } = await query(
-    `update stores set name=$1, city=$2, address=$3, phone=$4, business_hours=$5,
-       latitude=$6, longitude=$7, is_default=$8, status=$9, updated_at=now()
-     where id=$10 returning *`,
-    [data.name, emptyToNull(data.city), data.address, emptyToNull(data.phone), emptyToNull(data.businessHours), data.latitude || null, data.longitude || null, data.isDefault, data.status, id]
-  );
-  await audit(req, "update_store", "store", id, data);
-  res.json({ data: rows[0] });
+  const client = await pool.connect();
+  try {
+    await client.query("begin");
+    if (data.isDefault) await client.query(`update stores set is_default = false where id <> $1`, [id]);
+    const { rows } = await client.query(
+      `update stores set name=$1, city=$2, address=$3, phone=$4, business_hours=$5,
+         latitude=$6, longitude=$7, is_default=$8, status=$9, updated_at=now()
+       where id=$10 returning *`,
+      [data.name, emptyToNull(data.city), data.address, emptyToNull(data.phone), emptyToNull(data.businessHours), data.latitude || null, data.longitude || null, data.isDefault, data.status, id]
+    );
+    await client.query("commit");
+    await audit(req, "update_store", "store", id, data);
+    res.json({ data: rows[0] });
+  } catch (error) {
+    await client.query("rollback");
+    throw error;
+  } finally {
+    client.release();
+  }
 }));
 
 adminRouter.get("/admin/services", asyncHandler(async (req, res) => {
@@ -335,8 +382,11 @@ adminRouter.post("/admin/practitioners", asyncHandler(async (req, res) => {
   if (data.storeId) {
     await query(`insert into practitioner_stores (practitioner_id, store_id, is_primary) values ($1,$2,true) on conflict do nothing`, [practitioner.id, data.storeId]);
   }
-  for (const serviceId of data.serviceIds) {
-    await query(`insert into practitioner_services (practitioner_id, service_id) values ($1,$2) on conflict do nothing`, [practitioner.id, serviceId]);
+  if (data.serviceIds.length) {
+    await query(
+      `insert into practitioner_services (practitioner_id, service_id) select $1, unnest($2::int[]) on conflict do nothing`,
+      [practitioner.id, data.serviceIds]
+    );
   }
   await audit(req, "create_practitioner", "practitioner", practitioner.id, data);
   res.status(201).json({ data: practitioner });
@@ -355,20 +405,33 @@ adminRouter.patch("/admin/practitioners/:id", asyncHandler(async (req, res) => {
     rating: z.coerce.number().min(0).max(5).default(5),
     status: z.enum(["active", "resting", "inactive"]).default("active")
   }).parse(req.body);
-  const { rows } = await query(
-    `update practitioners set store_id=$1, name=$2, title=$3, avatar_url=$4, bio=$5,
-       specialties=$6, rating=$7, status=$8 where id=$9 returning *`,
-    [data.storeId || null, data.name, data.title, emptyToNull(data.avatarUrl), emptyToNull(data.bio), toArray(data.specialties), data.rating, data.status, id]
-  );
-  await query(`delete from practitioner_services where practitioner_id=$1`, [id]);
-  for (const serviceId of data.serviceIds) {
-    await query(`insert into practitioner_services (practitioner_id, service_id) values ($1,$2) on conflict do nothing`, [id, serviceId]);
+  const client = await pool.connect();
+  try {
+    await client.query("begin");
+    const { rows } = await client.query(
+      `update practitioners set store_id=$1, name=$2, title=$3, avatar_url=$4, bio=$5,
+         specialties=$6, rating=$7, status=$8 where id=$9 returning *`,
+      [data.storeId || null, data.name, data.title, emptyToNull(data.avatarUrl), emptyToNull(data.bio), toArray(data.specialties), data.rating, data.status, id]
+    );
+    await client.query(`delete from practitioner_services where practitioner_id=$1`, [id]);
+    if (data.serviceIds.length) {
+      await client.query(
+        `insert into practitioner_services (practitioner_id, service_id) select $1, unnest($2::int[]) on conflict do nothing`,
+        [id, data.serviceIds]
+      );
+    }
+    if (data.storeId) {
+      await client.query(`insert into practitioner_stores (practitioner_id, store_id, is_primary) values ($1,$2,true) on conflict do nothing`, [id, data.storeId]);
+    }
+    await client.query("commit");
+    await audit(req, "update_practitioner", "practitioner", id, data);
+    res.json({ data: rows[0] });
+  } catch (error) {
+    await client.query("rollback");
+    throw error;
+  } finally {
+    client.release();
   }
-  if (data.storeId) {
-    await query(`insert into practitioner_stores (practitioner_id, store_id, is_primary) values ($1,$2,true) on conflict do nothing`, [id, data.storeId]);
-  }
-  await audit(req, "update_practitioner", "practitioner", id, data);
-  res.json({ data: rows[0] });
 }));
 
 adminRouter.get("/admin/schedules", asyncHandler(async (req, res) => {
@@ -460,6 +523,7 @@ adminRouter.get("/admin/orders", asyncHandler(async (req, res) => {
     practitionerId: z.coerce.number().int().positive().optional(),
     keyword: z.string().optional()
   }).parse(req.query);
+  const { page, pageSize, offset, limit } = paginate(req);
   const values = [];
   const filters = [];
   if (params.storeId) { values.push(params.storeId); filters.push(`a.store_id=$${values.length}`); }
@@ -470,10 +534,11 @@ adminRouter.get("/admin/orders", asyncHandler(async (req, res) => {
     filters.push(`(u.nickname ilike $${values.length} or a.order_no ilike $${values.length})`);
   }
   const where = filters.length ? `where ${filters.join(" and ")}` : "";
+  const countResult = await query(`select count(*)::int as total from appointments a join users u on u.id = a.user_id ${where}`, values);
   const { rows } = await query(
     `select a.id, a.order_no, a.status, a.payment_status, a.appointment_date::text as appointment_date,
             a.start_time, a.end_time, a.amount, a.note,
-            u.nickname as user_name, u.phone as user_phone,
+            u.nickname as user_name, ${isProduction() ? "mask_phone(u.phone) as user_phone" : "u.phone as user_phone"},
             s.name as service_name, p.name as practitioner_name, st.name as store_name
        from appointments a
        join users u on u.id = a.user_id
@@ -482,10 +547,10 @@ adminRouter.get("/admin/orders", asyncHandler(async (req, res) => {
        left join stores st on st.id = a.store_id
       ${where}
       order by a.created_at desc
-      limit 200`,
-    values
+      limit $${values.length + 1} offset $${values.length + 2}`,
+    [...values, limit, offset]
   );
-  res.json({ data: rows });
+  res.json({ data: rows, pagination: paginationMeta(page, pageSize, countResult.rows[0].total) });
 }));
 
 adminRouter.patch("/admin/orders/:id/status", asyncHandler(async (req, res) => {
@@ -493,17 +558,44 @@ adminRouter.patch("/admin/orders/:id/status", asyncHandler(async (req, res) => {
   const { status } = z.object({
     status: z.enum(["pending", "confirmed", "completed", "cancelled", "refunded"])
   }).parse(req.body);
-  const { rows } = await query(
-    `update appointments
-        set status = $1::varchar,
-            payment_status = case when $1::varchar = 'completed' then 'paid' else payment_status end,
-            updated_at = now()
-      where id=$2 returning *`,
-    [status, id]
-  );
-  if (!rows[0]) return res.status(404).json({ message: "订单不存在" });
-  await audit(req, "update_order_status", "appointment", id, { status });
-  res.json({ data: rows[0] });
+
+  const current = await query(`select status from appointments where id = $1`, [id]);
+  if (!current.rows[0]) return res.status(404).json({ error: { code: "NOT_FOUND", message: "订单不存在" } });
+
+  const allowed = VALID_STATUS_TRANSITIONS[current.rows[0].status];
+  if (allowed && !allowed.includes(status)) {
+    return res.status(409).json({
+      error: {
+        code: "INVALID_TRANSITION",
+        message: `订单状态 ${current.rows[0].status} 不允许变更为 ${status}`,
+        allowedTransitions: allowed
+      }
+    });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query("begin");
+    const { rows } = await client.query(
+      `update appointments
+          set status = $1::varchar,
+              payment_status = case when $1::varchar = 'completed' then 'paid' else payment_status end,
+              updated_at = now()
+        where id=$2 returning *`,
+      [status, id]
+    );
+    if ((status === "cancelled" || status === "refunded") && rows[0]?.schedule_id) {
+      console.log(`[admin] order ${id} ${status}, schedule ${rows[0].schedule_id} capacity may need restore`);
+    }
+    await client.query("commit");
+    await audit(req, "update_order_status", "appointment", id, { status });
+    res.json({ data: rows[0] });
+  } catch (error) {
+    await client.query("rollback");
+    throw error;
+  } finally {
+    client.release();
+  }
 }));
 
 adminRouter.get("/admin/commission-rules", asyncHandler(async (req, res) => {
@@ -534,7 +626,7 @@ adminRouter.get("/admin/commission-rules", asyncHandler(async (req, res) => {
   res.json({ data: rows });
 }));
 
-adminRouter.post("/admin/commission-rules", asyncHandler(async (req, res) => {
+adminRouter.post("/admin/commission-rules", requireRole("owner", "manager"), asyncHandler(async (req, res) => {
   const data = z.object({
     name: z.string().min(1).max(80),
     serviceId: z.number().int().positive().optional(),
@@ -552,7 +644,7 @@ adminRouter.post("/admin/commission-rules", asyncHandler(async (req, res) => {
   res.status(201).json({ data: rows[0] });
 }));
 
-adminRouter.patch("/admin/commission-rules/:id", asyncHandler(async (req, res) => {
+adminRouter.patch("/admin/commission-rules/:id", requireRole("owner", "manager"), asyncHandler(async (req, res) => {
   const { id } = idParam.parse(req.params);
   const data = z.object({
     name: z.string().min(1).max(80),
@@ -682,6 +774,7 @@ adminRouter.get("/admin/users", asyncHandler(async (req, res) => {
     adminRole: z.enum(["member", "frontdesk", "manager", "owner"]).optional(),
     canManage: z.coerce.boolean().optional()
   }).parse(req.query);
+  const { page, pageSize, offset, limit } = paginate(req);
   const values = [];
   const filters = [];
   if (params.keyword) {
@@ -697,21 +790,23 @@ adminRouter.get("/admin/users", asyncHandler(async (req, res) => {
     filters.push(`u.can_manage = $${values.length}`);
   }
   const where = filters.length ? `where ${filters.join(" and ")}` : "";
+  const countResult = await query(`select count(*)::int as total from users u ${where}`, values);
   const { rows } = await query(
-    `select u.id, u.nickname, u.phone, u.member_level, u.points, u.admin_role, u.can_manage, u.created_at,
+    `select u.id, u.nickname, ${isProduction() ? "mask_phone(u.phone) as phone" : "u.phone"}, u.member_level, u.points, u.admin_role, u.can_manage, u.created_at,
             count(a.id)::int as appointment_count,
             coalesce(sum(a.amount) filter (where a.status in ('confirmed','completed')),0)::numeric(12,2) as total_spend
        from users u
        left join appointments a on a.user_id = u.id
       ${where}
       group by u.id
-      order by u.id desc`,
-    values
+      order by u.id desc
+      limit $${values.length + 1} offset $${values.length + 2}`,
+    [...values, limit, offset]
   );
-  res.json({ data: rows });
+  res.json({ data: rows, pagination: paginationMeta(page, pageSize, countResult.rows[0].total) });
 }));
 
-adminRouter.patch("/admin/users/:id/role", asyncHandler(async (req, res) => {
+adminRouter.patch("/admin/users/:id/role", requireRole("owner"), asyncHandler(async (req, res) => {
   const { id } = idParam.parse(req.params);
   const data = z.object({
     adminRole: z.enum(["member", "frontdesk", "manager", "owner"]),
@@ -732,6 +827,7 @@ adminRouter.get("/admin/reviews", asyncHandler(async (req, res) => {
     status: z.enum(["visible", "hidden"]).optional(),
     rating: z.coerce.number().int().min(1).max(5).optional()
   }).parse(req.query);
+  const { page, pageSize, offset, limit } = paginate(req);
   const values = [];
   const filters = [];
   if (params.keyword) {
@@ -747,6 +843,7 @@ adminRouter.get("/admin/reviews", asyncHandler(async (req, res) => {
     filters.push(`r.rating = $${values.length}`);
   }
   const where = filters.length ? `where ${filters.join(" and ")}` : "";
+  const countResult = await query(`select count(*)::int as total from reviews r left join users u on u.id = r.user_id left join practitioners p on p.id = r.practitioner_id ${where}`, values);
   const { rows } = await query(
     `select r.*, u.nickname as user_name, p.name as practitioner_name, st.name as store_name
        from reviews r
@@ -754,10 +851,11 @@ adminRouter.get("/admin/reviews", asyncHandler(async (req, res) => {
        left join practitioners p on p.id = r.practitioner_id
        left join stores st on st.id = r.store_id
       ${where}
-      order by r.created_at desc`,
-    values
+      order by r.created_at desc
+      limit $${values.length + 1} offset $${values.length + 2}`,
+    [...values, limit, offset]
   );
-  res.json({ data: rows });
+  res.json({ data: rows, pagination: paginationMeta(page, pageSize, countResult.rows[0].total) });
 }));
 
 adminRouter.patch("/admin/reviews/:id", asyncHandler(async (req, res) => {
@@ -767,7 +865,7 @@ adminRouter.patch("/admin/reviews/:id", asyncHandler(async (req, res) => {
     status: z.enum(["visible", "hidden"]).default("visible")
   }).parse(req.body);
   const { rows } = await query(`update reviews set reply=$1, status=$2 where id=$3 returning *`, [emptyToNull(data.reply), data.status, id]);
-  if (!rows[0]) return res.status(404).json({ message: "评价不存在" });
+  if (!rows[0]) return res.status(404).json({ error: { code: "NOT_FOUND", message: "评价不存在" } });
   await audit(req, "update_review", "review", id, data);
   res.json({ data: rows[0] });
 }));
@@ -780,6 +878,7 @@ adminRouter.get("/admin/audit-logs", asyncHandler(async (req, res) => {
     startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
     endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional()
   }).parse(req.query);
+  const { page, pageSize, offset, limit } = paginate(req);
   const values = [];
   const filters = [];
   if (params.keyword) {
@@ -803,14 +902,15 @@ adminRouter.get("/admin/audit-logs", asyncHandler(async (req, res) => {
     filters.push(`l.created_at < ($${values.length}::date + interval '1 day')`);
   }
   const where = filters.length ? `where ${filters.join(" and ")}` : "";
+  const countResult = await query(`select count(*)::int as total from admin_audit_logs l left join users u on u.id = l.user_id ${where}`, values);
   const { rows } = await query(
     `select l.*, u.nickname as user_name
        from admin_audit_logs l
        left join users u on u.id = l.user_id
       ${where}
       order by l.created_at desc
-      limit 100`,
-    values
+      limit $${values.length + 1} offset $${values.length + 2}`,
+    [...values, limit, offset]
   );
-  res.json({ data: rows });
+  res.json({ data: rows, pagination: paginationMeta(page, pageSize, countResult.rows[0].total) });
 }));

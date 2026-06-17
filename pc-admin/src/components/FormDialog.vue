@@ -12,6 +12,14 @@ function updateCheckboxArray(field, value, checked) {
   const list = Array.isArray(props.editor.model[field.name]) ? props.editor.model[field.name] : [];
   props.editor.model[field.name] = checked ? [...new Set([...list, value])] : list.filter((item) => item !== value);
 }
+
+function getRules(field) {
+  const rules = [];
+  if (field.required) rules.push({ required: true, message: `请填写${field.label}`, trigger: "blur" });
+  if (field.type === "number" && field.min !== undefined) rules.push({ type: "number", min: field.min, message: `${field.label}不能小于${field.min}`, trigger: "blur" });
+  if (field.type === "number" && field.max !== undefined) rules.push({ type: "number", max: field.max, message: `${field.label}不能大于${field.max}`, trigger: "blur" });
+  return rules.length ? rules : undefined;
+}
 </script>
 
 <template>
@@ -30,6 +38,8 @@ function updateCheckboxArray(field, value, checked) {
         :key="field.name"
         :label="field.label"
         :class="{ wide: field.wide }"
+        :rules="getRules(field)"
+        :prop="field.name"
       >
         <el-input
           v-if="field.type === 'textarea'"
@@ -66,7 +76,8 @@ function updateCheckboxArray(field, value, checked) {
         <el-input-number
           v-else-if="field.type === 'number'"
           v-model="editor.model[field.name]"
-          :min="0"
+          :min="field.min ?? 0"
+          :max="field.max"
           controls-position="right"
         />
         <el-time-picker

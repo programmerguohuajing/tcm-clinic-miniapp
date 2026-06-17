@@ -2,6 +2,7 @@ node_modules/
 .codegraph/
 .env
 .env.local
+.env.*.local
 dist/
 coverage/
 test-results/
@@ -11,3 +12,6 @@ miniprogram/miniprogram_npm/
 miniprogram/project.private.config.json
 .postgres-data/
 *.log
+.hvigor/
+build/
+oh_modules/

@@ -35,6 +35,22 @@ export const statusMap = {
 
 export const offStatuses = ["inactive", "closed", "cancelled", "refunded", "hidden", "draft", false];
 
+export const ORDER_STATUS = {
+  PENDING: "pending",
+  CONFIRMED: "confirmed",
+  COMPLETED: "completed",
+  CANCELLED: "cancelled",
+  REFUNDED: "refunded"
+};
+
+export const VALID_STATUS_TRANSITIONS = {
+  pending: ["confirmed", "cancelled"],
+  confirmed: ["completed", "cancelled"],
+  completed: ["refunded"],
+  cancelled: [],
+  refunded: []
+};
+
 export const statusOptions = {
   basic: [
     { label: "启用", value: "active" },

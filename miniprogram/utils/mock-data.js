@@ -1,3 +1,5 @@
+const { isDev } = require("./env");
+
 const services = [
   {
     id: 1,
@@ -70,11 +72,17 @@ const articles = [
   }
 ];
 
+function getMock(key) {
+  if (!isDev()) return [];
+  const map = { services, practitioners, slots, activities, articles };
+  return map[key] || [];
+}
+
 module.exports = {
   activities,
   articles,
+  getMock,
   practitioners,
   services,
   slots
 };
-

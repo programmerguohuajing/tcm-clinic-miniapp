@@ -1,4 +1,5 @@
 const { request } = require("../../utils/request");
+const { isDev } = require("../../utils/env");
 const mock = require("../../utils/mock-data");
 
 function today() {
@@ -30,9 +31,13 @@ Page({
       this.setData({ services });
       if (services[0]) this.selectService({ currentTarget: { dataset: { item: services[0] } } });
     } catch (error) {
-      wx.showToast({ title: "接口失败，使用演示项目", icon: "none" });
-      this.setData({ services: mock.services });
-      this.selectService({ currentTarget: { dataset: { item: mock.services[0] } } });
+      if (isDev()) {
+        wx.showToast({ title: "接口失败，使用演示项目", icon: "none" });
+        this.setData({ services: mock.services });
+        if (mock.services[0]) this.selectService({ currentTarget: { dataset: { item: mock.services[0] } } });
+      } else {
+        wx.showToast({ title: error.message || "加载失败", icon: "none" });
+      }
     }
   },
 
@@ -45,8 +50,12 @@ Page({
       this.setData({ practitioners });
       if (practitioners[0]) this.selectPractitioner({ currentTarget: { dataset: { item: practitioners[0] } } });
     } catch (error) {
-      this.setData({ practitioners: mock.practitioners });
-      this.selectPractitioner({ currentTarget: { dataset: { item: mock.practitioners[0] } } });
+      if (isDev()) {
+        this.setData({ practitioners: mock.practitioners });
+        if (mock.practitioners[0]) this.selectPractitioner({ currentTarget: { dataset: { item: mock.practitioners[0] } } });
+      } else {
+        wx.showToast({ title: error.message || "加载失败", icon: "none" });
+      }
     }
   },
 
@@ -63,7 +72,11 @@ Page({
         }))
       });
     } catch (error) {
-      this.setData({ slots: mock.slots });
+      if (isDev()) {
+        this.setData({ slots: mock.slots });
+      } else {
+        wx.showToast({ title: error.message || "加载失败", icon: "none" });
+      }
     }
   },
 
@@ -87,17 +100,21 @@ Page({
           practitionerId: Number(selectedPractitioner.id),
           serviceId: Number(selectedService.id),
           scheduleId: Number(selectedSlot.id),
-          note: "小程序端预约"
+          note: ""
         }
       });
       wx.navigateTo({
         url: `/pages/appointment-confirm/appointment-confirm?orderNo=${appointment.order_no}`
       });
     } catch (error) {
-      wx.showToast({ title: "接口失败，展示演示订单", icon: "none" });
-      wx.navigateTo({
-        url: `/pages/appointment-confirm/appointment-confirm?orderNo=DEMO${Date.now()}`
-      });
+      if (isDev()) {
+        wx.showToast({ title: "接口失败，展示演示订单", icon: "none" });
+        wx.navigateTo({
+          url: `/pages/appointment-confirm/appointment-confirm?orderNo=DEMO${Date.now()}`
+        });
+      } else {
+        wx.showToast({ title: error.message || "预约失败", icon: "none" });
+      }
     }
   }
 });

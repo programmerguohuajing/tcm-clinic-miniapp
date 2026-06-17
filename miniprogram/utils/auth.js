@@ -1,3 +1,5 @@
+const { isDev } = require("./env");
+
 const TOKEN_KEY = "tcm_auth_token";
 
 function getToken() {
@@ -6,6 +8,15 @@ function getToken() {
 
 function setToken(token) {
   wx.setStorageSync(TOKEN_KEY, token);
+}
+
+function isTokenExpired(token) {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.exp * 1000 < Date.now();
+  } catch (_e) {
+    return true;
+  }
 }
 
 function wxLogin() {
@@ -28,7 +39,9 @@ function postLogin(apiBaseUrl, code) {
         if (response.statusCode >= 200 && response.statusCode < 300) {
           resolve(response.data.data ?? response.data);
         } else {
-          reject(response.data || { message: "登录失败" });
+          const payload = response.data || {};
+          const message = payload.error?.message || payload.message || "登录失败";
+          reject({ message, statusCode: response.statusCode });
         }
       },
       fail: reject
@@ -38,7 +51,14 @@ function postLogin(apiBaseUrl, code) {
 
 async function ensureToken() {
   const cached = getToken();
-  if (cached) return cached;
+  if (cached && !isTokenExpired(cached)) return cached;
+  if (cached && isTokenExpired(cached)) {
+    clearToken();
+  }
+
+  if (isDev()) {
+    return "";
+  }
 
   const app = getApp();
   const code = await wxLogin();

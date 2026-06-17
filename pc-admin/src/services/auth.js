@@ -32,7 +32,7 @@ export async function loginAdmin(credentials) {
   const payload = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(payload.message || "登录失败");
+    throw new Error(payload.error?.message || payload.message || "登录失败");
   }
 
   setSession(payload.data ?? payload);

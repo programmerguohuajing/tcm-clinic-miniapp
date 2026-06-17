@@ -9,7 +9,7 @@ healthRecordsRouter.get("/health-records", asyncHandler(async (req, res) => {
   const { rows } = await query(
     `select id, constitution, symptoms, tongue_image_url, pulse_note, diagnosis_note, created_at
        from health_records
-      where user_id = $1
+      where user_id = $1 and deleted_at is null
       order by created_at desc`,
     [req.user.id]
   );
@@ -49,15 +49,14 @@ healthRecordsRouter.delete("/health-records/:id", asyncHandler(async (req, res) 
   const schema = z.object({ id: z.coerce.number().int().positive() });
   const { id } = schema.parse(req.params);
   const { rowCount } = await query(
-    `delete from health_records
-      where id = $1 and user_id = $2`,
+    `update health_records set deleted_at = now()
+      where id = $1 and user_id = $2 and deleted_at is null`,
     [id, req.user.id]
   );
 
   if (!rowCount) {
-    return res.status(404).json({ message: "档案不存在或无权删除" });
+    return res.status(404).json({ error: { code: "NOT_FOUND", message: "档案不存在或无权删除" } });
   }
 
   res.json({ data: { id } });
 }));
-

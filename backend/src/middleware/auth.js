@@ -1,20 +1,6 @@
 import jwt from "jsonwebtoken";
 import { query } from "../config/db.js";
-
-const isProduction = process.env.NODE_ENV === "production";
-
-function jwtSecret() {
-  const secret = process.env.JWT_SECRET;
-  if (secret) return secret;
-  if (isProduction) {
-    throw Object.assign(new Error("生产环境缺少 JWT_SECRET"), { statusCode: 500 });
-  }
-  return "dev-only-jwt-secret";
-}
-
-export function signUserToken(user) {
-  return jwt.sign({ sub: String(user.id) }, jwtSecret(), { expiresIn: process.env.JWT_EXPIRES_IN || "7d" });
-}
+import { isProduction, jwtSecret, DEMO_USER } from "../config/env.js";
 
 async function findUserById(userId) {
   const { rows } = await query(
@@ -34,21 +20,16 @@ function bearerToken(req) {
   return type?.toLowerCase() === "bearer" ? token : "";
 }
 
+export function signUserToken(user) {
+  return jwt.sign({ sub: String(user.id) }, jwtSecret(), { expiresIn: process.env.JWT_EXPIRES_IN || "7d" });
+}
+
 export async function attachCurrentUser(req, res, next) {
   try {
-    if (!isProduction && req.header("x-demo-user-id")) {
+    if (!isProduction() && req.header("x-demo-user-id")) {
       const userId = Number(req.header("x-demo-user-id") || 1);
-      req.user = await findUserById(userId) || {
-        id: 1,
-        nickname: "体验用户",
-        phone: "13800000000",
-        points: 0,
-        member_level: "青竹会员",
-        admin_role: "member",
-        can_manage: false,
-        can_technician: false,
-        technician_id: null
-      };
+      console.warn(`[auth] DEV: using x-demo-user-id=${userId}`);
+      req.user = await findUserById(userId) || { ...DEMO_USER };
       return next();
     }
 
@@ -61,38 +42,14 @@ export async function attachCurrentUser(req, res, next) {
       return next();
     }
 
-    if (!isProduction) {
-      const userId = 1;
-      req.user = await findUserById(userId) || {
-        id: 1,
-        nickname: "体验用户",
-        phone: "13800000000",
-        points: 0,
-        member_level: "青竹会员",
-        admin_role: "member",
-        can_manage: false,
-        can_technician: false,
-        technician_id: null
-      };
+    if (!isProduction()) {
+      console.warn("[auth] DEV: no token, auto-attach demo user (id=1)");
+      req.user = await findUserById(1) || { ...DEMO_USER };
       return next();
     }
 
     return res.status(401).json({ message: "请先登录" });
   } catch (_error) {
-    if (!isProduction) {
-      req.user = await findUserById(1) || {
-        id: 1,
-        nickname: "体验用户",
-        phone: "13800000000",
-        points: 0,
-        member_level: "青竹会员",
-        admin_role: "member",
-        can_manage: false,
-        can_technician: false,
-        technician_id: null
-      };
-      return next();
-    }
     return res.status(401).json({ message: "登录状态已过期，请重新登录" });
   }
 }
@@ -103,4 +60,16 @@ export function requireAdmin(req, res, next) {
   }
 
   next();
+}
+
+export function requireRole(...roles) {
+  return (req, res, next) => {
+    if (!req.user?.can_manage) {
+      return res.status(403).json({ message: "当前用户没有管理端权限" });
+    }
+    if (roles.length && !roles.includes(req.user.admin_role)) {
+      return res.status(403).json({ message: "当前角色无权执行此操作" });
+    }
+    next();
+  };
 }

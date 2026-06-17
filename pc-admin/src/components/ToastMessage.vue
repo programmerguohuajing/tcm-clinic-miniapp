@@ -9,11 +9,19 @@ const props = defineProps({
   }
 });
 
+const typeMap = {
+  success: "success",
+  error: "error",
+  warning: "warning",
+  info: "info"
+};
+
 watch(
   () => props.toast.visible,
   (visible) => {
     if (visible && props.toast.message) {
-      ElMessage.success(props.toast.message);
+      const type = typeMap[props.toast.type] || "success";
+      ElMessage[type](props.toast.message);
     }
   }
 );

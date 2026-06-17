@@ -1,9 +1,8 @@
 {
   "rules": [
     {
-      "action": "allow",
+      "action": "disallow",
       "page": "*"
     }
   ]
 }
-

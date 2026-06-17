@@ -44,7 +44,25 @@ function resetFilters() {
   load();
 }
 
+import { ElMessageBox } from "element-plus";
+
+const confirmLabels = {
+  confirmed: "确认",
+  completed: "核销",
+  cancelled: "取消"
+};
+
 async function updateStatus(row, status) {
+  const label = confirmLabels[status] || status;
+  try {
+    await ElMessageBox.confirm(`确认${label}订单 ${row.order_no}？`, "订单操作", {
+      confirmButtonText: label,
+      cancelButtonText: "取消",
+      type: status === "cancelled" ? "warning" : "info"
+    });
+  } catch {
+    return;
+  }
   updatingKey.value = `${row.id}-${status}`;
   try {
     await adminApi.updateOrderStatus(row.id, status);

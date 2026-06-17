@@ -1,7 +1,7 @@
 import { createAdminApi } from "./admin-api.js";
 
-const DEMO_USER_ID = 1;
 const RETRYABLE_STATUS = new Set([500, 502, 503, 504]);
+const MAX_RETRIES = 2;
 const TOKEN_KEY = "tcm_auth_token";
 
 function delay(ms) {
@@ -9,13 +9,14 @@ function delay(ms) {
 }
 
 async function fetchAdmin(path, options) {
-  const token = !import.meta.env.DEV && typeof window !== "undefined" ? window.localStorage.getItem(TOKEN_KEY) : "";
+  const isDev = import.meta.env.DEV;
+  const token = !isDev && typeof window !== "undefined" ? window.localStorage.getItem(TOKEN_KEY) : "";
   return fetch(`/api${path}`, {
     method: options.method || "GET",
     headers: {
       "content-type": "application/json",
       ...(token ? { authorization: `Bearer ${token}` } : {}),
-      ...(import.meta.env.DEV ? { "x-demo-user-id": DEMO_USER_ID } : {})
+      ...(isDev ? { "x-demo-user-id": "2" } : {})
     },
     body: options.data ? JSON.stringify(options.data) : undefined
   });
@@ -23,16 +24,22 @@ async function fetchAdmin(path, options) {
 
 export async function request(path, options = {}) {
   const method = options.method || "GET";
-  let response = await fetchAdmin(path, { ...options, method });
+  let lastResponse = null;
 
-  if (method === "GET" && RETRYABLE_STATUS.has(response.status)) {
-    await delay(120);
-    response = await fetchAdmin(path, { ...options, method });
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    lastResponse = await fetchAdmin(path, { ...options, method });
+
+    if (method === "GET" && RETRYABLE_STATUS.has(lastResponse.status) && attempt < MAX_RETRIES) {
+      await delay(120 * (attempt + 1));
+      continue;
+    }
+    break;
   }
 
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(payload.message || "请求失败");
+  const payload = await lastResponse.json().catch(() => ({}));
+  if (!lastResponse.ok) {
+    const message = payload.error?.message || payload.message || "请求失败";
+    throw new Error(message);
   }
 
   return payload.data ?? payload;

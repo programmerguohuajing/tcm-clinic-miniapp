@@ -1,11 +1,12 @@
 import { reactive } from "vue";
 
 export function useToast() {
-  const toast = reactive({ visible: false, message: "" });
+  const toast = reactive({ visible: false, message: "", type: "success" });
   let timer;
 
-  function showToast(message) {
+  function showToast(message, type = "success") {
     toast.message = message;
+    toast.type = type;
     toast.visible = true;
     clearTimeout(timer);
     timer = setTimeout(() => {

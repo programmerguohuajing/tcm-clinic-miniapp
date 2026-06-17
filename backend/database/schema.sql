@@ -1,3 +1,10 @@
+create or replace function mask_phone(phone varchar) returns varchar as $$
+begin
+  if phone is null or length(phone) < 7 then return phone; end if;
+  return substring(phone, 1, 3) || '****' || substring(phone from length(phone) - 3);
+end;
+$$ language plpgsql immutable;
+
 create table if not exists users (
   id bigserial primary key,
   openid varchar(80) unique,
@@ -226,11 +233,14 @@ create table if not exists admin_audit_logs (
 
 alter table users add column if not exists can_technician boolean not null default false;
 alter table practitioners add column if not exists user_id bigint unique references users(id) on delete set null;
+alter table health_records add column if not exists deleted_at timestamptz;
 
 create index if not exists idx_schedules_practitioner_date on schedules(practitioner_id, work_date);
 create index if not exists idx_schedules_store_date on schedules(store_id, work_date);
 create index if not exists idx_appointments_user on appointments(user_id, appointment_date desc);
 create index if not exists idx_appointments_practitioner on appointments(practitioner_id, appointment_date desc);
 create index if not exists idx_appointments_store_date on appointments(store_id, appointment_date desc);
+create index if not exists idx_appointments_schedule on appointments(schedule_id);
+create index if not exists idx_appointments_status on appointments(status);
 create index if not exists idx_health_records_user on health_records(user_id, created_at desc);
 create index if not exists idx_homepage_configs_store on homepage_configs(store_id, sort_order desc);

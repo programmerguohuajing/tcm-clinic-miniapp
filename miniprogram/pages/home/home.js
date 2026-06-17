@@ -1,4 +1,5 @@
 const { request } = require("../../utils/request");
+const { isDev } = require("../../utils/env");
 const mock = require("../../utils/mock-data");
 
 Page({
@@ -9,8 +10,8 @@ Page({
       subtitle: "私人顾问为你安排合适技师、疗愈项目与安静房间。",
       button: "预约私人调理"
     },
-    activities: mock.activities,
-    articles: mock.articles
+    activities: isDev() ? mock.activities : [],
+    articles: isDev() ? mock.articles : []
   },
 
   onLoad() {
@@ -23,11 +24,11 @@ Page({
       const stores = await request("/stores");
       const store = stores.find((item) => item.id === app.globalData.storeId) || stores[0] || null;
       if (store) app.globalData.storeId = store.id;
-      const query = store ? `?storeId=${store.id}` : "";
+      const q = store ? `?storeId=${store.id}` : "";
       const [configs, activities, articles] = await Promise.all([
-        request(`/homepage-configs${query}`),
-        request(`/activities${query}`),
-        request(`/articles${query}`)
+        request(`/homepage-configs${q}`),
+        request(`/activities${q}`),
+        request(`/articles${q}`)
       ]);
       const heroConfig = configs.find((item) => item.section_key === "hero");
       this.setData({
@@ -40,11 +41,14 @@ Page({
         articles
       });
     } catch (error) {
-      console.warn("首页数据加载失败，使用兜底数据", error);
-      this.setData({
-        activities: mock.activities,
-        articles: mock.articles
-      });
+      if (isDev()) {
+        this.setData({
+          activities: mock.activities,
+          articles: mock.articles
+        });
+      } else {
+        wx.showToast({ title: error.message || "首页加载失败", icon: "none" });
+      }
     }
   },
 

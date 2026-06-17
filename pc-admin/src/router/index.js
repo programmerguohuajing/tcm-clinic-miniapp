@@ -24,7 +24,7 @@ const router = createRouter({
 });
 
 router.beforeEach((to) => {
-  if (import.meta.env.DEV || to.meta.public || getToken()) return true;
+  if (to.meta.public || getToken()) return true;
   return { name: "login", query: { redirect: to.fullPath } };
 });
 

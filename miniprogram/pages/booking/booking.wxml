@@ -18,13 +18,13 @@
   <view class="section-title"><text>私人疗愈师</text></view>
   <block wx:for="{{practitioners}}" wx:key="id">
     <view class="list-card practitioner-card {{selectedPractitioner && selectedPractitioner.id === item.id ? 'active' : ''}}" bindtap="selectPractitioner" data-item="{{item}}">
-      <image class="avatar" src="{{item.avatar_url}}" mode="aspectFill" />
+      <image class="avatar" src="{{item.avatar_url}}" mode="aspectFill" lazy-load />
       <view class="practitioner-main">
         <view class="practitioner-name">{{item.name}} <text>{{item.title}}</text></view>
         <view class="subtitle">{{item.bio}}</view>
         <view class="tags">
-          <block wx:for="{{item.specialties}}" wx:key="*this">
-            <text>{{item}}</text>
+          <block wx:for="{{item.specialties}}" wx:key="*this" wx:for-item="specialty">
+            <text>{{specialty}}</text>
           </block>
         </view>
       </view>

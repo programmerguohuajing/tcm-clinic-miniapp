@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { pool, query } from "../config/db.js";
 
 export async function listAvailableSlots({ practitionerId, date, storeId }) {
@@ -42,6 +43,20 @@ export async function createAppointment({
   try {
     await client.query("begin");
 
+    const duplicate = await client.query(
+      `select exists(
+        select 1 from appointments
+        where user_id = $1 and schedule_id = $2
+          and status in ('pending','confirmed')
+      ) as duplicate`,
+      [userId, scheduleId]
+    );
+    if (duplicate.rows[0].duplicate) {
+      const error = new Error("您已预约了该时段，请勿重复预约");
+      error.statusCode = 409;
+      throw error;
+    }
+
     const schedule = await client.query(
       `select *
          from schedules
@@ -84,7 +99,7 @@ export async function createAppointment({
       throw error;
     }
 
-    const orderNo = `TCM${Date.now()}${Math.floor(Math.random() * 1000)}`;
+    const orderNo = `TCM${randomUUID().slice(0, 8).toUpperCase()}`;
     const inserted = await client.query(
       `insert into appointments (
          order_no, user_id, family_member_id, service_id, practitioner_id,

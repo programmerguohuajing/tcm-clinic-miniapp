@@ -8,22 +8,27 @@ export const bootstrapState = reactive({
 });
 
 let bootstrapPromise = null;
-let bootstrapLoaded = false;
+let bootstrapLoadedAt = 0;
+const BOOTSTRAP_TTL = 5 * 60 * 1000;
+
+function isStale() {
+  return Date.now() - bootstrapLoadedAt > BOOTSTRAP_TTL;
+}
 
 function applyBootstrap(data) {
   bootstrapState.stores = data.stores || [];
   bootstrapState.services = data.services || [];
   bootstrapState.practitioners = data.practitioners || [];
+  bootstrapLoadedAt = Date.now();
   return bootstrapState;
 }
 
 export async function loadBootstrap({ force = false } = {}) {
-  if (bootstrapLoaded && !force) return bootstrapState;
+  if (bootstrapLoadedAt && !force && !isStale() && !bootstrapPromise) return bootstrapState;
   if (bootstrapPromise && !force) return bootstrapPromise;
 
   bootstrapPromise = adminApi.bootstrap()
     .then((data) => {
-      bootstrapLoaded = true;
       return applyBootstrap(data);
     })
     .finally(() => {

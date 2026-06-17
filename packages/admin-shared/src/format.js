@@ -17,3 +17,14 @@ export function splitKeywords(value) {
 }
 
 export const percentText = (value) => `${Math.round(Number(value || 0) * 100)}%`;
+
+export function maskPhone(phone) {
+  if (!phone || phone.length < 7) return phone || "";
+  return phone.slice(0, 3) + "****" + phone.slice(-4);
+}
+
+export function today(offset = 0) {
+  const date = new Date();
+  date.setDate(date.getDate() + offset);
+  return date.toISOString().slice(0, 10);
+}

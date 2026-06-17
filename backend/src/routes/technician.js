@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { query } from "../config/db.js";
 import { asyncHandler } from "../middleware/async-handler.js";
+import { isProduction, maskPhone } from "../config/env.js";
 
 export const technicianRouter = Router();
 
@@ -140,6 +141,15 @@ technicianRouter.post("/technician/me/schedules", asyncHandler(async (req, res) 
     capacity: z.coerce.number().int().positive().max(50).default(1),
     status: z.enum(["open", "closed"]).default("open")
   }).parse(req.body);
+  if (data.storeId) {
+    const { rows: linked } = await query(
+      `select 1 from practitioner_stores where practitioner_id = $1 and store_id = $2`,
+      [req.user.technician_id, data.storeId]
+    );
+    if (!linked.length) {
+      return res.status(403).json({ message: "您无权为该门店创建排班" });
+    }
+  }
   const { rows } = await query(
     `insert into schedules (store_id, practitioner_id, work_date, start_time, end_time, capacity, status)
      values ($1,$2,$3,$4,$5,$6,$7)
@@ -152,10 +162,11 @@ technicianRouter.post("/technician/me/schedules", asyncHandler(async (req, res) 
 }));
 
 technicianRouter.get("/technician/me/appointments", asyncHandler(async (req, res) => {
+  const phoneExpr = isProduction() ? "mask_phone(u.phone)" : "u.phone";
   const { rows } = await query(
     `select a.id, a.order_no, a.status, a.payment_status, a.appointment_date::text as appointment_date,
             a.start_time, a.end_time, a.amount, a.note,
-            u.nickname as user_name, u.phone as user_phone,
+            u.nickname as user_name, ${phoneExpr} as user_phone,
             s.name as service_name, st.name as store_name
        from appointments a
        join users u on u.id = a.user_id

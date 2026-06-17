@@ -110,7 +110,7 @@
           <view class="select-box">{{item.display}}</view>
         </picker>
         <checkbox-group wx:elif="{{item.type === 'checks'}}" class="checks" data-name="{{item.name}}" data-field-index="{{fieldIndex}}" bindchange="updateChecks">
-          <label wx:for="{{item.options}}" wx:key="value" wx:for-item="option" class="check-item">
+          <label wx:for="{{item.options}}" wx:key="value" wx:for-item="option" wx:for-index="optIdx" class="check-item">
             <checkbox value="{{option.value}}" checked="{{option.checked}}" color="#0e7490" />
             <text>{{option.label}}</text>
           </label>

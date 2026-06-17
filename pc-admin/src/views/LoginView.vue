@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, ref } from "vue";
+import { onMounted, reactive, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { loginAdmin } from "../services/auth";
 
@@ -10,6 +10,13 @@ const error = ref("");
 const form = reactive({
   phone: "",
   password: ""
+});
+
+onMounted(() => {
+  if (import.meta.env.DEV) {
+    form.phone = "13800000000";
+    form.password = "admin123";
+  }
 });
 
 async function submit() {

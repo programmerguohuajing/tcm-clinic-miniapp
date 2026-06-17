@@ -1,4 +1,6 @@
 <script setup>
+import { computed } from "vue";
+
 const props = defineProps({
   title: {
     type: String,
@@ -18,9 +20,10 @@ const props = defineProps({
   }
 });
 
+const maxValue = computed(() => Math.max(...props.rows.map((item) => Number(item[props.valueKey] || 0)), 1));
+
 function width(row) {
-  const max = Math.max(...props.rows.map((item) => Number(item[props.valueKey] || 0)), 1);
-  return `${Math.max((Number(row[props.valueKey] || 0) / max) * 100, 5)}%`;
+  return `${Math.max((Number(row[props.valueKey] || 0) / maxValue.value) * 100, 5)}%`;
 }
 </script>
 

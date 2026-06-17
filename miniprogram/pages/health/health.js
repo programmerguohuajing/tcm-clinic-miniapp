@@ -1,4 +1,5 @@
 const { request } = require("../../utils/request");
+const { isDev } = require("../../utils/env");
 
 const fallbackRecords = [
   {
@@ -14,7 +15,7 @@ const fallbackRecords = [
 
 Page({
   data: {
-    records: fallbackRecords,
+    records: isDev() ? fallbackRecords : [],
     form: {
       constitution: "",
       symptomsText: "",
@@ -36,8 +37,11 @@ Page({
         }))
       });
     } catch (error) {
-      console.warn("健康档案加载失败", error);
-      this.setData({ records: fallbackRecords });
+      if (isDev()) {
+        this.setData({ records: fallbackRecords });
+      } else {
+        wx.showToast({ title: error.message || "加载失败", icon: "none" });
+      }
     }
   },
 
@@ -67,20 +71,24 @@ Page({
       wx.showToast({ title: "已保存" });
       this.loadRecords();
     } catch (error) {
-      const localRecord = {
-        id: Date.now(),
-        constitution,
-        symptoms: symptomsText.split(/[,，]/).map((item) => item.trim()).filter(Boolean),
-        pulse_note: pulseNote,
-        diagnosis_note: "本地演示记录，接口恢复后可保存到数据库。",
-        created_at: new Date().toISOString(),
-        dateLabel: new Date().toISOString().slice(0, 10)
-      };
-      this.setData({
-        records: [localRecord, ...this.data.records],
-        form: { constitution: "", symptomsText: "", pulseNote: "" }
-      });
-      wx.showToast({ title: "已保存演示档案", icon: "none" });
+      if (isDev()) {
+        const localRecord = {
+          id: Date.now(),
+          constitution,
+          symptoms: symptomsText.split(/[,，]/).map((item) => item.trim()).filter(Boolean),
+          pulse_note: pulseNote,
+          diagnosis_note: "本地演示记录",
+          created_at: new Date().toISOString(),
+          dateLabel: new Date().toISOString().slice(0, 10)
+        };
+        this.setData({
+          records: [localRecord, ...this.data.records],
+          form: { constitution: "", symptomsText: "", pulseNote: "" }
+        });
+        wx.showToast({ title: "已保存演示档案", icon: "none" });
+      } else {
+        wx.showToast({ title: error.message || "保存失败", icon: "none" });
+      }
     }
   },
 
@@ -100,8 +108,12 @@ Page({
           this.setData({ records: this.data.records.filter((item) => Number(item.id) !== id) });
           wx.showToast({ title: "已删除" });
         } catch (error) {
-          this.setData({ records: this.data.records.filter((item) => Number(item.id) !== id) });
-          wx.showToast({ title: "已从本地移除", icon: "none" });
+          if (!isDev()) {
+            wx.showToast({ title: error.message || "删除失败", icon: "none" });
+          } else {
+            this.setData({ records: this.data.records.filter((item) => Number(item.id) !== id) });
+            wx.showToast({ title: "已从本地移除", icon: "none" });
+          }
         }
       }
     });
