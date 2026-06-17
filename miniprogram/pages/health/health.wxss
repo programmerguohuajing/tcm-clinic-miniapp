@@ -1,8 +1,8 @@
 .health-hero {
-  padding: 42rpx;
+  padding: 38rpx;
   background:
-    linear-gradient(145deg, rgba(255, 253, 248, 0.92), rgba(247, 241, 230, 0.78)),
-    radial-gradient(circle at 78% 18%, rgba(143, 175, 138, 0.14), transparent 240rpx);
+    linear-gradient(150deg, rgba(255, 255, 255, 0.96), rgba(231, 247, 241, 0.74)),
+    radial-gradient(circle at 78% 18%, rgba(185, 242, 223, 0.5), transparent 240rpx);
 }
 
 .form-card {
@@ -19,11 +19,11 @@
   width: 100%;
   margin-bottom: 18rpx;
   padding: 0 24rpx;
-  border: 1rpx solid rgba(92, 72, 48, 0.12);
+  border: 1rpx solid #c8ebde;
   border-radius: 24rpx;
-  background: rgba(255, 253, 248, 0.84);
+  background: rgba(255, 255, 255, 0.94);
   box-sizing: border-box;
-  color: #2f3a35;
+  color: #10241e;
   font-size: 28rpx;
 }
 
@@ -73,9 +73,9 @@
 
 .record-title {
   min-width: 0;
-  color: #24342f;
+  color: #10241e;
   font-size: 32rpx;
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1.35;
 }
 
@@ -89,8 +89,8 @@
 .tags text {
   padding: 8rpx 16rpx;
   border-radius: 999rpx;
-  color: #2f7d6b;
-  background: rgba(143, 175, 138, 0.14);
+  color: #18a67d;
+  background: #e7f7f1;
   font-size: 22rpx;
   line-height: 1.35;
 }

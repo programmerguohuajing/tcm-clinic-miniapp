@@ -12,6 +12,7 @@ const emit = defineEmits(["store-change", "refresh"]);
 const HOME_TAB_KEY = "dashboard";
 const openedTabs = ref([navItems[0]]);
 const currentUser = ref(getCurrentUser());
+const sidebarOpen = ref(false);
 
 const pageTitle = computed(() => route.meta.title || "管理端");
 const displayUser = computed(() => {
@@ -51,6 +52,7 @@ watch(
     if (!openedTabs.value.some((item) => item.key === currentTab.key)) {
       openedTabs.value = [...openedTabs.value, currentTab];
     }
+    sidebarOpen.value = false;
   },
   { immediate: true }
 );
@@ -77,10 +79,23 @@ function closeTab(tab) {
   const fallbackTab = nextTabs[fallbackIndex] || nextTabs[0] || navItems[0];
   router.push(fallbackTab.path);
 }
+
+function goNav(path) {
+  router.push(path);
+  sidebarOpen.value = false;
+}
 </script>
 
 <template>
-  <div class="shell">
+  <div class="shell" :class="{ 'sidebar-open': sidebarOpen }">
+    <button
+      v-if="sidebarOpen"
+      class="sidebar-scrim"
+      type="button"
+      aria-label="收起菜单"
+      @click="sidebarOpen = false"
+    ></button>
+
     <aside class="sidebar">
       <div class="brand">
         <div class="seal">掌</div>
@@ -96,7 +111,7 @@ function closeTab(tab) {
           :key="item.key"
           class="nav-item"
           :class="{ active: route.name === item.key }"
-          @click="router.push(item.path)"
+          @click="goNav(item.path)"
         >
           <span class="nav-icon">{{ navIconMap[item.key] || "•" }}</span>
           <span>{{ item.label }}</span>
@@ -114,7 +129,15 @@ function closeTab(tab) {
     <main class="main">
       <header class="topbar">
         <div class="topbar-left">
-          <button class="menu-toggle" type="button" aria-label="展开菜单">☰</button>
+          <button
+            class="menu-toggle"
+            type="button"
+            :aria-expanded="sidebarOpen"
+            aria-label="展开菜单"
+            @click="sidebarOpen = !sidebarOpen"
+          >
+            ☰
+          </button>
           <div>
             <div class="breadcrumb">
               <span>首页</span>

@@ -53,7 +53,6 @@ function onPageChange(page) {
         :label="column.label"
         :prop="column.key"
         min-width="118"
-        show-overflow-tooltip
       >
         <template #default="{ row }">
           <slot :name="column.key" :row="row">

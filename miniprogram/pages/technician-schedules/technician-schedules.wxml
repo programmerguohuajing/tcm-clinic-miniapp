@@ -30,7 +30,7 @@
     </view>
     <view class="form-row">
       <text>开放预约</text>
-      <switch checked="{{form.status === 'open'}}" bindchange="switchStatus" color="#2f7d6b" />
+      <switch checked="{{form.status === 'open'}}" bindchange="switchStatus" color="#18A67D" />
     </view>
     <button class="primary-button save-button" loading="{{saving}}" disabled="{{saving}}" bindtap="saveSchedule">保存排班</button>
   </view>

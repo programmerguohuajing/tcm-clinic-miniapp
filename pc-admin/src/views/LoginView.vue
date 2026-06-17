@@ -69,17 +69,18 @@ async function submit() {
   place-items: center;
   padding: 32px;
   background:
-    radial-gradient(circle at 20% 18%, rgba(20, 184, 166, 0.16), transparent 30%),
-    linear-gradient(135deg, #f5f8fa 0%, #e6f6f8 52%, #d9e2ec 100%);
+    radial-gradient(circle at 18% 10%, rgba(199, 223, 255, 0.78), transparent 30%),
+    radial-gradient(circle at 88% 18%, rgba(17, 181, 217, 0.12), transparent 28%),
+    linear-gradient(135deg, #f4f8ff 0%, #ffffff 52%, #e8f1ff 100%);
 }
 
 .login-card {
   width: min(420px, 100%);
   padding: 34px;
-  border: 1px solid #d9e2ec;
-  border-radius: 24px;
+  border: 1px solid #cfe0ff;
+  border-radius: 26px;
   background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 24px 70px rgba(15, 47, 61, 0.14);
+  box-shadow: 0 28px 80px rgba(28, 60, 112, 0.16);
 }
 
 .login-brand {
@@ -94,25 +95,27 @@ async function submit() {
   height: 58px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(14, 116, 144, 0.18);
-  border-radius: 18px;
-  color: #0e7490;
-  background: #e6f6f8;
+  border: 1px solid rgba(207, 224, 255, 0.9);
+  border-radius: 20px;
+  color: #ffffff;
+  background: linear-gradient(135deg, #3478f6, #11b5d9);
   font-size: 28px;
-  font-weight: 800;
+  font-weight: 900;
+  box-shadow: 0 14px 28px rgba(52, 120, 246, 0.24);
 }
 
 .login-brand p {
   margin: 0 0 6px;
-  color: #0e7490;
+  color: #3478f6;
   font-size: 12px;
   letter-spacing: 0.18em;
 }
 
 .login-brand h1 {
   margin: 0;
-  color: #102a43;
+  color: #101c2e;
   font-size: 22px;
+  line-height: 1.3;
 }
 
 .login-form {
@@ -123,7 +126,7 @@ async function submit() {
 .login-form label {
   display: grid;
   gap: 8px;
-  color: #102a43;
+  color: #101c2e;
   font-size: 14px;
   font-weight: 700;
 }
@@ -131,16 +134,16 @@ async function submit() {
 .login-form input {
   height: 46px;
   padding: 0 14px;
-  border: 1px solid #d9e2ec;
-  border-radius: 12px;
+  border: 1px solid #d6e2f5;
+  border-radius: 14px;
   background: #ffffff;
-  color: #102a43;
+  color: #101c2e;
   font-size: 15px;
 }
 
 .login-form input:focus {
-  border-color: #0e7490;
-  outline: 3px solid rgba(14, 116, 144, 0.14);
+  border-color: #3478f6;
+  outline: 3px solid rgba(52, 120, 246, 0.16);
 }
 
 .login-error {
@@ -152,12 +155,13 @@ async function submit() {
 .login-submit {
   height: 48px;
   border: 0;
-  border-radius: 14px;
+  border-radius: 16px;
   color: #ffffff;
-  background: #0e7490;
+  background: #3478f6;
   font-size: 16px;
-  font-weight: 800;
+  font-weight: 900;
   cursor: pointer;
+  box-shadow: 0 14px 28px rgba(52, 120, 246, 0.22);
 }
 
 .login-submit:disabled {

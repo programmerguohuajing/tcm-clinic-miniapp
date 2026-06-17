@@ -1,4 +1,4 @@
-const { isDev } = require("./env");
+const { isDev } = require("./utils/env");
 
 App({
   onLaunch() {

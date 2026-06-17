@@ -1,8 +1,8 @@
 .commission-hero {
-  padding: 42rpx;
+  padding: 38rpx;
   background:
-    linear-gradient(145deg, rgba(255, 253, 248, 0.94), rgba(248, 244, 236, 0.86)),
-    radial-gradient(circle at 82% 12%, rgba(196, 132, 54, 0.14), transparent 230rpx);
+    linear-gradient(150deg, rgba(255, 255, 255, 0.96), rgba(231, 247, 241, 0.74)),
+    radial-gradient(circle at 82% 12%, rgba(185, 242, 223, 0.5), transparent 230rpx);
 }
 
 .metric-grid {
@@ -14,21 +14,21 @@
 
 .metric {
   padding: 28rpx;
-  border: 1rpx solid rgba(196, 132, 54, 0.14);
+  border: 1rpx solid #c8ebde;
   border-radius: 28rpx;
-  background: rgba(255, 253, 248, 0.82);
-  box-shadow: 0 8rpx 24rpx rgba(62, 49, 34, 0.06);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 12rpx 28rpx rgba(16, 36, 30, 0.06);
 }
 
 .metric text {
   display: block;
-  color: #b36b28;
+  color: #18a67d;
   font-size: 38rpx;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .metric label {
-  color: #81786b;
+  color: #6a7c75;
   font-size: 22rpx;
 }
 
@@ -38,9 +38,9 @@
 }
 
 .order-title {
-  color: #24342f;
+  color: #10241e;
   font-size: 30rpx;
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1.35;
 }
 
@@ -50,7 +50,7 @@
   justify-content: space-between;
   gap: 18rpx;
   margin-top: 20rpx;
-  color: #81786b;
+  color: #6a7c75;
   font-size: 24rpx;
 }
 
@@ -61,6 +61,6 @@
 
 .empty-card {
   padding: 34rpx;
-  color: #81786b;
+  color: #6a7c75;
   text-align: center;
 }
