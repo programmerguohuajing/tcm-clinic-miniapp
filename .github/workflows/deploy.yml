@@ -6,75 +6,28 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
-    outputs:
-      image: ${{ steps.meta.outputs.image }}
-      sha: ${{ steps.meta.outputs.sha }}
-      date: ${{ steps.meta.outputs.date }}
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Generate build metadata
-        id: meta
-        run: |
-          SHA_SHORT=$(echo ${{ github.sha }} | cut -c1-8)
-          DATE_TAG=$(date +%Y%m%d)
-          IMAGE="ghcr.io/${{ github.repository }}"
-          echo "sha=$SHA_SHORT" >> $GITHUB_OUTPUT
-          echo "date=$DATE_TAG" >> $GITHUB_OUTPUT
-          echo "image=${IMAGE}" >> $GITHUB_OUTPUT
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          platforms: linux/amd64
-          tags: |
-            ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.sha }}
-            ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.date }}
-            ${{ steps.meta.outputs.image }}:latest
-          cache-from: type=registry,ref=${{ steps.meta.outputs.image }}:latest
-          cache-to: type=inline
-
-      - name: Verify image was pushed
-        run: echo "Image built: ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.sha }}"
-
   deploy:
-    needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
 
       - name: Install Wrangler
         run: npm install -g wrangler
 
-      - name: Deploy to Cloudflare Containers
+      - name: Login to Cloudflare
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          IMAGE_REF: ${{ needs.build.outputs.image }}:${{ needs.build.outputs.sha }}
+        run: echo "$CLOUDFLARE_API_TOKEN" | wrangler auth login --stdin
+
+      - name: Set production secrets
+        env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           CORS_ORIGIN: ${{ secrets.CORS_ORIGIN }}
@@ -84,18 +37,22 @@ jobs:
           ADMIN_LOGIN_PHONE: ${{ secrets.ADMIN_LOGIN_PHONE }}
           ADMIN_LOGIN_PASSWORD: ${{ secrets.ADMIN_LOGIN_PASSWORD }}
         run: |
-          echo "Deploying ${IMAGE_REF} to Cloudflare Containers..."
+          echo "$DATABASE_URL" | npx wrangler secret put DATABASE_URL
+          echo "$JWT_SECRET" | npx wrangler secret put JWT_SECRET
+          echo "$CORS_ORIGIN" | npx wrangler secret put CORS_ORIGIN
+          echo "$APP_HOST" | npx wrangler secret put APP_HOST
+          echo "$WECHAT_APP_ID" | npx wrangler secret put WECHAT_APP_ID
+          echo "$WECHAT_APP_SECRET" | npx wrangler secret put WECHAT_APP_SECRET
+          echo "$ADMIN_LOGIN_PHONE" | npx wrangler secret put ADMIN_LOGIN_PHONE
+          echo "$ADMIN_LOGIN_PASSWORD" | npx wrangler secret put ADMIN_LOGIN_PASSWORD
 
-          # Create or update the container deployment
-          wrangler containers deployment create \
-            --name "tcm-clinic-api" \
-            --image "${IMAGE_REF}" \
-            --cpu 1 \
-            --memory 512 \
-            --max-instances 3 \
-            --env-vars "NODE_ENV=production,DATABASE_URL=${DATABASE_URL},JWT_SECRET=${JWT_SECRET},CORS_ORIGIN=${CORS_ORIGIN},WECHAT_APP_ID=${WECHAT_APP_ID},WECHAT_APP_SECRET=${WECHAT_APP_SECRET},ADMIN_LOGIN_PHONE=${ADMIN_LOGIN_PHONE},ADMIN_LOGIN_PASSWORD=${ADMIN_LOGIN_PASSWORD}"
-
-          echo "Deployment initiated."
+      - name: Deploy to Cloudflare Containers
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          echo "Deploying to Cloudflare Containers..."
+          npx wrangler deploy
+          echo "Deployment complete."
 
   health-check:
     needs: deploy
@@ -108,7 +65,7 @@ jobs:
           APP_HOST: ${{ secrets.APP_HOST }}
         run: |
           echo "Waiting for deployment to be ready..."
-          sleep 30
+          sleep 90
 
           for i in $(seq 1 10); do
             STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://${APP_HOST}/health" || echo "000")
@@ -119,7 +76,7 @@ jobs:
               exit 0
             fi
 
-            sleep 10
+            sleep 15
           done
 
           echo "Health check did not pass within timeout"
