@@ -1,5 +1,7 @@
 # TCM Clinic Miniapp
 
+> [中文文档](./README.zh-CN.md) | English
+
 A full-stack Traditional Chinese Medicine (TCM) clinic management platform built as a WeChat miniprogram, with an embedded admin console, Node.js/Express backend, and PC admin dashboard.
 
 ## Architecture
