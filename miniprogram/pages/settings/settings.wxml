@@ -1,0 +1,31 @@
+<view class="page settings">
+  <view class="section">
+    <view class="section-title"><text>通用</text></view>
+    <view class="card">
+      <view class="setting-item">
+        <text class="setting-label">消息通知</text>
+        <switch checked color="#18a67d" />
+      </view>
+      <view class="setting-item">
+        <text class="setting-label">位置权限</text>
+        <switch checked color="#18a67d" />
+      </view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-title"><text>其他</text></view>
+    <view class="card">
+      <view class="setting-item clickable" bindtap="clearCache">
+        <text class="setting-label">清除缓存</text>
+        <text class="setting-arrow">›</text>
+      </view>
+      <view class="setting-item">
+        <text class="setting-label">版本号</text>
+        <text class="setting-value">{{version}}</text>
+      </view>
+    </view>
+  </view>
+
+  <button class="danger-button" bindtap="logout">退出登录</button>
+</view>

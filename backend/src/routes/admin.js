@@ -914,3 +914,65 @@ adminRouter.get("/admin/audit-logs", asyncHandler(async (req, res) => {
   );
   res.json({ data: rows, pagination: paginationMeta(page, pageSize, countResult.rows[0].total) });
 }));
+
+const paymentConfigSchema = z.object({
+  configKey: z.enum(["wechat_pay", "mock_payment"]),
+  storeId: z.coerce.number().int().positive().optional()
+});
+
+adminRouter.get("/admin/payment-configs", asyncHandler(async (req, res) => {
+  const params = paymentConfigSchema.pick({ storeId: true }).parse(req.query);
+  const values = [];
+  const filters = ["true"];
+  if (params.storeId) {
+    values.push(params.storeId);
+    filters.push(`pc.store_id = $${values.length}`);
+  } else {
+    filters.push(`pc.store_id is null`);
+  }
+  const { rows } = await query(
+    `select pc.*, st.name as store_name
+       from payment_configs pc
+       left join stores st on st.id = pc.store_id
+      where ${filters.join(" and ")}
+      order by pc.config_key`,
+    values
+  );
+  res.json({ data: rows });
+}));
+
+adminRouter.post("/admin/payment-configs", requireRole("owner", "manager"), asyncHandler(async (req, res) => {
+  const data = paymentConfigSchema.parse(req.body);
+  const values = [data.storeId || null, data.configKey, "{}", true];
+  const { rows } = await query(
+    `insert into payment_configs (store_id, config_key, config_value, is_active)
+     values ($1,$2,$3::jsonb,$4)
+     on conflict (store_id, config_key) do update set config_value = payment_configs.config_value
+     returning *`,
+    values
+  );
+  await audit(req, "create_payment_config", "payment_config", rows[0].id, data);
+  res.json({ data: rows[0] });
+}));
+
+adminRouter.patch("/admin/payment-configs/:id", requireRole("owner", "manager"), asyncHandler(async (req, res) => {
+  const { id } = idParam.parse(req.params);
+  const data = z.object({
+    configKey: z.enum(["wechat_pay", "mock_payment"]).optional(),
+    configValue: z.string().optional(),
+    isActive: z.boolean().optional()
+  }).parse(req.body);
+  const sets = [];
+  const values = [id];
+  if (data.configKey) { sets.push(`config_key = $${values.length + 1}`); values.push(data.configKey); }
+  if (data.configValue !== undefined) {
+    try { JSON.parse(data.configValue); } catch { return res.status(400).json({ error: { code: "BAD_REQUEST", message: "config_value 必须是合法 JSON" } }); }
+    sets.push(`config_value = $${values.length + 1}::jsonb`); values.push(data.configValue);
+  }
+  if (data.isActive !== undefined) { sets.push(`is_active = $${values.length + 1}`); values.push(data.isActive); }
+  if (!sets.length) return res.status(400).json({ error: { code: "BAD_REQUEST", message: "无有效更新字段" } });
+  const { rows } = await query(`update payment_configs set ${sets.join(", ")} where id = $1 returning *`, values);
+  if (!rows[0]) return res.status(404).json({ error: { code: "NOT_FOUND", message: "支付配置不存在" } });
+  await audit(req, "update_payment_config", "payment_config", id, data);
+  res.json({ data: rows[0] });
+}));

@@ -13,6 +13,18 @@ function storeFilter(storeId, alias = "") {
   return storeId ? { sql: ` and (${alias}store_id = $1 or ${alias}store_id is null)`, params: [storeId] } : { sql: "", params: [] };
 }
 
+catalogRouter.get("/stores/:id", asyncHandler(async (req, res) => {
+  const { id } = z.object({ id: z.coerce.number().int().positive() }).parse(req.params);
+  const { rows } = await query(
+    `select id, name, city, address, phone, business_hours, latitude, longitude, is_default
+       from stores
+      where id = $1 and status = 'active'`,
+    [id]
+  );
+  if (!rows[0]) return res.status(404).json({ error: { code: "NOT_FOUND", message: "门店不存在" } });
+  res.json({ data: rows[0] });
+}));
+
 catalogRouter.get("/stores", asyncHandler(async (_req, res) => {
   const { rows } = await query(
     `select id, name, city, address, phone, business_hours, latitude, longitude, is_default

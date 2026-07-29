@@ -1,0 +1,56 @@
+<view class="page order-detail">
+  <view wx:if="{{order}}" class="card status-card">
+    <view class="pill status-pill">{{order.statusText}}</view>
+    <view class="order-no">订单号 {{order.order_no}}</view>
+    <view class="subtitle">{{order.appointment_date}} {{order.startLabel}}-{{order.endLabel}}</view>
+    <view class="subtitle" wx:if="{{order.store_name}}">{{order.store_name}}</view>
+  </view>
+
+  <view class="card" wx:if="{{order}}">
+    <view class="card-title">疗愈项目</view>
+    <view class="service-row">
+      <image wx:if="{{order.cover_url}}" class="service-cover" src="{{order.cover_url}}" mode="aspectFill" />
+      <view class="service-info">
+        <view class="service-name">{{order.service_name}}</view>
+        <view class="subtitle">{{order.duration_minutes}}分钟</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">疗愈师</view>
+    <view class="practitioner-row">
+      <view class="avatar-small">{{order.practitioner_initial}}</view>
+      <view class="practitioner-info">
+        <view class="practitioner-name">{{order.practitioner_name}}<text>{{order.practitioner_title}}</text></view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card" wx:if="{{order.store_address}}">
+    <view class="card-title">门店地址</view>
+    <view class="subtitle">{{order.store_name || ''}} {{order.store_address}}</view>
+  </view>
+
+  <view wx:if="{{order.family_member_name}}" class="card">
+    <view class="card-title">同行家人</view>
+    <view class="subtitle">{{order.family_member_name}}</view>
+  </view>
+
+  <view wx:if="{{order.note}}" class="card">
+    <view class="card-title">备注</view>
+    <view class="subtitle">{{order.note}}</view>
+  </view>
+
+  <view class="card">
+    <view class="row"><text>订单金额</text><text class="price">¥{{order.amount}}</text></view>
+    <view class="row"><text>支付状态</text><text>{{order.paymentText}}</text></view>
+  </view>
+
+  <view class="action-bar">
+    <button class="ghost-button" bindtap="goBack">返回</button>
+    <block wx:for="{{actions}}" wx:key="key">
+      <button class="{{item.danger ? 'danger-button' : 'primary-button'}}" bindtap="onActionTap" data-key="{{item.key}}">{{item.label}}</button>
+    </block>
+  </view>
+</view>

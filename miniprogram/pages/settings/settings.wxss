@@ -1,0 +1,47 @@
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28rpx 0;
+  border-bottom: 1rpx solid rgba(200, 235, 222, 0.4);
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-label {
+  color: #10241e;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.setting-value {
+  color: #8aa099;
+  font-size: 26rpx;
+}
+
+.setting-arrow {
+  color: #8aa099;
+  font-size: 36rpx;
+  font-weight: 300;
+}
+
+.danger-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 60rpx;
+  height: 88rpx;
+  border: none;
+  border-radius: 999rpx;
+  color: #ffffff;
+  background: #c0392b;
+  box-shadow: 0 18rpx 34rpx rgba(192, 57, 43, 0.22);
+  font-size: 28rpx;
+  font-weight: 800;
+}
+
+.section {
+  margin-bottom: 22rpx;
+}

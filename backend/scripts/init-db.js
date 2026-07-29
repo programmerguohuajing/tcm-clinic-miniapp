@@ -9,11 +9,17 @@ dotenv.config();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const schemaPath = path.join(__dirname, "..", "database", "schema.sql");
 const commentsPath = path.join(__dirname, "..", "database", "comments.sql");
+const migrateFavoritesPath = path.join(__dirname, "..", "database", "migrate_favorites.sql");
+const migratePaymentPath = path.join(__dirname, "..", "database", "migrate_payment_configs.sql");
 const schema = await fs.readFile(schemaPath, "utf8");
 const comments = await fs.readFile(commentsPath, "utf8");
+const migrateFavorites = await fs.readFile(migrateFavoritesPath, "utf8");
+const migratePayment = await fs.readFile(migratePaymentPath, "utf8");
 
 await pool.query(schema);
 await pool.query(comments);
+await pool.query(migrateFavorites);
+await pool.query(migratePayment);
 await pool.end();
 
 console.log("数据库结构与备注初始化完成");

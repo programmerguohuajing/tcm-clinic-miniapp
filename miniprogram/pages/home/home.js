@@ -58,6 +58,18 @@ Page({
     this.loadHome();
   },
 
+  goArticleDetail(event) {
+    const id = Number(event.currentTarget.dataset.id);
+    if (!id) return;
+    wx.navigateTo({ url: `/pages/article-detail/article-detail?id=${id}` });
+  },
+
+  goActivityDetail(event) {
+    const id = Number(event.currentTarget.dataset.id);
+    if (!id) return;
+    wx.navigateTo({ url: `/pages/activity-detail/activity-detail?id=${id}` });
+  },
+
   goBooking() {
     wx.switchTab({ url: "/pages/booking/booking" });
   }

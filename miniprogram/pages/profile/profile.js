@@ -8,21 +8,8 @@ Page({
     },
     canManage: false,
     canTechnician: false,
-    appointments: [
-      {
-        id: 1,
-        service_name: "节气扶阳艾灸",
-        practitioner_name: "许安和",
-        appointment_date: "2026-06-12",
-        startLabel: "09:30",
-        status: "pending",
-        amount: "168.00"
-      }
-    ],
-    familyMembers: [
-      { id: 1, name: "林奶奶", relation: "祖母" },
-      { id: 2, name: "小满", relation: "孩子" }
-    ],
+    appointments: [],
+    familyMembers: [],
     statusText: {
       pending: "待确认",
       confirmed: "已确认",
@@ -53,7 +40,7 @@ Page({
         },
         canManage: Boolean(summary.user && summary.user.can_manage),
         canTechnician: Boolean(summary.user && summary.user.can_technician),
-        appointments: appointments.map((item) => ({
+        appointments: appointments.slice(0, 5).map((item) => ({
           ...item,
           startLabel: item.start_time.slice(0, 5)
         })),
@@ -70,7 +57,6 @@ Page({
       wx.showToast({ title: "暂无管理端权限", icon: "none" });
       return;
     }
-
     wx.navigateTo({ url: "/pages/admin/admin" });
   },
 
@@ -79,8 +65,33 @@ Page({
       wx.showToast({ title: "暂无技师端权限", icon: "none" });
       return;
     }
-
     wx.navigateTo({ url: "/pages/technician/technician" });
+  },
+
+  goOrderDetail(event) {
+    const id = event.currentTarget.dataset.id;
+    if (!id) return;
+    wx.navigateTo({ url: `/pages/order-detail/order-detail?id=${id}` });
+  },
+
+  goMessages() {
+    wx.navigateTo({ url: "/pages/messages/messages" });
+  },
+
+  goCoupons() {
+    wx.navigateTo({ url: "/pages/coupons/coupons" });
+  },
+
+  goMember() {
+    wx.navigateTo({ url: "/pages/member/member" });
+  },
+
+  goSettings() {
+    wx.navigateTo({ url: "/pages/settings/settings" });
+  },
+
+  goFavorites() {
+    wx.navigateTo({ url: "/pages/favorites/favorites" });
   },
 
   onShareAppMessage() {

@@ -1,0 +1,25 @@
+<view class="page store-detail" wx:if="{{store}}">
+  <view class="store-header">
+    <view class="store-name">{{store.name}}</view>
+    <view class="subtitle">{{store.address}}</view>
+    <view class="store-tags">
+      <text class="pill" wx:for="{{store.tags}}" wx:key="*this">{{item}}</text>
+    </view>
+  </view>
+
+  <view class="action-row">
+    <button class="action-btn" bindtap="callPhone">📞 电话</button>
+    <button class="action-btn" bindtap="openMap">🗺️ 导航</button>
+    <button class="action-btn primary" bindtap="goBooking">预约</button>
+  </view>
+
+  <view class="section-title"><text>服务项目</text></view>
+  <view wx:if="{{!services.length}}" class="empty-card">暂无服务项目</view>
+  <block wx:for="{{services}}" wx:key="id">
+    <view class="card service-item">
+      <view class="service-name">{{item.name}}</view>
+      <view class="subtitle">{{item.category}} · {{item.duration_minutes}}分钟</view>
+      <view class="price">¥{{item.price}}</view>
+    </view>
+  </block>
+</view>

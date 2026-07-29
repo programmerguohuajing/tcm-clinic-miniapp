@@ -1,0 +1,25 @@
+<view class="page order-cancel">
+  <view wx:if="{{order}}" class="card">
+    <view class="card-title">取消预约</view>
+    <view class="subtitle">您即将取消以下预约：</view>
+    <view class="detail-row">
+      <text class="label">项目</text><text>{{order.service_name}}</text>
+    </view>
+    <view class="detail-row">
+      <text class="label">时间</text><text>{{order.appointment_date}} {{order.startLabel}}-{{order.endLabel}}</text>
+    </view>
+    <view class="detail-row" wx:if="{{order.practitioner_name}}">
+      <text class="label">技师</text><text>{{order.practitioner_name}}</text>
+    </view>
+    <view class="detail-row" wx:if="{{order.store_name}}">
+      <text class="label">门店</text><text>{{order.store_name}}</text>
+    </view>
+  </view>
+
+  <view class="info-card">
+    <view class="info-title">温馨提示</view>
+    <view class="info-text">取消预约后，该时段将释放给其他用户。如需改期，请选择"改期"而非取消。</view>
+  </view>
+
+  <button class="danger-button cancel-button" bindtap="confirmCancel" wx:if="{{order}}">确认取消预约</button>
+</view>

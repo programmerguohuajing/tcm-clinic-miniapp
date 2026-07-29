@@ -1,0 +1,19 @@
+<view class="page messages">
+  <view wx:if="{{!messages.length && !refreshing}}" class="empty">
+    <text>暂无消息</text>
+  </view>
+
+  <block wx:for="{{messages}}" wx:key="id">
+    <view class="card message-card {{item.unread ? 'unread' : ''}}" bindtap="onMessageTap" data-id="{{item.id}}">
+      <view class="message-icon">{{item.type === 'payment_success' ? '✓' : item.type === 'appointment_cancelled' ? '✕' : item.type === 'review_reply' ? '💬' : '📋'}}</view>
+      <view class="message-body">
+        <view class="message-title-row">
+          <text class="message-type">{{item.typeText}}</text>
+          <text class="message-time">{{item.timeLabel}}</text>
+        </view>
+        <view class="message-text">{{item.body}}</view>
+      </view>
+      <view class="unread-dot" wx:if="{{item.unread}}"></view>
+    </view>
+  </block>
+</view>

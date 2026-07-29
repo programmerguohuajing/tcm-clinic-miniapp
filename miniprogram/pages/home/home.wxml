@@ -23,7 +23,7 @@
   </view>
   <scroll-view scroll-x class="activity-scroll">
     <block wx:for="{{activities}}" wx:key="id">
-      <view class="activity-card">
+      <view class="activity-card" bindtap="goActivityDetail" data-id="{{item.id}}">
         <image class="activity-cover" src="{{item.cover_url}}" mode="aspectFill" lazy-load />
         <view class="pill activity-tag">{{item.tag}}</view>
         <view class="activity-title">{{item.title}}</view>
@@ -41,7 +41,7 @@
     <text class="muted">安静阅读</text>
   </view>
   <block wx:for="{{articles}}" wx:key="id">
-    <view class="list-card article-card">
+    <view class="list-card article-card" bindtap="goArticleDetail" data-id="{{item.id}}">
       <image class="article-cover" src="{{item.cover_url}}" mode="aspectFill" lazy-load />
       <view class="article-body">
         <view class="pill">{{item.category}}</view>

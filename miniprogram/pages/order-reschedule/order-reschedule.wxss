@@ -1,0 +1,42 @@
+.picker {
+  padding: 20rpx 0;
+  color: #10241e;
+  font-size: 28rpx;
+  font-weight: 800;
+}
+
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18rpx;
+}
+
+.slot {
+  padding: 24rpx;
+  border: 2rpx solid rgba(200, 235, 222, 0.9);
+  border-radius: 28rpx;
+  background: rgba(255, 255, 255, 0.92);
+  text-align: center;
+}
+
+.slot view {
+  color: #10241e;
+  font-size: 28rpx;
+  font-weight: 800;
+}
+
+.slot text {
+  color: #6a7c75;
+  font-size: 22rpx;
+}
+
+.slot.active {
+  border-color: #18a67d;
+  background: #e7f7f1;
+}
+
+.loading-text {
+  text-align: center;
+  color: #6a7c75;
+  padding: 40rpx 0;
+}

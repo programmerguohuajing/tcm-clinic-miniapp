@@ -9,6 +9,10 @@ Page({
 
   goProfile() {
     wx.switchTab({ url: "/pages/profile/profile" });
+  },
+
+  goBooking() {
+    wx.switchTab({ url: "/pages/booking/booking" });
   }
 });
 

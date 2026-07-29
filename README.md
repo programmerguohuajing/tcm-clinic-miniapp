@@ -1,131 +1,272 @@
-# 青囊中医馆小程序
+# TCM Clinic Miniapp
 
-这是根据桌面上的《中医馆小程序功能需求说明.md》搭建的前后端工程，覆盖“预约 + 分销/提成基础 + 健康管理 + 小程序内嵌管理端 + PC 管理端”的 MVP 骨架。
+A full-stack Traditional Chinese Medicine (TCM) clinic management platform built as a WeChat miniprogram, with an embedded admin console, Node.js/Express backend, and PC admin dashboard.
 
-## 技术栈
+## Architecture
 
-- 小程序前端：微信原生小程序
-- 后端：Node.js + Express
-- 数据库：PostgreSQL
-- 数据校验：Zod
-- 数据访问：node-postgres `pg`
-- 管理端 PC：Vue 3 + Vite + Element Plus
-- 小程序内嵌管理页：微信原生小程序，承载移动管理能力
-- 工作区：pnpm workspace，包含 `backend`、`pc-admin`、`packages/*`
-
-## 目录结构
-
-```text
-D:\code\tcm-clinic-miniapp
-├─ backend                 后端 REST API
-│  ├─ database             PostgreSQL schema 与演示数据
-│  ├─ scripts              初始化与种子脚本
-│  └─ src                  Express 应用源码
-├─ miniprogram             微信小程序源码，包含用户端、技师端和内嵌管理端
-├─ packages
-│  └─ admin-shared         PC 管理端共享接口定义、状态枚举与格式化方法
-├─ pc-admin                PC 管理端，Element Plus 桌面后台
-├─ pnpm-workspace.yaml     pnpm workspace 配置
-└─ project.config.json     微信开发者工具项目配置
+```
+tcm-clinic-miniapp/
+├── backend/                    # Node.js + Express API server
+│   ├── src/
+│   │   ├── routes/             # REST API routes
+│   │   ├── middleware/         # Auth, rate limiting, error handling
+│   │   └── config/             # DB pool, environment config
+│   └── database/               # SQL schema, migrations, seed data
+├── miniprogram/                # WeChat miniprogram (user + admin)
+│   ├── pages/
+│   │   ├── home/               # Homepage (services, articles, activities)
+│   │   ├── booking/            # Appointment booking flow
+│   │   ├── health/             # Health records management
+│   │   ├── profile/            # User profile, orders, member info
+│   │   ├── admin/              # Embedded management console
+│   │   ├── technician/         # Technician workbench
+│   │   └── ...                 # 13+ feature pages
+│   └── utils/                  # request wrapper, constants, mock data
+├── pc-admin/                   # PC admin dashboard (Vite + vanilla)
+└── packages/
+    └── admin-shared/           # Shared types, API contracts, enums
 ```
 
-## 已实现功能
+## Tech Stack
 
-- 用户端：首页活动、养生资讯、项目/技师/排班筛选预约、预约成功页
-- 用户端：健康档案新增与历史记录、个人中心、订单列表、家庭成员列表、邀请分享入口
-- 技师端：技师工作台、我的排班、排班新增、我的提成明细
-- 小程序管理端：经营看板、多门店、服务项目、技师管理、技师排班、预约订单、提成结算、首页配置、内容营销、会员权限、评价管理、操作日志
-- PC 管理端：桌面后台经营看板、资源管理、订单管理、提成、内容、权限、评价、审计日志、技师工作台
-- 后端：项目、技师、排班、预约、健康档案、个人中心、管理看板、管理端 CRUD、订单状态 API
-- 数据库：用户、家庭成员、服务项目、技师、排班、预约、提成规则、结算单、活动、资讯、优惠券、健康档案表
+| Layer | Technology |
+|-------|-----------|
+| Backend | Node.js, Express, Zod validation, PostgreSQL |
+| Miniprogram | WeChat native miniprogram framework |
+| PC Admin | Vite, vanilla TypeScript |
+| Monorepo | pnpm workspaces |
 
-## 本地启动
+## Key Features
 
-1. 安装依赖：
+### User-Facing
+- **Homepage** — Service showcase, health articles, marketing activities, store info
+- **Booking** — Service selection, practitioner selection, time slot picking, order confirmation
+- **Health Records** — TCM constitution assessment, symptoms, tongue diagnosis, pulse notes
+- **Profile** — Order history, member tier and points, coupons, messages, favorites, settings
+- **Order Management** — Order detail, cancellation, payment, review submission, rescheduling
+- **Member System** — Points, tier progression, benefits
+- **Coupons & Favorites** — Promotional coupons, favorite stores/practitioners
+- **Content** — Health articles, marketing activities, messages
+
+### Management Console (Embedded in Miniprogram)
+- **Dashboard** — Revenue, orders, practitioners, user metrics, rankings
+- **Multi-Store** — Store CRUD, default store toggle
+- **Services** — Service/procedure management with pricing and duration
+- **Practitioners** — Practitioner profiles, specialties, status management
+- **Schedules** — Individual and bulk schedule generation with capacity control
+- **Orders** — Order list, status management (confirm/complete/cancel)
+- **Commissions** — Commission rules by practitioner/service/threshold
+- **Homepage Config** — Section-based homepage layout configuration
+- **Content Marketing** — Activities and articles management
+- **User & Roles** — Member management, role assignment (owner/manager/frontdesk/member)
+- **Reviews** — Review moderation with reply support
+- **Payment Config** — WeChat Pay parameters, mock payment toggle, timeout settings
+- **Audit Logs** — Admin operation audit trail
+
+### Technician Workbench
+- Schedule overview, commission tracking
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js >= 18
+- PostgreSQL >= 14
+- pnpm >= 11
+- WeChat DevTools (for miniprogram development)
+
+### Backend Setup
 
 ```bash
-cd /d D:\code\tcm-clinic-miniapp
+# Install dependencies
 pnpm install
-```
 
-2. 准备 PostgreSQL 数据库：
-
-```sql
-create database tcm_clinic;
-```
-
-3. 创建后端环境变量：
-
-```bash
-copy backend\.env.example backend\.env
-```
-
-按需修改 `backend\.env` 中的 `DATABASE_URL`。
-
-4. 初始化表结构并写入演示数据：
-
-```bash
+# Initialize database schema and seed data
 pnpm db:init
-pnpm db:seed
-```
 
-5. 启动后端：
-
-```bash
+# Start development server
 pnpm dev:api
 ```
 
-健康检查：
+### Miniprogram
 
-```bash
-curl http://localhost:3000/health
-```
+1. Open [WeChat DevTools](https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html)
+2. Import the `miniprogram/` directory
+3. Configure your AppID in `miniprogram/project.config.json`
+4. Ensure the backend API base URL matches your environment
 
-6. 打开小程序：
-
-用微信开发者工具导入 `D:\code\tcm-clinic-miniapp`，AppID 可先使用测试号或游客模式。开发阶段已关闭合法域名校验，接口默认请求 `http://127.0.0.1:3000/api`。
-
-7. 启动 PC 管理端：
+### PC Admin Dashboard
 
 ```bash
 pnpm dev:pc
 ```
 
-默认访问 `http://127.0.0.1:5173/pc-admin/`，本地开发时会把 `/api` 代理到 `http://127.0.0.1:3000`。
+### Demo Mode
 
-## 管理端构建与验证
+The backend supports a demo mode via the `x-demo-user-id` header, which bypasses authentication for development. Enable with `NODE_ENV=development`.
+
+## Database Schema
+
+The project uses PostgreSQL with a comprehensive schema covering:
+
+- **Users & Members** — Profiles, roles, membership tiers, points
+- **Stores** — Multi-store support with default store logic
+- **Services** — TCM treatments and procedures with pricing
+- **Practitioners** — Staff profiles, specialties, multi-store assignment
+- **Schedules** — Time slots with capacity control and booking locks
+- **Appointments** — Orders with status state machine (pending → confirmed → completed → cancelled/refunded)
+- **Health Records** — TCM-specific health assessments
+- **Reviews** — Rating and review system
+- **Content** — Articles, activities, coupons
+- **Commission Rules** — Configurable commission by service/practitioner/threshold
+- **Homepage Config** — Flexible section-based homepage layout
+- **Audit Logs** — Admin operation tracking
+- **Payment Configs** — Payment method configuration per store
+
+## Project Structure
+
+```
+backend/
+├── src/
+│   ├── app.js                    # Express app setup, route registration
+│   ├── config/
+│   │   ├── db.js                 # PostgreSQL connection pool
+│   │   └── env.js                # Environment config, feature flags
+│   ├── middleware/
+│   │   ├── auth.js               # JWT auth, role-based access
+│   │   ├── async-handler.js      # Error handling wrapper
+│   │   └── rate-limit.js         # API rate limiting
+│   └── routes/
+│       ├── admin.js              # All admin API routes
+│       ├── catalog.js            # Public catalog (services, practitioners, stores, schedules)
+│       ├── orders.js             # User order management
+│       ├── reviews.js            # User reviews
+│       ├── content.js            # Articles, activities, coupons
+│       ├── user.js               # User profile, payment, messages, practitioners
+│       └── favorites.js          # User favorites
+├── database/
+│   ├── schema.sql                # All table definitions
+│   ├── comments.sql              # Table/column documentation
+│   ├── migrate_favorites.sql     # user_favorites + messages tables
+│   ├── migrate_payment_configs.sql # payment_configs table
+│   ├── seed.sql                  # Demo data
+│   └── seed_messages.sql         # Demo messages
+├── scripts/
+│   ├── init-db.js                # Schema + migrations runner
+│   └── seed-db.js                # Seed data runner
+└── package.json
+
+miniprogram/
+├── pages/
+│   ├── home/                     # Homepage
+│   ├── booking/                  # Appointment booking
+│   ├── health/                   # Health records
+│   ├── profile/                  # User profile and orders
+│   ├── admin/                    # Management console
+│   ├── technician/               # Technician workbench
+│   ├── order-detail/             # Order detail view
+│   ├── order-cancel/             # Cancel confirmation
+│   ├── order-pay/                # Payment flow
+│   ├── order-review/             # Review submission
+│   ├── order-reschedule/         # Reschedule flow
+│   ├── article-detail/           # Article reading
+│   ├── activity-detail/          # Activity detail
+│   ├── messages/                 # Message center
+│   ├── coupons/                  # Coupon center
+│   ├── store-detail/             # Store detail
+│   ├── member/                   # Member benefits
+│   ├── settings/                 # App settings
+│   └── favorites/                # Favorites management
+├── utils/
+│   ├── request.js                # API client with dev-mode fallback
+│   ├── constants.js              # Status text mappings
+│   └── mock-data.js              # Demo data for offline mode
+├── app.json                      # Miniprogram config (pages, tabBar)
+├── app.wxss                      # Global styles
+└── sitemap.json
+
+pc-admin/
+├── src/                          # PC admin dashboard
+├── index.html
+├── vite.config.js
+└── package.json
+```
+
+## API Overview
+
+### Public Catalog
+- `GET /api/services` — List services
+- `GET /api/practitioners` — List practitioners
+- `GET /api/stores/:id` — Store detail
+- `GET /api/schedules` — Available time slots
+- `GET /api/articles/:id` — Article detail
+- `GET /api/activities/:id` — Activity detail
+- `GET /api/practitioners/:id` — Practitioner detail
+
+### User (authenticated)
+- `GET /api/me/summary` — User profile summary
+- `GET /api/me/appointments` — My appointments
+- `GET /api/me/appointments/:id` — Order detail
+- `PATCH /api/me/appointments/:id/cancel` — Cancel order
+- `PATCH /api/me/appointments/:id/reschedule` — Reschedule order
+- `POST /api/me/appointments/:id/pay` — Process payment
+- `GET /api/me/messages` — My messages
+- `PATCH /api/me/messages/:id/read` — Mark message as read
+- `GET /api/me/reviews` — My reviews
+- `POST /api/reviews` — Submit review
+- `GET /api/me/favorites` — My favorites
+- `POST /api/me/favorites` — Add favorite
+- `DELETE /api/me/favorites/:id` — Remove favorite
+- `GET /api/coupons` — My coupons
+- `POST /api/health-records` — Save health record
+
+### Admin (authenticated, role-based)
+- `GET /api/admin/dashboard` — Business dashboard
+- `GET/POST/PATCH /api/admin/stores` — Store management
+- `GET/POST/PATCH /api/admin/services` — Service management
+- `GET/POST/PATCH /api/admin/practitioners` — Practitioner management
+- `GET/POST /api/admin/schedules` — Schedule management
+- `PATCH /api/admin/orders/:id/status` — Order status updates
+- `GET/POST/PATCH /api/admin/commission-rules` — Commission rules
+- `GET/POST/PATCH /api/admin/homepage-configs` — Homepage configuration
+- `GET/POST /api/admin/activities` — Activity management
+- `GET/POST /api/admin/articles` — Article management
+- `GET/PATCH /api/admin/users` — User and role management
+- `GET/PATCH /api/admin/reviews/:id` — Review moderation
+- `GET /api/admin/payment-configs` — Payment configuration
+- `PATCH /api/admin/payment-configs/:id` — Update payment config
+- `GET /api/admin/audit-logs` — Admin audit logs
+
+## Status State Machine
+
+```
+Appointments:  pending → confirmed → completed → cancelled/refunded
+Payment:       unpaid → paid → refunded
+```
+
+## Development
 
 ```bash
-pnpm build:pc
-pnpm build:admin
-pnpm e2e
+# Backend development with auto-reload
+pnpm dev:api
+
+# PC admin development
+pnpm dev:pc
+
+# Database initialization
+pnpm db:init
+
+# Database seeding
+pnpm db:seed
+
+# Full verification
 pnpm verify:all
 ```
 
-移动管理能力已收敛到微信小程序内嵌管理端；原 H5/多端管理端已移除，不再提供 `dev:h5-admin` 或多端管理端构建脚本。PC 管理端继续通过 `packages/admin-shared` 复用接口定义、状态枚举与格式化方法；小程序管理端直接复用 `miniprogram/utils/request.js` 请求 `/api/admin/*`。
+## Contributing
 
-## API 摘要
+This project welcomes contributions. Please feel free to submit issues and pull requests.
 
-- `GET /api/activities` 活动推荐
-- `GET /api/articles` 养生资讯
-- `GET /api/services` 服务项目
-- `GET /api/practitioners?serviceId=1` 技师列表
-- `GET /api/schedules?practitionerId=1&date=2026-06-12` 可约排班
-- `POST /api/appointments` 创建预约
-- `GET /api/me/appointments` 我的预约
-- `GET /api/health-records` 健康档案列表
-- `POST /api/health-records` 新增健康档案
-- `GET /api/profile/summary` 个人中心概览
-- `GET /api/admin/dashboard` 管理看板
-- `GET /api/admin/bootstrap` 管理端下拉基础数据
-- `GET /api/admin/orders` 管理端订单
-- `PATCH /api/admin/orders/:id/status` 更新订单状态
-- `GET/POST/PATCH /api/admin/*` 管理端门店、项目、技师、排班、提成、首页配置、内容、会员、评价与审计接口
+## License
 
-## 后续接入建议
-
-- 微信登录：把 `backend/src/middleware/auth.js` 的开发期 `x-demo-user-id` 替换为 `wx.login` 换取 `openid` + JWT。
-- 微信支付：在预约创建后增加支付单，接入 JSAPI 支付与回调，更新 `payment_status`。
-- 文件存储：健康档案舌诊/脉诊图片建议接腾讯云 COS 或微信云存储。
-- 权限体系：管理端正式上线前需要角色权限，至少区分用户、技师、管理员。
-- 小程序类目：医疗健康相关能力上线前需确认资质；若走生活服务/保健类目，功能文案和审核材料要更克制。
+MIT

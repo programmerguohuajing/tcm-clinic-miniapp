@@ -66,7 +66,7 @@
         <view class="section-title"><text>{{activeLabel}}</text><text class="muted">共 {{displayRows.length}} 条</text></view>
       </view>
       <view class="head-actions">
-        <view wx:if="{{activeKey !== 'audit' && activeKey !== 'orders' && activeKey !== 'users' && activeKey !== 'reviews'}}" class="primary-action" bindtap="openCreateEditor">
+        <view wx:if="{{activeKey !== 'audit' && activeKey !== 'orders' && activeKey !== 'users' && activeKey !== 'reviews' && activeKey !== 'payment'}}" class="primary-action" bindtap="openCreateEditor">
           新增
         </view>
         <view wx:if="{{activeKey === 'schedules' || activeKey === 'content'}}" class="ghost-action" bindtap="openSecondaryEditor">
@@ -87,7 +87,7 @@
       </view>
       <view wx:if="{{item.detailText}}" class="record-detail">{{item.detailText}}</view>
       <view class="record-actions">
-        <view wx:if="{{activeKey !== 'orders' && activeKey !== 'schedules' && activeKey !== 'content' && activeKey !== 'audit' && activeKey !== 'commissions'}}" class="ghost mini" data-id="{{item.id}}" bindtap="openRowEditor">编辑</view>
+        <view wx:if="{{activeKey !== 'orders' && activeKey !== 'schedules' && activeKey !== 'content' && activeKey !== 'audit' && activeKey !== 'commissions' && activeKey !== 'payment'}}" class="ghost mini" data-id="{{item.id}}" bindtap="openRowEditor">编辑</view>
         <view wx:if="{{activeKey === 'commissions' && !item.commission_amount}}" class="ghost mini" data-id="{{item.id}}" bindtap="openRowEditor">编辑规则</view>
         <view wx:if="{{activeKey === 'orders'}}" class="order-actions">
           <view class="ghost mini" data-id="{{item.id}}" data-status="confirmed" bindtap="updateOrder">确认</view>

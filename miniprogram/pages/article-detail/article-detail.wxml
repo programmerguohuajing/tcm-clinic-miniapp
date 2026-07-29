@@ -1,0 +1,22 @@
+<view class="page article-detail" wx:if="{{article}}">
+  <image wx:if="{{article.cover_url}}" class="cover-image" src="{{article.cover_url}}" mode="widthFix" />
+
+  <view class="article-header">
+    <view class="pill">{{article.category}}</view>
+    <view class="article-title">{{article.title}}</view>
+    <view class="article-meta">
+      <text class="subtitle">{{article.read_minutes}} 分钟阅读</text>
+      <text class="subtitle" wx:if="{{article.published_at}}">{{article.published_at.slice(0, 10)}}</text>
+    </view>
+  </view>
+
+  <view class="article-body">
+    <text class="summary" wx:if="{{article.summary}}">{{article.summary}}</text>
+    <view class="divider" wx:if="{{article.summary}}"></view>
+    <text class="content-text">{{article.content}}</text>
+  </view>
+</view>
+
+<view class="empty" wx:if="{{!article}}">
+  <text>文章加载中...</text>
+</view>

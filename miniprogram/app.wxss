@@ -164,8 +164,3 @@ input,
 textarea {
   font: inherit;
 }
-
-.empty-card,
-.empty {
-  color: #6a7c75;
-}

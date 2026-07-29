@@ -1,0 +1,25 @@
+<view class="page coupons">
+  <view class="tab-bar">
+    <block wx:for="{{tabs}}" wx:key="key">
+      <view class="tab {{tab === item.key ? 'active' : ''}}" bindtap="switchTab" data-tab="{{item.key}}">{{item.label}}</view>
+    </block>
+  </view>
+
+  <view wx:if="{{!coupons.length}}" class="empty">
+    <text>暂无优惠券</text>
+  </view>
+
+  <block wx:for="{{coupons}}" wx:key="id" wx:if="{{item.status === tab}}">
+    <view class="card coupon-card {{item.status === 'unused' ? 'coupon-unused' : 'coupon-used'}}">
+      <view class="coupon-left">
+        <view class="coupon-amount">¥{{item.amount}}</view>
+        <view class="coupon-condition" wx:if="{{item.min_spend > 0}}">满{{item.min_spend}}可用</view>
+        <view class="coupon-condition" wx:else>无门槛</view>
+      </view>
+      <view class="coupon-right">
+        <view class="coupon-title">{{item.title}}</view>
+        <view class="coupon-expiry" wx:if="{{item.expires_at}}">有效期至 {{item.expires_at.slice(0,10)}}</view>
+      </view>
+    </view>
+  </block>
+</view>

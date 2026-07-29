@@ -13,5 +13,6 @@ miniprogram/project.private.config.json
 .postgres-data/
 *.log
 .hvigor/
+.agents/
 build/
 oh_modules/

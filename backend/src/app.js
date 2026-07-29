@@ -14,6 +14,11 @@ import { profileRouter } from "./routes/profile.js";
 import { healthRecordsRouter } from "./routes/health-records.js";
 import { adminRouter } from "./routes/admin.js";
 import { technicianRouter } from "./routes/technician.js";
+import { ordersRouter } from "./routes/orders.js";
+import { reviewsRouter } from "./routes/reviews.js";
+import { contentRouter } from "./routes/content.js";
+import { userRouter } from "./routes/user.js";
+import { favoritesRouter } from "./routes/favorites.js";
 import { isProduction } from "./config/env.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -93,6 +98,11 @@ export function createApp() {
   app.use("/api", profileRouter);
   app.use("/api", healthRecordsRouter);
   app.use("/api", technicianRouter);
+  app.use("/api", ordersRouter);
+  app.use("/api", reviewsRouter);
+  app.use("/api", contentRouter);
+  app.use("/api", userRouter);
+  app.use("/api", favoritesRouter);
   app.use("/api", adminRouter);
 
   app.use(notFound);

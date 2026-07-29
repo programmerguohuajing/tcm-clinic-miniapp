@@ -1,0 +1,24 @@
+<view class="page favorites">
+  <view class="tab-bar">
+    <block wx:for="{{tabs}}" wx:key="key">
+      <view class="tab {{tab === item.key ? 'active' : ''}}" bindtap="switchTab" data-tab="{{item.key}}">{{item.label}}</view>
+    </block>
+  </view>
+
+  <view wx:if="{{!filteredFavorites.length}}" class="empty">
+    <text>暂无收藏</text>
+  </view>
+
+  <block wx:for="{{filteredFavorites}}" wx:key="id">
+    <view class="card fav-card" wx:if="{{item.target_type === 'store'}}" bindtap="goStoreDetail" data-id="{{item.target_id}}">
+      <view class="fav-name">{{item.store_name || '未知门店'}}</view>
+      <view class="subtitle">{{item.store_address || ''}}</view>
+      <button class="remove-btn" catchtap="removeFavorite" data-id="{{item.id}}">取消收藏</button>
+    </view>
+    <view class="card fav-card" wx:if="{{item.target_type === 'practitioner'}}">
+      <view class="fav-name">{{item.practitioner_name || '未知技师'}}</view>
+      <view class="subtitle">{{item.practitioner_title || ''}}</view>
+      <button class="remove-btn" catchtap="removeFavorite" data-id="{{item.id}}">取消收藏</button>
+    </view>
+  </block>
+</view>

@@ -1,0 +1,30 @@
+<view class="page activity-detail" wx:if="{{activity}}">
+  <image wx:if="{{activity.cover_url}}" class="cover-image" src="{{activity.cover_url}}" mode="widthFix" />
+
+  <view class="activity-header">
+    <view class="pill">{{activity.tag}}</view>
+    <view class="activity-title">{{activity.title}}</view>
+    <view class="subtitle">{{activity.subtitle}}</view>
+  </view>
+
+  <view class="card price-card">
+    <view class="price-row">
+      <view>
+        <view class="current-price">¥{{activity.price}}</view>
+        <view class="original-price" wx:if="{{activity.original_price}}">¥{{activity.original_price}}</view>
+      </view>
+      <view class="validity">截止 {{activity.endDate}}</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">活动详情</view>
+    <view class="subtitle">{{activity.subtitle}}</view>
+  </view>
+
+  <button class="primary-button book-button" bindtap="goBooking">立即预约</button>
+</view>
+
+<view class="empty" wx:if="{{!activity}}">
+  <text>活动加载中...</text>
+</view>

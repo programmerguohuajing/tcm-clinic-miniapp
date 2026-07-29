@@ -1,0 +1,25 @@
+<view class="page member" wx:if="{{user}}">
+  <view class="member-card">
+    <view class="member-level">{{user.member_level}}</view>
+    <view class="member-points">{{user.currentPoints}} 积分</view>
+    <view class="progress-bar">
+      <view class="progress-fill" style="width: {{user.progress}}%"></view>
+    </view>
+    <view class="progress-text" wx:if="{{levelConfig.next}}">
+      距离 {{levelConfig.next}} 还需 {{levelConfig.nextPoints - user.currentPoints}} 积分
+    </view>
+    <view class="progress-text" wx:else>
+      已达最高等级
+    </view>
+  </view>
+
+  <view class="section-title"><text>会员权益</text></view>
+  <block wx:for="{{benefits}}" wx:key="*this">
+    <view class="card benefit-item">
+      <view class="benefit-icon">✓</view>
+      <view class="benefit-text">{{item}}</view>
+    </view>
+  </block>
+
+  <button class="ghost-button" bindtap="goCoupons">查看我的优惠券</button>
+</view>

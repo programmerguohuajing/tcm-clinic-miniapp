@@ -1,0 +1,31 @@
+<view class="page order-review">
+  <view wx:if="{{order}}" class="review-summary">
+    <view class="reviewed-service">{{order.service_name}}</view>
+    <view class="subtitle">{{order.appointment_date}} · {{order.practitioner_name}}</view>
+  </view>
+
+  <view class="card rating-card">
+    <view class="card-title">服务评分</view>
+    <view class="stars">
+      <block wx:for="{{[1,2,3,4,5]}}" wx:key="*this">
+        <text class="star {{item <= rating ? 'active' : ''}}" bindtap="onRatingTap" data-rating="{{item}}">{{item <= rating ? '★' : '☆'}}</text>
+      </block>
+    </view>
+    <view class="rating-label">{{rating > 0 ? rating + ' 星' : '点击评分'}}</view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">评价内容</view>
+    <textarea
+      class="review-textarea"
+      placeholder="分享您的疗愈体验，帮助更多人了解..."
+      maxlength="500"
+      value="{{content}}"
+      bindinput="onContentInput"
+      auto-height
+    />
+    <view class="char-count">{{content.length}}/500</view>
+  </view>
+
+  <button class="primary-button submit-button" bindtap="submitReview" wx:if="{{order}}">提交评价</button>
+</view>

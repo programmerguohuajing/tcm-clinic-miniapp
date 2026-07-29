@@ -72,6 +72,32 @@
   margin-top: 24rpx;
 }
 
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16rpx;
+  margin-top: 24rpx;
+}
+
+.menu-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10rpx;
+  padding: 22rpx 0;
+  border: 1rpx solid rgba(200, 235, 222, 0.9);
+  border-radius: 24rpx;
+  background: rgba(255, 255, 255, 0.86);
+  color: #10241e;
+  font-size: 22rpx;
+  font-weight: 700;
+  text-align: center;
+}
+
+.menu-icon {
+  font-size: 36rpx;
+}
+
 .empty-card {
   padding: 34rpx;
   color: #6a7c75;

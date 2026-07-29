@@ -12,6 +12,7 @@ const navItems = [
   { key: "content", label: "内容营销" },
   { key: "users", label: "会员权限" },
   { key: "reviews", label: "评价管理" },
+  { key: "payment", label: "支付配置" },
   { key: "audit", label: "操作日志" }
 ];
 
@@ -116,7 +117,9 @@ const adminApi = {
   updateUserRole: (id, data) => request(`/admin/users/${id}/role`, { method: "PATCH", data }),
   reviews: (params) => request(`/admin/reviews${query(params)}`),
   updateReview: (id, data) => request(`/admin/reviews/${id}`, { method: "PATCH", data }),
-  auditLogs: (params) => request(`/admin/audit-logs${query(params)}`)
+  auditLogs: (params) => request(`/admin/audit-logs${query(params)}`),
+  paymentConfigs: (params) => request(`/admin/payment-configs${query(params)}`),
+  savePaymentConfig: (id, data) => request(`/admin/payment-configs/${id}`, { method: "PATCH", data })
 };
 
 Page({
@@ -212,6 +215,8 @@ Page({
       rows = await adminApi.users();
     } else if (activeKey === "reviews") {
       rows = await adminApi.reviews();
+    } else if (activeKey === "payment") {
+      rows = await adminApi.paymentConfigs();
     } else if (activeKey === "audit") {
       rows = await adminApi.auditLogs();
     }
@@ -273,6 +278,11 @@ Page({
       value = "★".repeat(row.rating || 0);
       meta = `${row.user_name || "-"} · ${row.practitioner_name || "-"} · ${row.store_name || "-"}`;
       detail = row.reply ? `${row.content || ""}\n回复：${row.reply}` : row.content || "";
+    } else if (key === "payment") {
+      title = row.configKeyLabel || row.config_key || "支付配置";
+      meta = row.store_name || "全局配置";
+      value = row.is_active !== false ? "启用" : "停用";
+      detail = JSON.stringify(row.config_value || {}).slice(0, 160);
     } else if (key === "audit") {
       meta = `${row.user_name || "-"} · ${row.target_type || "-"} #${row.target_id || ""}`;
       value = dateText(row.created_at);
@@ -406,6 +416,10 @@ Page({
     try {
       if (saveKey === "savePractitioner") return { ...model, specialties: splitKeywords(model.specialties) };
       if (saveKey === "saveHomepageConfig") return { ...model, payload: JSON.parse(model.payloadText || "{}") };
+      if (saveKey === "savePaymentConfig") {
+        try { JSON.parse(model.configValue || "{}"); } catch { wx.showToast({ title: "JSON 格式不正确", icon: "none" }); return null; }
+        return model;
+      }
       if (saveKey === "bulkSchedules") {
         return {
           ...model,
@@ -436,7 +450,11 @@ Page({
       createActivity: adminApi.createActivity,
       createArticle: adminApi.createArticle,
       updateUserRole: (model) => adminApi.updateUserRole(model.id, model),
-      updateReview: (model) => adminApi.updateReview(model.id, model)
+      updateReview: (model) => adminApi.updateReview(model.id, model),
+      savePaymentConfig: (model) => adminApi.savePaymentConfig(model.id, {
+        configValue: model.configValue,
+        isActive: model.isActive
+      })
     };
     return actions[saveKey](data);
   },
@@ -606,6 +624,25 @@ Page({
           { name: "status", label: "展示状态", type: "select", options: [{ label: "显示", value: "visible" }, { label: "隐藏", value: "hidden" }] }
         ],
         model: (row = {}) => ({ id: row.id, reply: row.reply || "", status: row.status || "visible" })
+      },
+      payment: {
+        title: "支付配置",
+        primary: "保存配置",
+        saveKey: "savePaymentConfig",
+        fields: () => [
+          { name: "configKey", label: "配置项" },
+          { name: "configValue", label: "JSON 配置", type: "textarea" },
+          { name: "isActive", label: "是否启用", type: "select", options: statusOptions.bool }
+        ],
+        model: (row = {}) => {
+          const keyLabel = { wechat_pay: "微信支付", mock_payment: "模拟支付" };
+          return {
+            id: row.id,
+            configKey: keyLabel[row.config_key] || row.config_key || "",
+            configValue: JSON.stringify(row.config_value || {}, null, 2),
+            isActive: row.is_active !== false
+          };
+        }
       }
     };
     return configs[activeKey];

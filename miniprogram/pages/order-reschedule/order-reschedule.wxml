@@ -1,0 +1,41 @@
+<view class="page order-reschedule">
+  <view wx:if="{{order}}" class="card current-order">
+    <view class="card-title">当前预约</view>
+    <view class="detail-row">
+      <text class="label">项目</text><text>{{order.service_name}}</text>
+    </view>
+    <view class="detail-row">
+      <text class="label">原时间</text><text>{{order.appointment_date}} {{order.startLabel}}-{{order.endLabel}}</text>
+    </view>
+    <view class="detail-row">
+      <text class="label">技师</text><text>{{order.practitioner_name}}</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">选择新日期</view>
+    <picker mode="date" value="{{date}}" start="{{date}}" bindchange="onDateChange">
+      <view class="picker">{{date}}</view>
+    </picker>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading-text">加载时段中...</view>
+
+  <view wx:elif="{{slots.length === 0 && !loading}}" class="empty">
+    <text>该日期暂无可用时段</text>
+  </view>
+
+  <view wx:if="{{slots.length > 0}}" class="section-title">
+    <text>可用时段</text>
+  </view>
+  <view class="slot-grid">
+    <block wx:for="{{slots}}" wx:key="id">
+      <view class="slot {{selectedSlot && selectedSlot.id === item.id ? 'active' : ''}}" bindtap="selectSlot" data-item="{{item}}">
+        <view>{{item.timeLabel}}</view>
+        <text>可约</text>
+      </view>
+    </block>
+  </view>
+
+  <button class="primary-button" bindtap="confirmReschedule" wx:if="{{order && selectedSlot}}">确认改期</button>
+</view>

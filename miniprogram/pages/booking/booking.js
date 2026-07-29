@@ -103,8 +103,8 @@ Page({
           note: ""
         }
       });
-      wx.navigateTo({
-        url: `/pages/appointment-confirm/appointment-confirm?orderNo=${appointment.order_no}`
+      wx.redirectTo({
+        url: `/pages/order-detail/order-detail?id=${appointment.id}&from=booking`
       });
     } catch (error) {
       if (isDev()) {

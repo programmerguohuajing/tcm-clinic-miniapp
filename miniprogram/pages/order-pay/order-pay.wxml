@@ -1,0 +1,29 @@
+<view class="page order-pay">
+  <view wx:if="{{order}}" class="pay-card">
+    <view class="pay-icon">¥</view>
+    <view class="pay-amount">{{order.amount}}</view>
+    <view class="subtitle">{{order.service_name}}</view>
+  </view>
+
+  <view wx:if="{{order}}" class="card">
+    <view class="card-title">订单信息</view>
+    <view class="detail-row">
+      <text class="label">项目</text><text>{{order.service_name}}</text>
+    </view>
+    <view class="detail-row">
+      <text class="label">技师</text><text>{{order.practitioner_name}}</text>
+    </view>
+    <view class="detail-row">
+      <text class="label">时间</text><text>{{order.appointment_date}} {{order.startLabel}}-{{order.endLabel}}</text>
+    </view>
+    <view class="detail-row">
+      <text class="label">门店</text><text>{{order.store_name || ''}}</text>
+    </view>
+  </view>
+
+  <view class="tip-card">
+    <view class="tip-text">支付完成后，订单将进入已确认状态。如需取消，请在支付前返回订单详情。</view>
+  </view>
+
+  <button class="primary-button pay-button" bindtap="doPay" wx:if="{{order}}">确认支付 ¥{{order.amount}}</button>
+</view>
