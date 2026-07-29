@@ -1,0 +1,36 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "tcm-clinic-api",
+  "main": "backend/preview/index.js",
+  "compatibility_date": "2026-07-29",
+
+  "containers": [
+    {
+      "class_name": "TCMContainer",
+      "image": "./Dockerfile",
+      "max_instances": 3,
+      "defaultPort": 3000
+    }
+  ],
+
+  "durable_objects": {
+    "bindings": [
+      {
+        "class_name": "TCMContainer",
+        "name": "TCM_API"
+      }
+    ]
+  },
+
+  "migrations": [
+    {
+      "new_sqlite_classes": ["TCMContainer"],
+      "tag": "v1"
+    }
+  ],
+
+  "vars": {
+    "NODE_ENV": "production",
+    "PORT": "3000"
+  }
+}
