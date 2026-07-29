@@ -6,7 +6,7 @@
 
   "containers": [
     {
-      "class_name": "TCMContainer",
+      "class_name": "AppContainer",
       "image": "./Dockerfile",
       "max_instances": 3,
       "defaultPort": 3000
@@ -16,7 +16,7 @@
   "durable_objects": {
     "bindings": [
       {
-        "class_name": "TCMContainer",
+        "class_name": "AppContainer",
         "name": "TCM_API"
       }
     ]
@@ -24,13 +24,8 @@
 
   "migrations": [
     {
-      "new_sqlite_classes": ["TCMContainer"],
+      "new_sqlite_classes": ["AppContainer"],
       "tag": "v1"
     }
-  ],
-
-  "vars": {
-    "NODE_ENV": "production",
-    "PORT": "3000"
-  }
+  ]
 }
