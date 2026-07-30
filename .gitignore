@@ -16,5 +16,6 @@ miniprogram/project.private.config.json
 .agents/
 build/
 oh_modules/
+backend/src/worker/static-files.js
 .dev.vars
 .claude/

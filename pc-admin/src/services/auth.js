@@ -1,7 +1,7 @@
 const TOKEN_KEY = "tcm_auth_token";
 const USER_KEY = "tcm_auth_user";
 
-const API_BASE = __API_URL__ || "";
+const API_BASE = "";
 
 export function getToken() {
   return window.localStorage.getItem(TOKEN_KEY) || "";

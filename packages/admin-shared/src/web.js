@@ -11,7 +11,7 @@ function delay(ms) {
 async function fetchAdmin(path, options) {
   const isDev = import.meta.env.DEV;
   const token = !isDev && typeof window !== "undefined" ? window.localStorage.getItem(TOKEN_KEY) : "";
-  return fetch(`${__API_URL__}/api${path}`, {
+  return fetch(`/api${path}`, {
     method: options.method || "GET",
     headers: {
       "content-type": "application/json",

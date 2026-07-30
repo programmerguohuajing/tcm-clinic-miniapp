@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy-api:
-    name: Deploy API to Workers
+  deploy:
+    name: Deploy API + PC Admin to Workers
     runs-on: ubuntu-latest
 
     steps:
@@ -25,39 +25,14 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+
+      - name: Build PC admin
+        run: cd pc-admin && pnpm run build
+
+      - name: Generate static files for Workers
+        run: node backend/scripts/build-static.js
 
       - name: Deploy to Cloudflare Workers
         run: cd backend && pnpm exec wrangler deploy
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-
-  deploy-pc-admin:
-    name: Deploy PC Admin to Pages
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v5
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Install wrangler
-        run: npm install -g wrangler
-
-      - name: Build
-        run: cd pc-admin && VITE_API_URL=https://tcm-clinic-api.jingguohua.workers.dev pnpm run build
-
-      - name: Deploy to Cloudflare Pages
-        run: cd pc-admin && wrangler pages deploy dist --project-name tcm-pc-admin
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
