@@ -1,6 +1,6 @@
-import jwt from "jsonwebtoken";
+import { SignJWT, jwtVerify } from "jose";
 import { query } from "../config/db.js";
-import { isProduction, jwtSecret, DEMO_USER } from "../config/env.js";
+import { JWT_SECRET, DEMO_USER } from "../config/env.js";
 
 async function findUserById(userId) {
   const { rows } = await query(
@@ -11,65 +11,69 @@ async function findUserById(userId) {
       where u.id = $1`,
     [userId]
   );
-  return rows[0] || null;
+  return rows.rows[0] || null;
 }
 
-function bearerToken(req) {
-  const authorization = req.header("authorization") || "";
+function bearerToken(c) {
+  const authorization = c.req.header("authorization") || "";
   const [type, token] = authorization.split(" ");
   return type?.toLowerCase() === "bearer" ? token : "";
 }
 
-export function signUserToken(user) {
-  return jwt.sign({ sub: String(user.id) }, jwtSecret(), { expiresIn: process.env.JWT_EXPIRES_IN || "7d" });
+export async function signUserToken(user, env) {
+  const secret = new TextEncoder().encode(JWT_SECRET(env));
+  const token = await new SignJWT({ sub: String(user.id) })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime(env.JWT_EXPIRES_IN || "7d")
+    .sign(secret);
+  return token;
 }
 
-export async function attachCurrentUser(req, res, next) {
+export async function attachCurrentUser(c, next) {
   try {
-    if (!isProduction() && req.header("x-demo-user-id")) {
-      const userId = Number(req.header("x-demo-user-id") || 1);
-      console.warn(`[auth] DEV: using x-demo-user-id=${userId}`);
-      req.user = await findUserById(userId) || { ...DEMO_USER };
-      return next();
-    }
+    const env = c.get("env") || c.env;
+    const token = bearerToken(c);
 
-    const token = bearerToken(req);
     if (token) {
-      const payload = jwt.verify(token, jwtSecret());
+      const secret = new TextEncoder().encode(JWT_SECRET(env));
+      const { payload } = await jwtVerify(token, secret);
       const user = await findUserById(Number(payload.sub));
-      if (!user) return res.status(401).json({ message: "登录状态无效" });
-      req.user = user;
+      if (!user) {
+        return c.json({ message: "登录状态无效" }, 401);
+      }
+      c.set("user", user);
       return next();
     }
 
-    if (!isProduction()) {
-      console.warn("[auth] DEV: no token, auto-attach demo user (id=1)");
-      req.user = await findUserById(1) || { ...DEMO_USER };
-      return next();
-    }
-
-    return res.status(401).json({ message: "请先登录" });
+    return c.json({ message: "请先登录" }, 401);
   } catch (_error) {
-    return res.status(401).json({ message: "登录状态已过期，请重新登录" });
+    return c.json({ message: "登录状态已过期，请重新登录" }, 401);
   }
 }
 
-export function requireAdmin(req, res, next) {
-  if (!req.user?.can_manage) {
-    return res.status(403).json({ message: "当前用户没有管理端权限" });
+export function requireAdmin(c, next) {
+  if (!c.get("user")?.can_manage) {
+    return c.json({ message: "当前用户没有管理端权限" }, 403);
   }
-
-  next();
+  return next();
 }
 
 export function requireRole(...roles) {
-  return (req, res, next) => {
-    if (!req.user?.can_manage) {
-      return res.status(403).json({ message: "当前用户没有管理端权限" });
+  return (c, next) => {
+    if (!c.get("user")?.can_manage) {
+      return c.json({ message: "当前用户没有管理端权限" }, 403);
     }
-    if (roles.length && !roles.includes(req.user.admin_role)) {
-      return res.status(403).json({ message: "当前角色无权执行此操作" });
+    if (roles.length && !roles.includes(c.get("user")?.admin_role)) {
+      return c.json({ message: "当前角色无权执行此操作" }, 403);
     }
-    next();
+    return next();
   };
+}
+
+export function requireTechnician(c, next) {
+  const user = c.get("user");
+  if (!user?.can_technician || !user?.technician_id) {
+    return c.json({ message: "当前用户没有技师端权限" }, 403);
+  }
+  return next();
 }

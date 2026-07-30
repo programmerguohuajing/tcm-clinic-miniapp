@@ -483,13 +483,27 @@ nav {
 .tcm-dialog {
   display: flex;
   max-height: calc(100vh - 48px);
-  overflow: hidden;
   flex-direction: column;
   border-radius: 18px;
 }
 
+.tcm-dialog .el-dialog__wrapper,
+.tcm-dialog .el-dialog {
+  overflow: visible !important;
+}
+
+.tcm-dialog .el-dialog__body {
+  overflow: visible !important;
+}
+
+.tcm-dialog + .el-overlay,
 .el-overlay {
-  z-index: 3000 !important;
+  overflow: visible !important;
+}
+
+/* dropdown inside dialog must appear above the overlay */
+.dialog-popper {
+  z-index: 5000 !important;
 }
 
 .tcm-dialog .el-dialog__header {

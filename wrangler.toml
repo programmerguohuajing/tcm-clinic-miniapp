@@ -1,18 +1,8 @@
 name = "tcm-clinic-api"
-main = "backend/preview/index.js"
-compatibility_date = "2026-07-29"
+main = "backend/src/worker/index.js"
+compatibility_date = "2026-07-30"
 compatibility_flags = ["nodejs_compat"]
 
-[[containers]]
-class_name = "AppContainer"
-image = "./Dockerfile"
-max_instances = 3
-
-[durable_objects]
-bindings = [
-  { class_name = "AppContainer", name = "TCM_API" }
-]
-
-[[migrations]]
-tag = "v1"
-new_sqlite_classes = ["AppContainer"]
+[vars]
+NODE_ENV = "production"
+DATABASE_URL = "postgresql://neondb_owner:npg_uJNWpXFMC6L9@ep-orange-heart-azq9f905-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"

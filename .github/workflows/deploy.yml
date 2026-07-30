@@ -1,4 +1,4 @@
-name: Build and Deploy to Cloudflare
+name: Deploy to Cloudflare
 
 on:
   push:
@@ -6,78 +6,59 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  deploy-api:
+    name: Deploy API to Workers
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: pnpm
 
-      - name: Install Wrangler
-        run: npm install -g wrangler
+      - name: Install dependencies
+        run: pnpm install
 
-      - name: Login to Cloudflare
+      - name: Deploy to Cloudflare Workers
+        run: npx wrangler deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: echo "$CLOUDFLARE_API_TOKEN" | wrangler auth login --stdin
 
-      - name: Set production secrets
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          CORS_ORIGIN: ${{ secrets.CORS_ORIGIN }}
-          APP_HOST: ${{ secrets.APP_HOST }}
-          WECHAT_APP_ID: ${{ secrets.WECHAT_APP_ID }}
-          WECHAT_APP_SECRET: ${{ secrets.WECHAT_APP_SECRET }}
-          ADMIN_LOGIN_PHONE: ${{ secrets.ADMIN_LOGIN_PHONE }}
-          ADMIN_LOGIN_PASSWORD: ${{ secrets.ADMIN_LOGIN_PASSWORD }}
-        run: |
-          echo "$DATABASE_URL" | npx wrangler secret put DATABASE_URL
-          echo "$JWT_SECRET" | npx wrangler secret put JWT_SECRET
-          echo "$CORS_ORIGIN" | npx wrangler secret put CORS_ORIGIN
-          echo "$APP_HOST" | npx wrangler secret put APP_HOST
-          echo "$WECHAT_APP_ID" | npx wrangler secret put WECHAT_APP_ID
-          echo "$WECHAT_APP_SECRET" | npx wrangler secret put WECHAT_APP_SECRET
-          echo "$ADMIN_LOGIN_PHONE" | npx wrangler secret put ADMIN_LOGIN_PHONE
-          echo "$ADMIN_LOGIN_PASSWORD" | npx wrangler secret put ADMIN_LOGIN_PASSWORD
-
-      - name: Deploy to Cloudflare Containers
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          echo "Deploying to Cloudflare Containers..."
-          npx wrangler deploy
-          echo "Deployment complete."
-
-  health-check:
-    needs: deploy
+  deploy-pc-admin:
+    name: Deploy PC Admin to Pages
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
 
     steps:
-      - name: Health check
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: cd pc-admin && pnpm run build
+
+      - name: Deploy to Cloudflare Pages
+        run: cd pc-admin && npx wrangler pages deploy dist --project-name tcm-pc-admin
         env:
-          APP_HOST: ${{ secrets.APP_HOST }}
-        run: |
-          echo "Waiting for deployment to be ready..."
-          sleep 90
-
-          for i in $(seq 1 10); do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://${APP_HOST}/health" || echo "000")
-            echo "Attempt $i: HTTP $STATUS"
-
-            if [ "$STATUS" = "200" ]; then
-              echo "Health check passed!"
-              exit 0
-            fi
-
-            sleep 15
-          done
-
-          echo "Health check did not pass within timeout"
-          exit 1
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

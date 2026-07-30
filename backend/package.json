@@ -1,25 +1,24 @@
 {
   "name": "tcm-clinic-api",
   "version": "0.1.0",
-  "type": "module",
   "private": true,
   "main": "src/server.js",
+  "type": "module",
   "scripts": {
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
+    "deploy": "wrangler deploy",
     "db:init": "node scripts/init-db.js",
-    "db:seed": "node scripts/seed-db.js"
+    "db:seed": "node scripts/seed-db.js",
+    "cf:dev": "wrangler dev"
   },
   "dependencies": {
-    "@cloudflare/containers": "^0.3.7",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "express-rate-limit": "^8.5.2",
-    "helmet": "^8.0.0",
-    "jsonwebtoken": "^9.0.2",
-    "morgan": "^1.10.0",
-    "pg": "^8.13.1",
+    "@neondatabase/serverless": "^1.0.0",
+    "hono": "^4.7.5",
+    "jose": "^6.0.10",
     "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "wrangler": "^4.43.0"
   }
 }

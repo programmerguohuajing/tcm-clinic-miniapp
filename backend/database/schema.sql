@@ -244,3 +244,43 @@ create index if not exists idx_appointments_schedule on appointments(schedule_id
 create index if not exists idx_appointments_status on appointments(status);
 create index if not exists idx_health_records_user on health_records(user_id, created_at desc);
 create index if not exists idx_homepage_configs_store on homepage_configs(store_id, sort_order desc);
+
+-- Capacity enforcement trigger for appointments.
+-- Prevents over-booking by checking schedule capacity at the database level.
+-- This is critical for Workers/serve rless where we can't use interactive transactions (SELECT ... FOR UPDATE).
+create or replace function enforce_schedule_capacity()
+returns trigger as $$
+declare
+  v_capacity int;
+  v_booked int;
+  v_status text;
+begin
+  select s.capacity, s.status into v_capacity, v_status
+    from schedules s where s.id = new.schedule_id;
+
+  if not found then
+    raise exception '排班不存在 (schedule_id=%)', new.schedule_id;
+  end if;
+
+  if v_status != 'open' then
+    raise exception '该时段已关闭预约';
+  end if;
+
+  select count(*)::int into v_booked
+    from appointments
+   where schedule_id = new.schedule_id
+     and status in ('pending','confirmed')
+     and id != new.id;
+
+  if v_booked >= v_capacity then
+    raise exception '该时段已约满';
+  end if;
+
+  return new;
+end;
+$$ language plpgsql;
+
+drop trigger if exists trg_enforce_capacity on appointments;
+create trigger trg_enforce_capacity
+  before insert on appointments
+  for each row execute function enforce_schedule_capacity();

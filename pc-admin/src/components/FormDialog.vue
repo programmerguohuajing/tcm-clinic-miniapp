@@ -52,6 +52,8 @@ function getRules(field) {
           v-model="editor.model[field.name]"
           filterable
           clearable
+          teleported
+          popper-class="dialog-popper"
         >
           <el-option
             v-for="option in field.options"
@@ -86,12 +88,14 @@ function getRules(field) {
           value-format="HH:mm"
           format="HH:mm"
           placeholder="选择时间"
+          teleported
         />
         <el-date-picker
           v-else-if="field.type === 'date'"
           v-model="editor.model[field.name]"
           value-format="YYYY-MM-DD"
           placeholder="选择日期"
+          teleported
         />
         <el-input
           v-else

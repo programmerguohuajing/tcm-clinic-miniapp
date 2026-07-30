@@ -1,4 +1,9 @@
 export function asyncHandler(handler) {
-  return (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);
+  return async (c, next) => {
+    try {
+      return await handler(c, next);
+    } catch (err) {
+      throw err;
+    }
+  };
 }
-

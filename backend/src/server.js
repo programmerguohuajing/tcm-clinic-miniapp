@@ -1,32 +1,31 @@
-import dotenv from "dotenv";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import http from "node:http";
 import { createApp } from "./app.js";
-import { pool } from "./config/db.js";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.resolve(__dirname, "..", ".env") });
-
+const app = createApp({ DATABASE_URL: process.env.DATABASE_URL });
 const port = Number(process.env.PORT || 3000);
 
-process.on("unhandledRejection", (err) => {
-  console.error("[server] Unhandled rejection:", err);
-  process.exit(1);
-});
-
-async function start() {
-  try {
-    await pool.query("select 1");
-    console.log("[server] database connection OK");
-  } catch (err) {
-    console.error("[server] database connection FAILED:", err.message);
-    process.exit(1);
-  }
-
-  const app = createApp();
-  app.listen(port, () => {
-    console.log(`TCM clinic API listening on http://localhost:${port}`);
-  });
+if (!process.env.DATABASE_URL) {
+  console.warn("[server] DATABASE_URL not set — set it in .env for local dev");
 }
 
-start();
+console.log(`[server] starting on http://localhost:${port}`);
+
+const server = http.createServer(async (req, res) => {
+  try {
+    const response = await app.fetch(req, { DATABASE_URL: process.env.DATABASE_URL });
+    res.statusCode = response.status;
+    response.headers.forEach((value, key) => res.setHeader(key, value));
+    const body = await response.text();
+    res.end(body);
+  } catch (err) {
+    console.error("[server] unhandled error:", err);
+    if (!res.headersSent) {
+      res.statusCode = 500;
+      res.end(JSON.stringify({ error: { code: "INTERNAL_ERROR", message: "服务器内部错误" } }));
+    }
+  }
+});
+
+server.listen(port, () => {
+  console.log(`[server] TCM clinic API listening on http://localhost:${port}`);
+});

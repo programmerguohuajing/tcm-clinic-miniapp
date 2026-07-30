@@ -1,10 +1,14 @@
 import { randomUUID } from "node:crypto";
-import { pool, query } from "../config/db.js";
+import { query } from "../config/db.js";
 
+/**
+ * List available time slots for a practitioner on a given date.
+ */
 export async function listAvailableSlots({ practitionerId, date, storeId }) {
   const params = [practitionerId, date];
   const storeClause = storeId ? `and s.store_id = $3` : "";
   if (storeId) params.push(storeId);
+
   const { rows } = await query(
     `select s.id,
             s.store_id,
@@ -30,6 +34,14 @@ export async function listAvailableSlots({ practitionerId, date, storeId }) {
   }));
 }
 
+/**
+ * Create an appointment.
+ *
+ * Concurrency safety: the database has a BEFORE INSERT trigger
+ * (`enforce_schedule_capacity`) that atomically checks capacity.
+ * If two concurrent requests pass the pre-check, the database
+ * will reject the second one with "该时段已约满".
+ */
 export async function createAppointment({
   userId,
   serviceId,
@@ -38,97 +50,70 @@ export async function createAppointment({
   familyMemberId,
   note
 }) {
-  const client = await pool.connect();
+  // Fast-fail: check for duplicate booking
+  const dupResult = await query(
+    `select exists(
+       select 1 from appointments
+       where user_id = $1 and schedule_id = $2
+         and status in ('pending','confirmed')
+     ) as duplicate`,
+    [userId, scheduleId]
+  );
 
+  if (dupResult.rows[0]?.duplicate) {
+    const err = new Error("您已预约了该时段，请勿重复预约");
+    err.statusCode = 409;
+    throw err;
+  }
+
+  // Fast-fail: verify service exists and get price
+  const svcResult = await query(
+    `select id, name, price from services where id = $1 and is_active = true`,
+    [serviceId]
+  );
+
+  if (!svcResult.rows[0]?.id) {
+    const err = new Error("服务项目不存在");
+    err.statusCode = 404;
+    throw err;
+  }
+
+  const service = svcResult.rows[0];
+  const orderNo = `TCM${randomUUID().slice(0, 8).toUpperCase()}`;
+
+  // Atomic INSERT — SELECT validates schedule exists and belongs to practitioner
+  // DB trigger (enforce_schedule_capacity) enforces capacity atomically
   try {
-    await client.query("begin");
-
-    const duplicate = await client.query(
-      `select exists(
-        select 1 from appointments
-        where user_id = $1 and schedule_id = $2
-          and status in ('pending','confirmed')
-      ) as duplicate`,
-      [userId, scheduleId]
-    );
-    if (duplicate.rows[0].duplicate) {
-      const error = new Error("您已预约了该时段，请勿重复预约");
-      error.statusCode = 409;
-      throw error;
-    }
-
-    const schedule = await client.query(
-      `select *
-         from schedules
-        where id = $1
-          and practitioner_id = $2
-        for update`,
-      [scheduleId, practitionerId]
-    );
-
-    if (!schedule.rowCount) {
-      const error = new Error("排班不存在");
-      error.statusCode = 404;
-      throw error;
-    }
-
-    const slot = schedule.rows[0];
-    const booked = await client.query(
-      `select count(*)::int as booked_count
-         from appointments
-        where schedule_id = $1
-          and status in ('pending','confirmed')`,
-      [scheduleId]
-    );
-    slot.booked_count = booked.rows[0].booked_count;
-
-    if (slot.status !== "open" || slot.booked_count >= slot.capacity) {
-      const error = new Error("该时段已约满或不可预约");
-      error.statusCode = 409;
-      throw error;
-    }
-
-    const service = await client.query(
-      `select id, name, price from services where id = $1 and is_active = true`,
-      [serviceId]
-    );
-
-    if (!service.rowCount) {
-      const error = new Error("服务项目不存在");
-      error.statusCode = 404;
-      throw error;
-    }
-
-    const orderNo = `TCM${randomUUID().slice(0, 8).toUpperCase()}`;
-    const inserted = await client.query(
+    const { rows } = await query(
       `insert into appointments (
          order_no, user_id, family_member_id, service_id, practitioner_id,
          schedule_id, appointment_date, start_time, end_time, amount, note, store_id
        )
-       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+       select $9,$2,$3,$4,$5,$6,s.work_date,s.start_time,s.end_time,$1,$10,s.store_id
+         from schedules s
+        where s.id = $7 and s.practitioner_id = $8
        returning *`,
       [
-        orderNo,
-        userId,
-        familyMemberId || null,
-        serviceId,
-        practitionerId,
-        scheduleId,
-        slot.work_date,
-        slot.start_time,
-        slot.end_time,
-        service.rows[0].price,
-        note || null,
-        slot.store_id
+        service.price,  // $1 amount
+        userId,         // $2
+        familyMemberId || null, // $3
+        serviceId,      // $4
+        practitionerId, // $5
+        scheduleId,     // $6
+        scheduleId,     // $7 (WHERE)
+        practitionerId, // $8 (WHERE)
+        orderNo,        // $9
+        note || null    // $10
       ]
     );
-
-    await client.query("commit");
-    return inserted.rows[0];
-  } catch (error) {
-    await client.query("rollback");
-    throw error;
-  } finally {
-    client.release();
+    return rows[0];
+  } catch (err) {
+    // Handle DB trigger rejection
+    if (err.message?.includes("已约满") || err.message?.includes("已关闭") || err.message?.includes("排班不存在")) {
+      const e = new Error(err.message);
+      e.statusCode = 409;
+      throw e;
+    }
+    throw err;
   }
 }
