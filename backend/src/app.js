@@ -72,7 +72,25 @@ const apiLimiter = rateLimit({
 export function createApp() {
   const app = express();
 
-  app.use(helmet({ contentSecurityPolicy: isProduction() ? undefined : false }));
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        scriptSrcAttr: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "https:", "'unsafe-inline'"],
+        fontSrc: ["'self'", "https:", "data:"],
+        imgSrc: ["'self'", "data:"],
+        connectSrc: ["'self'"],
+        frameAncestors: ["'self'"],
+        objectSrc: ["'none'"],
+        formAction: ["'self'"],
+        upgradeInsecureRequests: []
+      }
+    },
+    crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: false
+  }));
   app.use(cors(corsOptions()));
   app.use(express.json({ limit: "2mb" }));
   app.use(morgan(isProduction() ? "combined" : "dev"));
