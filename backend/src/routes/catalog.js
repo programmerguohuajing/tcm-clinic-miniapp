@@ -14,7 +14,7 @@ export const catalogRouter = () => {
   }
 
   app.get("/stores/:id", asyncHandler(async (c) => {
-    const { id } = c.req.valid("param");
+    const id = z.coerce.number().int().positive().parse(Number(c.req.param("id")));
     const { rows } = await query(
       `select id, name, city, address, phone, business_hours, latitude, longitude, is_default
          from stores
@@ -36,7 +36,7 @@ export const catalogRouter = () => {
   }));
 
   app.get("/homepage-configs", asyncHandler(async (c) => {
-    const { storeId } = c.req.valid("query");
+    const { storeId } = storeQuery.parse(c.req.query());
     const filter = storeFilter(storeId);
     const { rows } = await query(
       `select id, store_id, section_key, title, payload, sort_order
@@ -49,7 +49,7 @@ export const catalogRouter = () => {
   }));
 
   app.get("/activities", asyncHandler(async (c) => {
-    const { storeId } = c.req.valid("query");
+    const { storeId } = storeQuery.parse(c.req.query());
     const filter = storeFilter(storeId);
     const { rows } = await query(
       `select id, title, subtitle, cover_url, price, original_price, tag, starts_at, ends_at
@@ -62,7 +62,7 @@ export const catalogRouter = () => {
   }));
 
   app.get("/articles", asyncHandler(async (c) => {
-    const { storeId } = c.req.valid("query");
+    const { storeId } = storeQuery.parse(c.req.query());
     const filter = storeFilter(storeId);
     const { rows } = await query(
       `select id, title, summary, cover_url, category, read_minutes, published_at
@@ -75,7 +75,7 @@ export const catalogRouter = () => {
   }));
 
   app.get("/services", asyncHandler(async (c) => {
-    const { storeId } = c.req.valid("query");
+    const { storeId } = storeQuery.parse(c.req.query());
     const filter = storeFilter(storeId);
     const { rows } = await query(
       `select id, name, category, description, duration_minutes, price, cover_url

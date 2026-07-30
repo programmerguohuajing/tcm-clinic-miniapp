@@ -19,7 +19,7 @@ export const authRouter = () => {
 
   app.post("/auth/wechat-login", async (c) => {
     const schema = z.object({ code: z.string().min(1) });
-    const { code } = schema.parse(c.req.valid("json"));
+    const { code } = schema.parse(await c.req.json());
 
     const appid = WECHAT_APP_ID(c.env);
     const secret = WECHAT_APP_SECRET(c.env);
@@ -64,7 +64,7 @@ export const authRouter = () => {
 
   app.post("/auth/admin-login", async (c) => {
     const schema = z.object({ phone: z.string().min(1), password: z.string().min(1) });
-    const { phone, password } = schema.parse(c.req.valid("json"));
+    const { phone, password } = schema.parse(await c.req.json());
 
     const expectedPhone = ADMIN_LOGIN_PHONE(c.env);
     const expectedPassword = ADMIN_LOGIN_PASSWORD(c.env);
