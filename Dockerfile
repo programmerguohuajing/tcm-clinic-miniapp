@@ -5,20 +5,18 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
-RUN corepack enable
-
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY backend/package.json backend/package.json
-COPY pc-admin/package.json pc-admin/package.json
 COPY packages/admin-shared/package.json packages/admin-shared/package.json
 
-RUN pnpm install --frozen-lockfile
+RUN corepack enable && pnpm install --frozen-lockfile
 
+# Copy backend source
 COPY backend backend
 COPY packages packages
-COPY pc-admin pc-admin
 
-RUN pnpm build:pc
+# Copy pre-built PC admin SPA (built locally before docker build)
+COPY pc-admin/dist ./pc-admin/dist
 
 EXPOSE 3000
 
