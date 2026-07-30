@@ -3,7 +3,10 @@ export function notFoundMiddleware(c) {
 }
 
 export function errorMiddleware(err, c) {
-  console.error(err);
+  console.error("[error]", err.name, err.message, err.stack);
+
+  // If a middleware already returned a Response (e.g. auth 401), pass it through
+  if (err instanceof Response) return err;
 
   if (err.name === "ZodError" || err.issues) {
     const issues = err.issues || err;

@@ -3,7 +3,7 @@ import { query } from "../config/db.js";
 import { JWT_SECRET, DEMO_USER } from "../config/env.js";
 
 async function findUserById(userId) {
-  const { rows } = await query(
+  const result = await query(
     `select u.id, u.nickname, u.phone, u.points, u.member_level, u.admin_role, u.can_manage, u.can_technician,
             p.id as technician_id
        from users u
@@ -11,7 +11,7 @@ async function findUserById(userId) {
       where u.id = $1`,
     [userId]
   );
-  return rows.rows[0] || null;
+  return result.rows[0] || null;
 }
 
 function bearerToken(c) {
@@ -31,7 +31,7 @@ export async function signUserToken(user, env) {
 
 export async function attachCurrentUser(c, next) {
   try {
-    const env = c.get("env") || c.env;
+    const env = c.env;
     const token = bearerToken(c);
 
     if (token) {
@@ -46,7 +46,8 @@ export async function attachCurrentUser(c, next) {
     }
 
     return c.json({ message: "请先登录" }, 401);
-  } catch (_error) {
+  } catch (error) {
+    console.error("[auth] token verify failed:", error.name, error.message, error.stack);
     return c.json({ message: "登录状态已过期，请重新登录" }, 401);
   }
 }
