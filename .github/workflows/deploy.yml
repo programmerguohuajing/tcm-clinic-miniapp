@@ -27,7 +27,7 @@ jobs:
         run: pnpm install
 
       - name: Deploy to Cloudflare Workers
-        run: npx wrangler deploy
+        run: cd backend && pnpm exec wrangler deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
@@ -51,10 +51,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Install wrangler
+        run: npm install -g wrangler
+
       - name: Build
         run: cd pc-admin && pnpm run build
 
       - name: Deploy to Cloudflare Pages
-        run: cd pc-admin && npx wrangler pages deploy dist --project-name tcm-pc-admin
+        run: cd pc-admin && wrangler pages deploy dist --project-name tcm-pc-admin
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
