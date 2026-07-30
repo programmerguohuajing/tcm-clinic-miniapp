@@ -171,12 +171,20 @@ const renderers = {
 
   async orders() {
     const rows = await request(`/admin/orders${state.storeId ? `?storeId=${state.storeId}` : ""}`);
-    return table(["订单号", "用户", "项目", "门店", "技师", "时间", "金额", "状态", "操作"], rows.map((r) => `
-      <tr><td>${r.order_no}</td><td>${r.user_name}<br>${r.user_phone || ""}</td><td>${r.service_name}</td><td>${r.store_name || "-"}</td><td>${r.practitioner_name}</td><td>${dateText(r.appointment_date)} ${timeText(r.start_time)}</td><td>${money(r.amount)}</td><td>${statusPill(r.status)}</td><td class="actions">
-        <button class="ghost mini order-status" data-id="${r.id}" data-status="confirmed">确认</button>
-        <button class="primary mini order-status" data-id="${r.id}" data-status="completed">核销</button>
-        <button class="danger mini order-status" data-id="${r.id}" data-status="cancelled">取消</button>
-      </td></tr>`));
+    const body = rows.map((r) => {
+      const actions = [];
+      if (r.status === "pending") {
+        actions.push(`<button class="ghost mini order-status" data-id="${r.id}" data-status="confirmed">确认</button>`);
+      }
+      if (r.status === "confirmed") {
+        actions.push(`<button class="primary mini order-status" data-id="${r.id}" data-status="completed">核销</button>`);
+      }
+      if (r.status === "pending" || r.status === "confirmed") {
+        actions.push(`<button class="danger mini order-status" data-id="${r.id}" data-status="cancelled">取消</button>`);
+      }
+      return `<tr><td>${r.order_no}</td><td>${r.user_name}<br>${r.user_phone || ""}</td><td>${r.service_name}</td><td>${r.store_name || "-"}</td><td>${r.practitioner_name}</td><td>${dateText(r.appointment_date)} ${timeText(r.start_time)}</td><td>${money(r.amount)}</td><td>${statusPill(r.status)}</td><td class="actions">${actions.join("")}</td></tr>`;
+    }).join("");
+    return `<div class="section-head"><h2>预约订单</h2><button class="primary" data-open="phoneOrder">新建订单</button></div>${table(["订单号", "用户", "项目", "门店", "技师", "时间", "金额", "状态", "操作"], body || `<tr><td colspan="9"><div class="empty">暂无数据，点击右上角新建订单。</div></td></tr>`)}`;
   },
 
   async commissions() {
@@ -382,6 +390,25 @@ const editors = {
       field("adminRole", "后台角色", r.admin_role || "member", "text", false, statusOptions(r.admin_role || "member", [["member", "普通会员"], ["frontdesk", "前台"], ["manager", "店长"], ["owner", "总部管理员"]])),
       field("canManage", "显示管理入口", r.can_manage, "text", false, boolOptions(r.can_manage))
     ]
+  },
+  phoneOrder: {
+    title: () => "电话预约",
+    endpoint: () => "/admin/orders",
+    method: () => "POST",
+    useCurrentStore: true,
+    transform: (data) => {
+      if (data.customerName === "") data.customerName = undefined;
+      if (data.note === "") data.note = undefined;
+      return data;
+    },
+    fields: () => [
+      field("customerPhone", "客户手机号 *", "", "tel"),
+      field("customerName", "客户姓名（选填）", "", "text"),
+      field("serviceId", "服务项目", "", "text", false, serviceSelectOptions("", "请选择项目")),
+      field("practitionerId", "技师", "", "text", false, practitionerOptions("", "请选择技师")),
+      field("scheduleId", "排班时段", "", "text", false, `<option value="">请先选择技师</option>`),
+      field("note", "备注", "", "textarea", true)
+    ]
   }
 };
 
@@ -404,7 +431,7 @@ function collectForm(form) {
     if (key === "serviceIds") continue;
     if (value === "") continue;
     if (value === "true" || value === "false") data[key] = value === "true";
-    else if (["storeId", "practitionerId", "serviceId", "capacity", "sortOrder", "readMinutes"].includes(key)) data[key] = Number(value);
+    else if (["storeId", "practitionerId", "serviceId", "scheduleId", "capacity", "sortOrder", "readMinutes"].includes(key)) data[key] = Number(value);
     else data[key] = value;
   }
   const serviceIds = formData.getAll("serviceIds").map(Number);
@@ -415,6 +442,17 @@ function collectForm(form) {
 function resolveEditorStoreId(row = {}) {
   const storeId = row.store_id || row.storeId || state.storeId;
   return storeId ? Number(storeId) : "";
+}
+
+async function loadScheduleOptions(practitionerId, storeId) {
+  const today = new Date().toISOString().slice(0, 10);
+  try {
+    const slots = await request(`/schedules?practitionerId=${practitionerId}&date=${today}&storeId=${storeId || ""}`);
+    const available = (slots || []).filter((s) => s.available && s.status === "open");
+    return available.map((s) => `<option value="${s.id}">${s.work_date} ${s.start_time}-${s.end_time}</option>`).join("");
+  } catch {
+    return "";
+  }
 }
 
 function openEditor(type, row = {}) {
@@ -442,6 +480,28 @@ function openEditor(type, row = {}) {
       toast(error.message);
     }
   };
+
+  // For phoneOrder editor, load schedule options when practitioner changes
+  if (type === "phoneOrder") {
+    const practitionerSelect = dialog.querySelector("[name='practitionerId']");
+    const scheduleSelect = dialog.querySelector("[name='scheduleId']");
+    if (practitionerSelect) {
+      const refreshSchedules = async () => {
+        const pid = Number(practitionerSelect.value);
+        if (!pid) {
+          scheduleSelect.innerHTML = `<option value="">请先选择技师</option>`;
+          return;
+        }
+        scheduleSelect.innerHTML = `<option value="">加载中...</option>`;
+        const options = await loadScheduleOptions(pid, state.storeId);
+        scheduleSelect.innerHTML = options || `<option value="">暂无可用排班</option>`;
+      };
+      practitionerSelect.addEventListener("change", refreshSchedules);
+      // Pre-load if a practitioner is already selected
+      if (practitionerSelect.value) refreshSchedules();
+    }
+  }
+
   dialog.showModal();
 }
 

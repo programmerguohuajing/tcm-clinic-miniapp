@@ -93,9 +93,9 @@
         <view wx:if="{{activeKey !== 'orders' && activeKey !== 'schedules' && activeKey !== 'content' && activeKey !== 'audit' && activeKey !== 'commissions' && activeKey !== 'payment'}}" class="ghost mini" data-id="{{item.id}}" bindtap="openRowEditor">编辑</view>
         <view wx:if="{{activeKey === 'commissions' && !item.commission_amount}}" class="ghost mini" data-id="{{item.id}}" bindtap="openRowEditor">编辑规则</view>
         <view wx:if="{{activeKey === 'orders'}}" class="order-actions">
-          <view class="ghost mini" data-id="{{item.id}}" data-status="confirmed" bindtap="updateOrder">确认</view>
-          <view class="primary mini" data-id="{{item.id}}" data-status="completed" bindtap="updateOrder">核销</view>
-          <view class="danger mini" data-id="{{item.id}}" data-status="cancelled" bindtap="updateOrder">取消</view>
+          <view wx:if="{{item.status === 'pending'}}" class="ghost mini" data-id="{{item.id}}" data-status="confirmed" bindtap="updateOrder">确认</view>
+          <view wx:if="{{item.status === 'confirmed'}}" class="primary mini" data-id="{{item.id}}" data-status="completed" bindtap="updateOrder">核销</view>
+          <view wx:if="{{item.status === 'pending' || item.status === 'confirmed'}}" class="danger mini" data-id="{{item.id}}" data-status="cancelled" bindtap="updateOrder">取消</view>
         </view>
       </view>
     </view>
