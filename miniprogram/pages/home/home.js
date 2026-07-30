@@ -1,4 +1,5 @@
 const { request } = require("../../utils/request");
+const { getToken } = require("../../utils/auth");
 const { isDev } = require("../../utils/env");
 const mock = require("../../utils/mock-data");
 
@@ -11,11 +12,25 @@ Page({
       button: "预约私人调理"
     },
     activities: isDev() ? mock.activities : [],
-    articles: isDev() ? mock.articles : []
+    articles: isDev() ? mock.articles : [],
+    showPhoneOverlay: false
   },
 
   onLoad() {
     this.loadHome();
+  },
+
+  onShow() {
+    this.checkPhoneAuth();
+  },
+
+  checkPhoneAuth() {
+    if (isDev()) {
+      this.setData({ showPhoneOverlay: false });
+      return;
+    }
+    const token = getToken();
+    this.setData({ showPhoneOverlay: !token });
   },
 
   async loadHome() {
@@ -72,5 +87,9 @@ Page({
 
   goBooking() {
     wx.switchTab({ url: "/pages/booking/booking" });
+  },
+
+  goToLogin() {
+    wx.navigateTo({ url: "/pages/login/login" });
   }
 });

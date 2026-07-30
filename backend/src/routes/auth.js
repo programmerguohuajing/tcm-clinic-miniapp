@@ -2,14 +2,10 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { JWT_SECRET, WECHAT_APP_ID, WECHAT_APP_SECRET, ADMIN_LOGIN_PHONE, ADMIN_LOGIN_PASSWORD, isProduction } from "../config/env.js";
 import { query } from "../config/db.js";
-import { signUserToken } from "../middleware/auth.js";
+import { signUserToken, attachCurrentUser } from "../middleware/auth.js";
 
-/**
- * Auth routes — mounted at /api/auth/*
- */
 export const authRouter = () => {
   const app = new Hono();
-  // Helper: safe constant-time comparison
   const safeCompare = (a, b) => {
     const bufA = Buffer.from(String(a));
     const bufB = Buffer.from(String(b));
@@ -96,6 +92,74 @@ export const authRouter = () => {
 
     const token = await signUserToken(user, c.env);
     return c.json({ data: { token, user } });
+  });
+
+  /**
+   * Bind phone number to current user.
+   * Requires JWT auth. Accepts the `code` from WeChat's getPhoneNumber button,
+   * exchanges it with WeChat to get the phone number, then stores it on the user.
+   */
+  app.post("/auth/bind-phone", async (c) => {
+    const user = c.get("user");
+    if (!user) {
+      return c.json({ message: "请先登录" }, 401);
+    }
+
+    const schema = z.object({ code: z.string().min(1) });
+    const { code } = schema.parse(await c.req.json());
+
+    const appid = WECHAT_APP_ID(c.env);
+    const secret = WECHAT_APP_SECRET(c.env);
+
+    let phone = "";
+
+    if (!appid || !secret) {
+      console.warn("[auth] DEV: bind-phone in dev mode, skipping phone fetch");
+      phone = "";
+    } else {
+      // Step 1: Get access_token via client_credential
+      const tokenParams = new URLSearchParams({
+        grant_type: "client_credential",
+        appid,
+        secret
+      });
+      const tokenRes = await fetch(`https://api.weixin.qq.com/cgi-bin/token?${tokenParams}`);
+      const tokenPayload = await tokenRes.json();
+      if (!tokenRes.ok || tokenPayload.errcode || !tokenPayload.access_token) {
+        return c.json({ error: { code: "WECHAT_ERROR", message: tokenPayload.errmsg || "获取 access_token 失败" } }, 502);
+      }
+      const accessToken = tokenPayload.access_token;
+
+      // Step 2: Use getPhoneNumber API to decrypt the phone
+      const phoneRes = await fetch(`https://api.weixin.qq.com/cgi-bin/secure/getPhoneNumber?access_token=${accessToken}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ code })
+      });
+      const phonePayload = await phoneRes.json();
+
+      if (!phoneRes.ok || phonePayload.errcode) {
+        return c.json({ error: { code: "WECHAT_ERROR", message: phonePayload.errmsg || "获取手机号失败" } }, 502);
+      }
+
+      const rawPhone = phonePayload.phone_info?.purePhoneNumber || "";
+      if (!rawPhone) {
+        return c.json({ error: { code: "PHONE_EMPTY", message: "未能获取到手机号，请重试" } }, 400);
+      }
+      phone = String(rawPhone);
+    }
+
+    const updated = await query(
+      `update users set phone = $1, updated_at = now()
+       where id = $2
+       returning id, nickname, phone, points, member_level, admin_role, can_manage`,
+      [phone || null, user.id]
+    );
+
+    const updatedUser = updated.rows[0];
+    const token = await signUserToken(updatedUser, c.env);
+
+    return c.json({ data: { token, user: updatedUser } });
   });
 
   return app;

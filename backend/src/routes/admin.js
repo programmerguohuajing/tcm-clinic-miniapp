@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { z } from "zod";
+import { randomUUID } from "node:crypto";
 import { query, tx } from "../config/db.js";
 import { asyncHandler } from "../middleware/async-handler.js";
 import { requireAdmin, requireRole } from "../middleware/auth.js";
@@ -553,6 +554,81 @@ export const adminRouter = () => {
       [...values, limit, offset]
     );
     return c.json({ data: rows, pagination: paginationMeta(page, pageSize, countResult.rows[0].total) });
+  }));
+
+  app.post("/admin/orders", asyncHandler(async (c) => {
+    const payload = z.object({
+      customerPhone: z.string().min(11).max(11).regex(/^\d+$/),
+      customerName: z.string().min(1).max(50).optional(),
+      serviceId: z.coerce.number().int().positive(),
+      practitionerId: z.coerce.number().int().positive(),
+      scheduleId: z.coerce.number().int().positive(),
+      storeId: z.coerce.number().int().positive().optional(),
+      note: z.string().max(300).optional()
+    }).parse(await c.req.json());
+
+    // 1. Find or create user by phone
+    const userResult = await query(
+      `select id, nickname, phone from users where phone = $1 limit 1`,
+      [payload.customerPhone]
+    );
+    let userId;
+    if (userResult.rows[0]) {
+      userId = userResult.rows[0].id;
+    } else {
+      const nickname = payload.customerName || `客户${payload.customerPhone.slice(-4)}`;
+      const inserted = await query(
+        `insert into users (phone, nickname) values ($1, $2)
+         returning id`,
+        [payload.customerPhone, nickname]
+      );
+      userId = inserted.rows[0].id;
+    }
+
+    // 2. Get service price
+    const svcResult = await query(
+      `select price from services where id = $1 and is_active = true`,
+      [payload.serviceId]
+    );
+    if (!svcResult.rows[0]?.price) {
+      return c.json({ error: { code: "NOT_FOUND", message: "服务项目不存在或已下架" } }, 404);
+    }
+    const amount = svcResult.rows[0].price;
+
+    // 3. Create appointment (phone bookings are confirmed directly)
+    const { rows } = await query(
+      `insert into appointments (
+         order_no, user_id, service_id, practitioner_id, schedule_id,
+         appointment_date, start_time, end_time, amount, note, store_id, status
+       )
+       select $1,$2,$3,$4,$5,s.work_date,s.start_time,s.end_time,$6,$7,s.store_id,'confirmed'
+         from schedules s
+        where s.id = $8 and s.practitioner_id = $9
+       returning *`,
+      [
+        `TCM${randomUUID().slice(0, 8).toUpperCase()}`,
+        userId,
+        payload.serviceId,
+        payload.practitionerId,
+        payload.scheduleId,
+        amount,
+        payload.note || null,
+        payload.scheduleId,
+        payload.practitionerId
+      ]
+    );
+
+    const appointment = rows[0];
+
+    // 4. Audit log
+    await audit(c, "create_phone_order", "appointment", appointment.id, {
+      customerPhone: payload.customerPhone,
+      customerName: payload.customerName,
+      serviceId: payload.serviceId,
+      practitionerId: payload.practitionerId
+    });
+
+    return c.json({ data: appointment }, 201);
   }));
 
   app.patch("/admin/orders/:id/status", asyncHandler(async (c) => {

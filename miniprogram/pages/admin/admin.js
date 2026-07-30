@@ -104,6 +104,7 @@ const adminApi = {
   saveSchedule: (data) => request("/admin/schedules", { method: "POST", data }),
   bulkSchedules: (data) => request("/admin/schedules/bulk", { method: "POST", data }),
   orders: (params) => request(`/admin/orders${query(params)}`),
+  createOrder: (data) => request("/admin/orders", { method: "POST", data }),
   updateOrderStatus: (id, status) => request(`/admin/orders/${id}/status`, { method: "PATCH", data: { status } }),
   commissionRules: (params) => request(`/admin/commission-rules${query(params)}`),
   saveCommissionRule: (data) => request(data.id ? `/admin/commission-rules/${data.id}` : "/admin/commission-rules", { method: data.id ? "PATCH" : "POST", data }),
@@ -137,6 +138,25 @@ Page({
     loading: false,
     bootstrap: { stores: [], services: [], practitioners: [] },
     editor: { visible: false, title: "", fields: [], model: {}, saveKey: "" },
+    phoneBooking: {
+      visible: false,
+      loading: false,
+      error: "",
+      form: {
+        customerPhone: "",
+        customerName: "",
+        serviceId: 0,
+        serviceIndex: -1,
+        practitionerId: 0,
+        practitionerIndex: -1,
+        scheduleId: 0,
+        scheduleIndex: -1,
+        note: ""
+      },
+      serviceOptions: [],
+      practitionerOptions: [],
+      scheduleOptions: []
+    },
     toast: ""
   },
 
@@ -646,5 +666,162 @@ Page({
       }
     };
     return configs[activeKey];
+  },
+
+  // ── Phone booking (for phone-in / walk-in orders) ──
+  openPhoneBooking() {
+    this.loadPhoneBookingOptions();
+    this.setData({
+      "phoneBooking.visible": true,
+      "phoneBooking.error": "",
+      "phoneBooking.form": {
+        customerPhone: "",
+        customerName: "",
+        serviceId: 0,
+        serviceIndex: -1,
+        practitionerId: 0,
+        practitionerIndex: -1,
+        scheduleId: 0,
+        scheduleIndex: -1,
+        note: ""
+      },
+      "phoneBooking.scheduleOptions": []
+    });
+  },
+
+  closePhoneBooking() {
+    this.setData({ "phoneBooking.visible": false });
+  },
+
+  async loadPhoneBookingOptions() {
+    try {
+      const [services, practitioners] = await Promise.all([
+        adminApi.services(),
+        adminApi.practitioners()
+      ]);
+      const activeServices = (services || []).filter((s) => s.is_active !== false);
+      const activePractitioners = (practitioners || []).filter((p) => p.status === "active");
+      this.setData({
+        "phoneBooking.serviceOptions": activeServices.map((s) => ({ label: `${s.name} · ¥${s.price}`, value: s.id })),
+        "phoneBooking.practitionerOptions": activePractitioners.map((p) => ({ label: p.name, value: p.id }))
+      });
+    } catch (err) {
+      wx.showToast({ title: "加载选项失败", icon: "none" });
+    }
+  },
+
+  async refreshScheduleOptions() {
+    const { serviceId, practitionerId } = this.data.phoneBooking.form;
+    if (!serviceId || !practitionerId) {
+      this.setData({ "phoneBooking.scheduleOptions": [], "phoneBooking.form.scheduleId": 0, "phoneBooking.form.scheduleIndex": -1 });
+      return;
+    }
+
+    try {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, "0");
+      const dd = String(today.getDate()).padStart(2, "0");
+      const slots = await request(`/schedules?practitionerId=${practitionerId}&date=${yyyy}-${mm}-${dd}&storeId=`);
+      const available = (slots || []).filter((s) => s.available && s.status === "open");
+      const options = available.map((s) => ({
+        label: `${s.work_date} ${s.start_time}-${s.end_time}`,
+        value: s.id
+      }));
+      this.setData({
+        "phoneBooking.scheduleOptions": options,
+        "phoneBooking.form.scheduleId": 0,
+        "phoneBooking.form.scheduleIndex": -1
+      });
+    } catch (err) {
+      console.warn("[admin] load schedules failed:", err);
+      this.setData({ "phoneBooking.scheduleOptions": [] });
+    }
+  },
+
+  updatePhoneField(event) {
+    const { name } = event.currentTarget.dataset;
+    const value = event.detail.value;
+    if (name === "customerPhone") {
+      this.setData({ "phoneBooking.form.customerPhone": value, "phoneBooking.error": "" });
+    } else if (name === "customerName") {
+      this.setData({ "phoneBooking.form.customerName": value });
+    } else if (name === "note") {
+      this.setData({ "phoneBooking.form.note": value });
+    }
+  },
+
+  updatePhoneSelect(event) {
+    const { name } = event.currentTarget.dataset;
+    const index = Number(event.detail.value);
+    if (name === "serviceId") {
+      const options = this.data.phoneBooking.serviceOptions;
+      const selected = options[index] || {};
+      this.setData({
+        "phoneBooking.form.serviceId": selected.value || 0,
+        "phoneBooking.form.serviceIndex": index,
+        "phoneBooking.error": ""
+      });
+      this.refreshScheduleOptions();
+    } else if (name === "practitionerId") {
+      const options = this.data.phoneBooking.practitionerOptions;
+      const selected = options[index] || {};
+      this.setData({
+        "phoneBooking.form.practitionerId": selected.value || 0,
+        "phoneBooking.form.practitionerIndex": index,
+        "phoneBooking.error": ""
+      });
+      this.refreshScheduleOptions();
+    } else if (name === "scheduleId") {
+      const options = this.data.phoneBooking.scheduleOptions;
+      const selected = options[index] || {};
+      this.setData({
+        "phoneBooking.form.scheduleId": selected.value || 0,
+        "phoneBooking.form.scheduleIndex": index
+      });
+    }
+  },
+
+  async submitPhoneBooking() {
+    const { form, serviceOptions, practitionerOptions, scheduleOptions } = this.data.phoneBooking;
+
+    if (!form.customerPhone || form.customerPhone.length !== 11) {
+      this.setData({ "phoneBooking.error": "请输入正确的11位手机号" });
+      return;
+    }
+    if (!form.serviceId) {
+      this.setData({ "phoneBooking.error": "请选择服务项目" });
+      return;
+    }
+    if (!form.practitionerId) {
+      this.setData({ "phoneBooking.error": "请选择技师" });
+      return;
+    }
+    if (!form.scheduleId) {
+      this.setData({ "phoneBooking.error": "请选择排班时段" });
+      return;
+    }
+
+    this.setData({ "phoneBooking.loading": true, "phoneBooking.error": "" });
+
+    try {
+      const result = await adminApi.createOrder({
+        customerPhone: form.customerPhone,
+        customerName: form.customerName || undefined,
+        serviceId: form.serviceId,
+        practitionerId: form.practitionerId,
+        scheduleId: form.scheduleId,
+        storeId: this.data.storeId || undefined,
+        note: form.note || undefined
+      });
+
+      wx.showToast({ title: "预约成功", icon: "success" });
+      this.setData({ "phoneBooking.visible": false });
+      await this.loadActive();
+    } catch (err) {
+      this.setData({ "phoneBooking.error": err.message || "预约失败，请重试" });
+    } finally {
+      this.setData({ "phoneBooking.loading": false });
+    }
   }
 });

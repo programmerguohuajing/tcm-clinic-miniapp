@@ -52,3 +52,21 @@
     </view>
   </block>
 </view>
+
+<!-- Phone auth overlay -->
+<view wx:if="{{showPhoneOverlay}}" class="phone-overlay">
+  <view class="phone-overlay-backdrop"></view>
+  <view class="phone-overlay-card">
+    <view class="phone-overlay-icon">🌿</view>
+    <view class="phone-overlay-title">欢迎来到青囊中医馆</view>
+    <view class="phone-overlay-desc">请先授权手机号\n为您开启完整的疗愈体验</view>
+    <view class="phone-overlay-features">
+      <view class="phone-overlay-feature"><text class="phone-overlay-feature-icon">✓</text><text>在线预约服务</text></view>
+      <view class="phone-overlay-feature"><text class="phone-overlay-feature-icon">✓</text><text>查看健康档案</text></view>
+      <view class="phone-overlay-feature"><text class="phone-overlay-feature-icon">✓</text><text>会员积分管理</text></view>
+      <view class="phone-overlay-feature"><text class="phone-overlay-feature-icon">✓</text><text>预约消息提醒</text></view>
+    </view>
+    <button class="phone-overlay-button" bindtap="goToLogin">微信手机号一键登录</button>
+    <view class="phone-overlay-terms">登录即同意《用户协议》和《隐私政策》</view>
+  </view>
+</view>

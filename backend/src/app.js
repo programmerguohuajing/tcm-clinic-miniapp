@@ -86,7 +86,8 @@ export function createApp(env) {
   app.get("/health", (c) => c.json({ status: "ok", service: "tcm-clinic-api" }));
 
   app.use("/api/*", async (c, next) => {
-    if (c.req.path.startsWith("/api/auth/")) return next();
+    const publicPaths = ["/api/auth/wechat-login", "/api/auth/admin-login"];
+    if (publicPaths.includes(c.req.path)) return next();
     return attachCurrentUser(c, next);
   });
 

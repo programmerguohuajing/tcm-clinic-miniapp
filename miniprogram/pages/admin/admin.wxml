@@ -69,6 +69,9 @@
         <view wx:if="{{activeKey !== 'audit' && activeKey !== 'orders' && activeKey !== 'users' && activeKey !== 'reviews' && activeKey !== 'payment'}}" class="primary-action" bindtap="openCreateEditor">
           新增
         </view>
+        <view wx:if="{{activeKey === 'orders'}}" class="primary-action" bindtap="openPhoneBooking">
+          电话预约
+        </view>
         <view wx:if="{{activeKey === 'schedules' || activeKey === 'content'}}" class="ghost-action" bindtap="openSecondaryEditor">
           {{activeKey === 'schedules' ? '批量排班' : '新增文章'}}
         </view>
@@ -119,6 +122,47 @@
         <input wx:else class="input" type="{{item.type === 'number' ? 'digit' : 'text'}}" value="{{item.value}}" data-name="{{item.name}}" data-type="{{item.type}}" data-field-index="{{fieldIndex}}" bindinput="updateField" />
       </view>
       <view class="save-button" bindtap="saveEditor">保存</view>
+    </view>
+  </view>
+
+  <view wx:if="{{phoneBooking.visible}}" class="sheet-mask" bindtap="closePhoneBooking">
+    <view class="sheet" catchtap="stopTap">
+      <view class="sheet-head">
+        <text>电话预约</text>
+        <view class="ghost mini" bindtap="closePhoneBooking">关闭</view>
+      </view>
+      <view class="field">
+        <view class="field-label">客户手机号 <text class="required">*</text></view>
+        <input class="input" type="number" maxlength="11" placeholder="请输入手机号" value="{{phoneBooking.form.customerPhone}}" data-name="customerPhone" bindinput="updatePhoneField" />
+      </view>
+      <view class="field">
+        <view class="field-label">客户姓名</view>
+        <input class="input" type="text" placeholder="选填，未填写则自动生成" value="{{phoneBooking.form.customerName}}" data-name="customerName" bindinput="updatePhoneField" />
+      </view>
+      <view class="field">
+        <view class="field-label">服务项目 <text class="required">*</text></view>
+        <picker range="{{phoneBooking.serviceOptions}}" range-key="label" value="{{phoneBooking.form.serviceIndex}}" data-name="serviceId" bindchange="updatePhoneSelect">
+          <view class="select-box">{{phoneBooking.form.serviceIndex >= 0 ? phoneBooking.serviceOptions[phoneBooking.form.serviceIndex].label : '请选择服务项目'}}</view>
+        </picker>
+      </view>
+      <view class="field">
+        <view class="field-label">技师 <text class="required">*</text></view>
+        <picker range="{{phoneBooking.practitionerOptions}}" range-key="label" value="{{phoneBooking.form.practitionerIndex}}" data-name="practitionerId" bindchange="updatePhoneSelect">
+          <view class="select-box">{{phoneBooking.form.practitionerIndex >= 0 ? phoneBooking.practitionerOptions[phoneBooking.form.practitionerIndex].label : '请选择技师'}}</view>
+        </picker>
+      </view>
+      <view class="field">
+        <view class="field-label">排班时段 <text class="required">*</text></view>
+        <picker range="{{phoneBooking.scheduleOptions}}" range-key="label" value="{{phoneBooking.form.scheduleIndex}}" data-name="scheduleId" bindchange="updatePhoneSelect">
+          <view class="select-box">{{phoneBooking.form.scheduleIndex >= 0 ? phoneBooking.scheduleOptions[phoneBooking.form.scheduleIndex].label : '请先选择技师和服务'}}</view>
+        </picker>
+      </view>
+      <view class="field">
+        <view class="field-label">备注</view>
+        <textarea class="textarea" placeholder="选填，如客户特殊需求" value="{{phoneBooking.form.note}}" data-name="note" bindinput="updatePhoneField" auto-height />
+      </view>
+      <view wx:if="{{phoneBooking.error}}" class="phone-error">{{phoneBooking.error}}</view>
+      <view class="save-button" bindtap="submitPhoneBooking">确认预约</view>
     </view>
   </view>
 </view>

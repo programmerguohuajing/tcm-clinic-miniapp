@@ -1,0 +1,39 @@
+<view class="login-page">
+  <view class="login-card">
+    <view class="login-brand">
+      <view class="login-seal">掌</view>
+      <view>
+        <text class="login-brand-sub">QI Retreat</text>
+        <text class="login-brand-title">青囊中医馆</text>
+      </view>
+    </view>
+
+    <view class="login-body">
+      <view class="login-illustration">
+        <text class="login-illustration-icon">🌿</text>
+        <text class="login-illustration-text">授权手机号\n开启疗愈之旅</text>
+      </view>
+
+      <view class="login-notice">
+        <text class="login-notice-title">为何需要手机号</text>
+        <text class="login-notice-desc">用于预约确认、服务提醒及会员积分管理</text>
+      </view>
+
+      <button
+        class="login-button"
+        open-type="getPhoneNumber"
+        bindgetphonenumber="onGetPhoneNumber"
+        disabled="{{loading}}"
+      >
+        <text class="login-button-icon">📱</text>
+        <text>{{loading ? '授权中...' : '微信手机号一键登录'}}</text>
+      </button>
+
+      <view wx:if="{{error}}" class="login-error">{{error}}</view>
+
+      <view class="login-terms">
+        登录即表示同意<text class="login-terms-link">《用户协议》</text>和<text class="login-terms-link">《隐私政策》</text>
+      </view>
+    </view>
+  </view>
+</view>
