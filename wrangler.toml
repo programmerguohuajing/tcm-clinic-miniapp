@@ -1,31 +1,19 @@
-{
-  "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "tcm-clinic-api",
-  "main": "backend/preview/index.js",
-  "compatibility_date": "2026-07-29",
+$schema = "./node_modules/wrangler/config-schema.json"
+name = "tcm-clinic-api"
+main = "backend/preview/index.js"
+compatibility_date = "2026-07-29"
 
-  "containers": [
-    {
-      "class_name": "AppContainer",
-      "image": "./Dockerfile",
-      "max_instances": 3,
-      "defaultPort": 3000
-    }
-  ],
+[[containers]]
+class_name = "AppContainer"
+image = "./Dockerfile"
+max_instances = 3
+defaultPort = 3000
 
-  "durable_objects": {
-    "bindings": [
-      {
-        "class_name": "AppContainer",
-        "name": "TCM_API"
-      }
-    ]
-  },
+[durable_objects]
+bindings = [
+  { class_name = "AppContainer", name = "TCM_API" }
+]
 
-  "migrations": [
-    {
-      "new_sqlite_classes": ["AppContainer"],
-      "tag": "v1"
-    }
-  ]
-}
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["AppContainer"]
