@@ -18,5 +18,8 @@ export default defineConfig({
     proxy: {
       "/api": "http://127.0.0.1:3000"
     }
+  },
+  define: {
+    __API_URL__: JSON.stringify(process.env.VITE_API_URL || "")
   }
 });

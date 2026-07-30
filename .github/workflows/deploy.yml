@@ -55,7 +55,7 @@ jobs:
         run: npm install -g wrangler
 
       - name: Build
-        run: cd pc-admin && pnpm run build
+        run: cd pc-admin && VITE_API_URL=https://tcm-clinic-api.jingguohua.workers.dev pnpm run build
 
       - name: Deploy to Cloudflare Pages
         run: cd pc-admin && wrangler pages deploy dist --project-name tcm-pc-admin

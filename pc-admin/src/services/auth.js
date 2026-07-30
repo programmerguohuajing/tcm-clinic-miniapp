@@ -1,6 +1,8 @@
 const TOKEN_KEY = "tcm_auth_token";
 const USER_KEY = "tcm_auth_user";
 
+const API_BASE = __API_URL__ || "";
+
 export function getToken() {
   return window.localStorage.getItem(TOKEN_KEY) || "";
 }
@@ -24,7 +26,7 @@ export function getCurrentUser() {
 }
 
 export async function loginAdmin(credentials) {
-  const response = await fetch("/api/auth/admin-login", {
+  const response = await fetch(`${API_BASE}/api/auth/admin-login`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(credentials)

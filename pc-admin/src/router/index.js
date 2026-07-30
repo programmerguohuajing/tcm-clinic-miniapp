@@ -19,7 +19,7 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory("/pc-admin/"),
+  history: createWebHistory("/"),
   routes
 });
 
