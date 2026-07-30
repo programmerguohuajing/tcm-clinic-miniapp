@@ -101,15 +101,21 @@ watch(() => props.storeId, load);
       <template #status="{ row }"><StatusPill :value="row.status" /></template>
       <template #actions="{ row }">
         <div class="actions">
-          <button class="ghost mini" :disabled="!!updatingKey" @click="updateStatus(row, 'confirmed')">
-            {{ updatingKey === `${row.id}-confirmed` ? "确认中" : "确认" }}
-          </button>
-          <button class="primary mini" :disabled="!!updatingKey" @click="updateStatus(row, 'completed')">
-            {{ updatingKey === `${row.id}-completed` ? "核销中" : "核销" }}
-          </button>
-          <button class="danger mini" :disabled="!!updatingKey" @click="updateStatus(row, 'cancelled')">
-            {{ updatingKey === `${row.id}-cancelled` ? "取消中" : "取消" }}
-          </button>
+          <template v-if="row.status === 'pending'">
+            <button class="ghost mini" :disabled="!!updatingKey" @click="updateStatus(row, 'confirmed')">
+              {{ updatingKey === `${row.id}-confirmed` ? "确认中" : "确认" }}
+            </button>
+          </template>
+          <template v-if="row.status === 'confirmed'">
+            <button class="primary mini" :disabled="!!updatingKey" @click="updateStatus(row, 'completed')">
+              {{ updatingKey === `${row.id}-completed` ? "核销中" : "核销" }}
+            </button>
+          </template>
+          <template v-if="row.status === 'pending' || row.status === 'confirmed'">
+            <button class="danger mini" :disabled="!!updatingKey" @click="updateStatus(row, 'cancelled')">
+              {{ updatingKey === `${row.id}-cancelled` ? "取消中" : "取消" }}
+            </button>
+          </template>
         </div>
       </template>
     </DataTable>
