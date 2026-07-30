@@ -17,3 +17,4 @@ miniprogram/project.private.config.json
 build/
 oh_modules/
 .dev.vars
+.claude/
