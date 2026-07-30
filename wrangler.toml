@@ -3,8 +3,6 @@ main = "backend/preview/index.js"
 compatibility_date = "2026-07-29"
 compatibility_flags = ["nodejs_compat"]
 
-no_bundle = true
-
 [[containers]]
 class_name = "AppContainer"
 image = "./Dockerfile"
