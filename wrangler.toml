@@ -6,7 +6,6 @@ compatibility_date = "2026-07-29"
 class_name = "AppContainer"
 image = "./Dockerfile"
 max_instances = 3
-defaultPort = 3000
 
 [durable_objects]
 bindings = [
