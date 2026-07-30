@@ -1,6 +1,6 @@
-import { TCMContainer, getContainer } from "@cloudflare/containers";
+import { Container, getContainer } from "@cloudflare/containers";
 
-export class AppContainer extends TCMContainer {
+export class AppContainer extends Container {
   defaultPort = 3000;
 }
 
