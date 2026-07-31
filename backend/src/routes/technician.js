@@ -4,6 +4,11 @@ import { query } from "../config/db.js";
 import { asyncHandler } from "../middleware/async-handler.js";
 import { requireAdmin } from "../middleware/auth.js";
 
+const optionalPositiveInt = z.preprocess(
+  (value) => value === "" || value === null || value === undefined ? undefined : value,
+  z.coerce.number().int().positive().optional()
+);
+
 function resolvePractitionerId(c, params) {
   const adminId = params.practitionerId ? Number(params.practitionerId) : null;
   if (adminId) return adminId;
@@ -11,7 +16,7 @@ function resolvePractitionerId(c, params) {
 }
 
 function adminPractitionerSchema() {
-  return z.object({ practitionerId: z.coerce.number().int().positive().optional().preprocess(v => v === "" || v === null || v === undefined ? undefined : v) });
+  return z.object({ practitionerId: optionalPositiveInt });
 }
 
 export const technicianRouter = () => {
@@ -109,7 +114,7 @@ export const technicianRouter = () => {
   app.get("/technician/me/schedules", asyncHandler(async (c) => {
     const params = z.object({
       date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-      practitionerId: z.coerce.number().int().positive().optional().preprocess(v => v === "" || v === null || v === undefined ? undefined : v),
+      practitionerId: optionalPositiveInt,
       page: z.coerce.number().int().positive().default(1),
       pageSize: z.coerce.number().int().positive().max(100).default(10)
     }).parse(c.req.query());
@@ -153,8 +158,8 @@ export const technicianRouter = () => {
   app.post("/technician/me/schedules", asyncHandler(async (c) => {
     const user = c.get("user");
     const data = z.object({
-      practitionerId: z.coerce.number().int().positive().optional().preprocess(v => v === "" || v === null || v === undefined ? undefined : v),
-      storeId: z.coerce.number().int().positive().optional().preprocess(v => v === "" || v === null || v === undefined ? undefined : v),
+      practitionerId: optionalPositiveInt,
+      storeId: optionalPositiveInt,
       workDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
       startTime: z.string().regex(/^\d{2}:\d{2}$/),
       endTime: z.string().regex(/^\d{2}:\d{2}$/),
@@ -190,7 +195,7 @@ export const technicianRouter = () => {
 
   app.get("/technician/me/appointments", asyncHandler(async (c) => {
     const params = z.object({
-      practitionerId: z.coerce.number().int().positive().optional().preprocess(v => v === "" || v === null || v === undefined ? undefined : v),
+      practitionerId: optionalPositiveInt,
       page: z.coerce.number().int().positive().default(1),
       pageSize: z.coerce.number().int().positive().max(100).default(10)
     }).parse(c.req.query());
@@ -221,7 +226,7 @@ export const technicianRouter = () => {
 
   app.get("/technician/me/commissions", asyncHandler(async (c) => {
     const params = z.object({
-      practitionerId: z.coerce.number().int().positive().optional().preprocess(v => v === "" || v === null || v === undefined ? undefined : v),
+      practitionerId: optionalPositiveInt,
       page: z.coerce.number().int().positive().default(1),
       pageSize: z.coerce.number().int().positive().max(100).default(10)
     }).parse(c.req.query());

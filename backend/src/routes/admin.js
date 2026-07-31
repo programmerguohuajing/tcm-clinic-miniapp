@@ -6,13 +6,18 @@ import { requireAdmin, requireRole } from "../middleware/auth.js";
 import { isProduction, maskPhone } from "../config/env.js";
 import { VALID_STATUS_TRANSITIONS } from "../config/constants.js";
 
+const optionalPositiveInt = z.preprocess(
+  (value) => value === "" || value === null || value === undefined ? undefined : value,
+  z.coerce.number().int().positive().optional()
+);
+
 export const adminRouter = () => {
   const app = new Hono();
 
   app.use("/admin/*", requireAdmin);
 
   const idParam = z.object({ id: z.coerce.number().int().positive() });
-  const optionalStoreId = z.object({ storeId: z.coerce.number().int().positive().optional().preprocess(v => v === "" || v === null || v === undefined ? undefined : v) });
+  const optionalStoreId = z.object({ storeId: optionalPositiveInt });
 
   function emptyToNull(value) {
     return value === undefined || value === "" ? null : value;
@@ -292,7 +297,7 @@ export const adminRouter = () => {
 
   app.post("/admin/services", asyncHandler(async (c) => {
     const schema = z.object({
-      storeId: z.coerce.number().int().positive().optional().preprocess(v => v === "" || v === null || v === undefined ? undefined : v),
+      storeId: optionalPositiveInt,
       name: z.string().min(1).max(80),
       category: z.string().min(1).max(60),
       description: z.string().max(500).optional(),
@@ -315,7 +320,7 @@ export const adminRouter = () => {
   app.patch("/admin/services/:id", asyncHandler(async (c) => {
     const { id } = idParam.parse(c.req.param());
     const data = z.object({
-      storeId: z.coerce.number().int().positive().optional().preprocess(v => v === "" || v === null || v === undefined ? undefined : v),
+      storeId: optionalPositiveInt,
       name: z.string().min(1).max(80),
       category: z.string().min(1).max(60),
       description: z.string().max(500).optional(),
@@ -356,7 +361,7 @@ export const adminRouter = () => {
   app.post("/admin/practitioners", asyncHandler(async (c) => {
     const body = await c.req.json();
     const data = z.object({
-      storeId: z.coerce.number().int().positive().optional().preprocess(v => v === "" || v === null || v === undefined ? undefined : v),
+      storeId: optionalPositiveInt,
       name: z.string().min(1).max(60),
       title: z.string().max(80).optional().default(""),
       avatarUrl: z.string().optional(),
@@ -401,7 +406,7 @@ export const adminRouter = () => {
     const { id } = idParam.parse(c.req.param());
     const body = await c.req.json();
     const data = z.object({
-      storeId: z.coerce.number().int().positive().optional().preprocess(v => v === "" || v === null || v === undefined ? undefined : v),
+      storeId: optionalPositiveInt,
       name: z.string().min(1).max(60),
       title: z.string().max(80).optional().default(""),
       avatarUrl: z.string().optional(),
@@ -452,7 +457,7 @@ export const adminRouter = () => {
   // ── Schedules ──
   app.get("/admin/schedules", asyncHandler(async (c) => {
     const params = optionalStoreId.extend({
-      practitionerId: z.coerce.number().int().positive().optional().preprocess(v => v === "" || v === null || v === undefined ? undefined : v),
+      practitionerId: optionalPositiveInt,
       date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional()
     }).parse(c.req.query());
     const values = [];
@@ -479,7 +484,7 @@ export const adminRouter = () => {
   app.post("/admin/schedules", asyncHandler(async (c) => {
     const body = await c.req.json();
     const data = z.object({
-      storeId: z.coerce.number().int().positive().optional().preprocess(v => v === "" || v === null || v === undefined ? undefined : v),
+      storeId: optionalPositiveInt,
       practitionerId: z.coerce.number().int().positive(),
       workDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
       startTime: z.string().regex(/^\d{2}:\d{2}$/),
@@ -505,7 +510,7 @@ export const adminRouter = () => {
   app.post("/admin/schedules/bulk", asyncHandler(async (c) => {
     const body = await c.req.json();
     const data = z.object({
-      storeId: z.coerce.number().int().positive().optional().preprocess(v => v === "" || v === null || v === undefined ? undefined : v),
+      storeId: optionalPositiveInt,
       practitionerId: z.coerce.number().int().positive(),
       startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
       endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -545,7 +550,7 @@ export const adminRouter = () => {
   app.get("/admin/orders", asyncHandler(async (c) => {
     const params = optionalStoreId.extend({
       status: z.string().optional(),
-      practitionerId: z.coerce.number().int().positive().optional().preprocess(v => v === "" || v === null || v === undefined ? undefined : v),
+      practitionerId: optionalPositiveInt,
       keyword: z.string().optional()
     }).parse(c.req.query());
     const { page, pageSize, offset, limit } = paginate(c);
@@ -585,7 +590,7 @@ export const adminRouter = () => {
       serviceId: z.coerce.number().int().positive(),
       practitionerId: z.coerce.number().int().positive(),
       scheduleId: z.coerce.number().int().positive(),
-      storeId: z.coerce.number().int().positive().optional().preprocess(v => v === "" || v === null || v === undefined ? undefined : v),
+      storeId: optionalPositiveInt,
       note: z.string().max(300).optional()
     }).parse(await c.req.json());
 
@@ -718,8 +723,8 @@ export const adminRouter = () => {
   app.post("/admin/commission-rules", requireRole("owner", "manager"), asyncHandler(async (c) => {
     const schema = z.object({
       name: z.string().min(1).max(80),
-      serviceId: z.coerce.number().int().positive().optional().preprocess(v => v === "" || v === null || v === undefined ? undefined : v),
-      practitionerId: z.coerce.number().int().positive().optional().preprocess(v => v === "" || v === null || v === undefined ? undefined : v),
+      serviceId: optionalPositiveInt,
+      practitionerId: optionalPositiveInt,
       thresholdAmount: z.coerce.number().nonnegative().default(0),
       rate: z.coerce.number().min(0).max(1),
       status: z.enum(["active", "inactive"]).default("active")
@@ -738,8 +743,8 @@ export const adminRouter = () => {
     const { id } = idParam.parse(c.req.param());
     const schema = z.object({
       name: z.string().min(1).max(80),
-      serviceId: z.coerce.number().int().positive().optional().preprocess(v => v === "" || v === null || v === undefined ? undefined : v),
-      practitionerId: z.coerce.number().int().positive().optional().preprocess(v => v === "" || v === null || v === undefined ? undefined : v),
+      serviceId: optionalPositiveInt,
+      practitionerId: optionalPositiveInt,
       thresholdAmount: z.coerce.number().nonnegative().default(0),
       rate: z.coerce.number().min(0).max(1),
       status: z.enum(["active", "inactive"]).default("active")
@@ -770,7 +775,7 @@ export const adminRouter = () => {
 
   app.post("/admin/homepage-configs", asyncHandler(async (c) => {
     const schema = z.object({
-      storeId: z.coerce.number().int().positive().optional().preprocess(v => v === "" || v === null || v === undefined ? undefined : v),
+      storeId: optionalPositiveInt,
       sectionKey: z.string().min(1).max(60),
       title: z.string().min(1).max(120),
       payload: z.record(z.any()).default({}),
@@ -790,7 +795,7 @@ export const adminRouter = () => {
   app.patch("/admin/homepage-configs/:id", asyncHandler(async (c) => {
     const { id } = idParam.parse(c.req.param());
     const schema = z.object({
-      storeId: z.coerce.number().int().positive().optional().preprocess(v => v === "" || v === null || v === undefined ? undefined : v),
+      storeId: optionalPositiveInt,
       sectionKey: z.string().min(1).max(60),
       title: z.string().min(1).max(120),
       payload: z.record(z.any()).default({}),
@@ -820,7 +825,7 @@ export const adminRouter = () => {
 
   app.post("/admin/activities", asyncHandler(async (c) => {
     const schema = z.object({
-      storeId: z.coerce.number().int().positive().optional().preprocess(v => v === "" || v === null || v === undefined ? undefined : v),
+      storeId: optionalPositiveInt,
       title: z.string().min(1).max(120),
       subtitle: z.string().max(200).optional(),
       coverUrl: z.string().optional(),
@@ -853,7 +858,7 @@ export const adminRouter = () => {
 
   app.post("/admin/articles", asyncHandler(async (c) => {
     const schema = z.object({
-      storeId: z.coerce.number().int().positive().optional().preprocess(v => v === "" || v === null || v === undefined ? undefined : v),
+      storeId: optionalPositiveInt,
       title: z.string().min(1).max(160),
       summary: z.string().max(260).optional(),
       content: z.string().optional(),
@@ -1030,7 +1035,7 @@ export const adminRouter = () => {
   // ── Payment Configs ──
   const paymentConfigSchema = z.object({
     configKey: z.enum(["wechat_pay", "mock_payment"]),
-    storeId: z.coerce.number().int().positive().optional().preprocess(v => v === "" || v === null || v === undefined ? undefined : v)
+    storeId: optionalPositiveInt
   });
 
   app.get("/admin/payment-configs", asyncHandler(async (c) => {
@@ -1057,7 +1062,7 @@ export const adminRouter = () => {
   app.post("/admin/payment-configs", requireRole("owner", "manager"), asyncHandler(async (c) => {
     const schema = z.object({
       configKey: z.enum(["wechat_pay", "mock_payment"]),
-      storeId: z.coerce.number().int().positive().optional().preprocess(v => v === "" || v === null || v === undefined ? undefined : v)
+      storeId: optionalPositiveInt
     });
     const data = schema.parse(await c.req.json());
     const { rows } = await query(
