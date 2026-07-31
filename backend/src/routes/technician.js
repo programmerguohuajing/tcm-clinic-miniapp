@@ -2,6 +2,17 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { query } from "../config/db.js";
 import { asyncHandler } from "../middleware/async-handler.js";
+import { requireAdmin } from "../middleware/auth.js";
+
+function resolvePractitionerId(c, params) {
+  const adminId = params.practitionerId ? Number(params.practitionerId) : null;
+  if (adminId) return adminId;
+  return c.get("user").technician_id;
+}
+
+function adminPractitionerSchema() {
+  return z.object({ practitionerId: z.coerce.number().int().positive().optional() });
+}
 
 export const technicianRouter = () => {
   const app = new Hono();
@@ -36,7 +47,8 @@ export const technicianRouter = () => {
   }
 
   app.get("/technician/me/summary", asyncHandler(async (c) => {
-    const practitionerId = c.get("user").technician_id;
+    const params = adminPractitionerSchema().parse(c.req.query());
+    const practitionerId = resolvePractitionerId(c, params);
     const [profileResult, todayResult, futureResult, commissionsResult] = await Promise.all([
       query(
         `select p.id, p.name, p.title, p.rating, p.status, st.name as store_name
@@ -95,10 +107,11 @@ export const technicianRouter = () => {
   }));
 
   app.get("/technician/me/schedules", asyncHandler(async (c) => {
-    const practitionerId = c.get("user").technician_id;
     const params = z.object({
-      date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional()
+      date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+      practitionerId: z.coerce.number().int().positive().optional()
     }).parse(c.req.query());
+    const practitionerId = resolvePractitionerId(c, params);
     const values = [practitionerId];
     const filters = ["sc.practitioner_id = $1"];
     if (params.date) {
@@ -156,7 +169,8 @@ export const technicianRouter = () => {
   }));
 
   app.get("/technician/me/appointments", asyncHandler(async (c) => {
-    const practitionerId = c.get("user").technician_id;
+    const params = adminPractitionerSchema().parse(c.req.query());
+    const practitionerId = resolvePractitionerId(c, params);
     const { rows } = await query(
       `select a.id, a.order_no, a.status, a.payment_status, a.appointment_date::text as appointment_date,
               a.start_time, a.end_time, a.amount, a.note,
@@ -175,7 +189,9 @@ export const technicianRouter = () => {
   }));
 
   app.get("/technician/me/commissions", asyncHandler(async (c) => {
-    const rows = await commissionRows(c.get("user").technician_id);
+    const params = adminPractitionerSchema().parse(c.req.query());
+    const practitionerId = resolvePractitionerId(c, params);
+    const rows = await commissionRows(practitionerId);
     const summary = rows.reduce((acc, item) => {
       acc.grossAmount += Number(item.gross_amount || 0);
       acc.commissionAmount += Number(item.commission_amount || 0);

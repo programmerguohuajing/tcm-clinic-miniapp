@@ -4,7 +4,7 @@ import DataTable from "../components/DataTable.vue";
 import FormDialog from "../components/FormDialog.vue";
 import PageSection from "../components/PageSection.vue";
 import StatusPill from "../components/StatusPill.vue";
-import { loadBootstrap } from "../composables/useBootstrap";
+import { bootstrapState, loadBootstrap } from "../composables/useBootstrap";
 import { useCrudEditor } from "../composables/useCrudEditor";
 import { statusOptions } from "../constants/status";
 import { adminApi } from "../services/adminApi";
@@ -21,7 +21,10 @@ const summary = ref({
 const appointments = ref([]);
 const schedules = ref([]);
 const commissions = ref({ summary: { grossAmount: "0.00", commissionAmount: "0.00" }, rows: [] });
-const filters = reactive({ date: "" });
+const filters = reactive({ date: "", practitionerId: "" });
+
+const practitionerOptions = computed(() => bootstrapState.practitioners.map((item) => ({ label: item.name, value: Number(item.id) })));
+const isAdminMode = computed(() => !!props.showToast);
 
 const profile = computed(() => summary.value.profile || {});
 const cards = computed(() => summary.value.cards || {});
@@ -87,11 +90,12 @@ async function guardLoad(loader) {
 async function loadAll() {
   await guardLoad(async () => {
     await loadBootstrap();
+    const queryParams = isAdminMode.value && filters.practitionerId ? { practitionerId: Number(filters.practitionerId) } : {};
     const [summaryData, appointmentRows, scheduleRows, commissionData] = await Promise.all([
-      adminApi.technicianSummary(),
-      adminApi.technicianAppointments(),
-      adminApi.technicianSchedules(filters.date ? { date: filters.date } : {}),
-      adminApi.technicianCommissions()
+      adminApi.technicianSummary(queryParams),
+      adminApi.technicianAppointments(queryParams),
+      adminApi.technicianSchedules({ ...queryParams, date: filters.date ? filters.date : undefined }),
+      adminApi.technicianCommissions(queryParams)
     ]);
     summary.value = {
       profile: summaryData.profile || {},
@@ -108,8 +112,9 @@ async function loadAll() {
 
 async function loadSchedules() {
   await guardLoad(async () => {
-    schedules.value = await adminApi.technicianSchedules(filters.date ? { date: filters.date } : {});
-    summary.value = await adminApi.technicianSummary();
+    const queryParams = isAdminMode.value && filters.practitionerId ? { practitionerId: Number(filters.practitionerId) } : {};
+    schedules.value = await adminApi.technicianSchedules({ ...queryParams, date: filters.date ? filters.date : undefined });
+    summary.value = await adminApi.technicianSummary(queryParams);
   });
 }
 
@@ -151,7 +156,12 @@ onMounted(loadAll);
         <h2>{{ profile.name || "技师工作台" }}</h2>
         <p>{{ profile.title || "-" }} · {{ profile.store_name || "未绑定门店" }}</p>
       </div>
-      <StatusPill :value="profile.status || 'active'" />
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <el-select v-if="isAdminMode" v-model="filters.practitionerId" filterable clearable placeholder="切换技师" style="width: 180px" @change="loadAll">
+          <el-option v-for="item in practitionerOptions" :key="item.value" :label="item.label" :value="item.value" />
+        </el-select>
+        <StatusPill :value="profile.status || 'active'" />
+      </div>
     </section>
 
     <div v-if="permissionDenied" class="empty">当前账号暂无技师端权限</div>

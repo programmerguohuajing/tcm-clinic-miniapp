@@ -36,10 +36,10 @@ export function createAdminApi(request) {
     reviews: (params) => request(`/admin/reviews${query(params)}`),
     updateReview: (id, data) => request(`/admin/reviews/${id}`, { method: "PATCH", data }),
     auditLogs: (params) => request(`/admin/audit-logs${query(params)}`),
-    technicianSummary: () => request("/technician/me/summary"),
-    technicianAppointments: () => request("/technician/me/appointments"),
+    technicianSummary: (params) => request(`/technician/me/summary${query(params)}`),
+    technicianAppointments: (params) => request(`/technician/me/appointments${query(params)}`),
     technicianSchedules: (params) => request(`/technician/me/schedules${query(params)}`),
     saveTechnicianSchedule: (data) => request("/technician/me/schedules", { method: "POST", data }),
-    technicianCommissions: () => request("/technician/me/commissions")
+    technicianCommissions: (params) => request(`/technician/me/commissions${query(params)}`)
   };
 }
