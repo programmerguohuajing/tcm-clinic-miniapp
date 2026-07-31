@@ -355,18 +355,21 @@ export const adminRouter = () => {
   }));
 
   app.post("/admin/practitioners", asyncHandler(async (c) => {
-    const schema = z.object({
+    const body = await c.req.json();
+    const data = z.object({
       storeId: z.coerce.number().int().positive().optional(),
       name: z.string().min(1).max(60),
-      title: z.string().min(1).max(80),
+      title: z.string().max(80).optional().default(""),
       avatarUrl: z.string().optional(),
       bio: z.string().max(800).optional(),
       specialties: z.union([z.array(z.string()), z.string()]).optional(),
       serviceIds: z.array(z.coerce.number().int().positive()).default([]),
       rating: z.coerce.number().min(0).max(5).default(5),
       status: z.enum(["active", "resting", "inactive"]).default("active")
+    }).parse({
+      ...body,
+      storeId: body.storeId === "" || body.storeId === null || body.storeId === undefined ? undefined : body.storeId,
     });
-    const data = schema.parse(await c.req.json());
 
     const result = await tx([
       [
@@ -397,17 +400,21 @@ export const adminRouter = () => {
 
   app.patch("/admin/practitioners/:id", asyncHandler(async (c) => {
     const { id } = idParam.parse(c.req.param());
+    const body = await c.req.json();
     const data = z.object({
       storeId: z.coerce.number().int().positive().optional(),
       name: z.string().min(1).max(60),
-      title: z.string().min(1).max(80),
+      title: z.string().max(80).optional().default(""),
       avatarUrl: z.string().optional(),
       bio: z.string().max(800).optional(),
       specialties: z.union([z.array(z.string()), z.string()]).optional(),
       serviceIds: z.array(z.coerce.number().int().positive()).default([]),
       rating: z.coerce.number().min(0).max(5).default(5),
       status: z.enum(["active", "resting", "inactive"]).default("active")
-    }).parse(await c.req.json());
+    }).parse({
+      ...body,
+      storeId: body.storeId === "" || body.storeId === null || body.storeId === undefined ? undefined : body.storeId,
+    });
 
     const result = await tx([
       [

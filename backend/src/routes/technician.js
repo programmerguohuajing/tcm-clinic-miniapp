@@ -142,14 +142,18 @@ export const technicianRouter = () => {
       [...values, params.pageSize, offset]
     );
     return c.json({
-      data: rows,
-      pagination: { page: params.page, pageSize: params.pageSize, total: countResult.rows[0].total, totalPages: Math.ceil(countResult.rows[0].total / params.pageSize) }
+      data: { rows, total: countResult.rows[0].total, totalPages: Math.ceil(countResult.rows[0].total / params.pageSize) }
     });
+
+
+
+
   }));
 
   app.post("/technician/me/schedules", asyncHandler(async (c) => {
-    const practitionerId = c.get("user").technician_id;
+    const user = c.get("user");
     const data = z.object({
+      practitionerId: z.coerce.number().int().positive().optional(),
       storeId: z.coerce.number().int().positive().optional(),
       workDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
       startTime: z.string().regex(/^\d{2}:\d{2}$/),
@@ -157,6 +161,11 @@ export const technicianRouter = () => {
       capacity: z.coerce.number().int().positive().max(50).default(1),
       status: z.enum(["open", "closed"]).default("open")
     }).parse(await c.req.json());
+
+    const practitionerId = data.practitionerId || user.technician_id;
+    if (!practitionerId) {
+      return c.json({ message: "请先选择技师" }, 400);
+    }
 
     if (data.storeId) {
       const linkedResult = await query(
@@ -206,8 +215,7 @@ export const technicianRouter = () => {
       [practitionerId, params.pageSize, offset]
     );
     return c.json({
-      data: rows,
-      pagination: { page: params.page, pageSize: params.pageSize, total: countResult.rows[0].total, totalPages: Math.ceil(countResult.rows[0].total / params.pageSize) }
+      data: { rows, total: countResult.rows[0].total }
     });
   }));
 
@@ -235,7 +243,7 @@ export const technicianRouter = () => {
           commissionAmount: summary.commissionAmount.toFixed(2)
         },
         rows: paged,
-        pagination: { page: params.page, pageSize: params.pageSize, total, totalPages: Math.ceil(total / params.pageSize) }
+        total
       }
     });
   }));
