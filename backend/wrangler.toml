@@ -2,3 +2,12 @@ name = "tcm-clinic-api"
 main = "src/worker/index.js"
 compatibility_date = "2026-07-31"
 compatibility_flags = ["nodejs_compat"]
+
+[vars]
+NODE_ENV = "production"
+JWT_SECRET = "tcm-clinic-jwt-secret-change-in-production"
+JWT_EXPIRES_IN = "7d"
+CORS_ORIGIN = "*"
+ADMIN_LOGIN_PHONE = "13800000000"
+ADMIN_LOGIN_PASSWORD = "admin123"
+DATABASE_URL = "postgresql://neondb_owner:npg_uJNWpXFMC6L9@ep-orange-heart-azq9f905-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
