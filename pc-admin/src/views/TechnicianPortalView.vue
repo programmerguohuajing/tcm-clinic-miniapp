@@ -22,6 +22,8 @@ const appointments = ref([]);
 const schedules = ref([]);
 const commissions = ref({ summary: { grossAmount: "0.00", commissionAmount: "0.00" }, rows: [] });
 const filters = reactive({ date: "", practitionerId: "" });
+const schedulePage = ref(1);
+const scheduleTotal = ref(0);
 
 const practitionerOptions = computed(() => bootstrapState.practitioners.map((item) => ({ label: item.name, value: Number(item.id) })));
 const isAdminMode = computed(() => !!props.showToast);
@@ -88,6 +90,7 @@ async function guardLoad(loader) {
 }
 
 async function loadAll() {
+  schedulePage.value = 1;
   await guardLoad(async () => {
     await loadBootstrap();
     const queryParams = isAdminMode.value && filters.practitionerId ? { practitionerId: Number(filters.practitionerId) } : {};
@@ -113,13 +116,16 @@ async function loadAll() {
 async function loadSchedules() {
   await guardLoad(async () => {
     const queryParams = isAdminMode.value && filters.practitionerId ? { practitionerId: Number(filters.practitionerId) } : {};
-    schedules.value = await adminApi.technicianSchedules({ ...queryParams, date: filters.date ? filters.date : undefined });
+    const result = await adminApi.technicianSchedules({ ...queryParams, date: filters.date ? filters.date : undefined, page: schedulePage.value, pageSize: 10 });
+    schedules.value = result.data || [];
+    scheduleTotal.value = result.pagination?.total || 0;
     summary.value = await adminApi.technicianSummary(queryParams);
   });
 }
 
 function resetScheduleFilter() {
   filters.date = "";
+  schedulePage.value = 1;
   loadSchedules();
 }
 
@@ -184,11 +190,11 @@ onMounted(loadAll);
         </DataTable>
       </PageSection>
 
-      <PageSection title="我的排班">
+      <PageSection title="我的排班" style="margin-top: 18px;">
         <template #actions>
           <div class="toolbar">
             <el-date-picker v-model="filters.date" value-format="YYYY-MM-DD" placeholder="日期" style="width: 150px" />
-            <button class="primary" @click="loadSchedules">查询</button>
+            <button class="primary" @click="schedulePage = 1; loadSchedules()">查询</button>
             <button class="ghost" @click="resetScheduleFilter">重置</button>
             <button class="primary" @click="openScheduleEditor">新增排班</button>
           </div>
@@ -198,10 +204,15 @@ onMounted(loadAll);
           <template #time="{ row }">{{ timeText(row.start_time) }}-{{ timeText(row.end_time) }}</template>
           <template #status="{ row }"><StatusPill :value="row.status" /></template>
         </DataTable>
+        <div v-if="scheduleTotal > 10" class="pagination-bar" style="margin-top: 14px; display: flex; justify-content: flex-end; gap: 8px; align-items: center;">
+          <button class="ghost mini" :disabled="schedulePage <= 1" @click="schedulePage--; loadSchedules()">上一页</button>
+          <span style="font-size: 13px; color: var(--muted);">{{ schedulePage }} / {{ Math.ceil(scheduleTotal / 10) }}</span>
+          <button class="ghost mini" :disabled="schedulePage >= Math.ceil(scheduleTotal / 10)" @click="schedulePage++; loadSchedules()">下一页</button>
+        </div>
       </PageSection>
 
-      <PageSection title="我的提成">
-        <div class="metric-grid compact-grid">
+      <PageSection title="我的提成" style="margin-top: 18px;">
+        <div class="metric-grid compact-grid" style="margin-bottom: 14px;">
           <div class="metric-card">
             <span>服务业绩</span>
             <strong>{{ money(commissions.summary.grossAmount) }}</strong>

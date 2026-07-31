@@ -109,7 +109,9 @@ export const technicianRouter = () => {
   app.get("/technician/me/schedules", asyncHandler(async (c) => {
     const params = z.object({
       date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-      practitionerId: z.coerce.number().int().positive().optional()
+      practitionerId: z.coerce.number().int().positive().optional(),
+      page: z.coerce.number().int().positive().default(1),
+      pageSize: z.coerce.number().int().positive().max(100).default(10)
     }).parse(c.req.query());
     const practitionerId = resolvePractitionerId(c, params);
     const values = [practitionerId];
@@ -118,7 +120,13 @@ export const technicianRouter = () => {
       values.push(params.date);
       filters.push(`sc.work_date = $${values.length}`);
     }
+    const where = filters.join(" and ");
+    const offset = (params.page - 1) * params.pageSize;
 
+    const countResult = await query(
+      `select count(*)::int as total from schedules sc where ${where}`,
+      values
+    );
     const { rows } = await query(
       `select sc.id, sc.store_id, sc.practitioner_id, sc.work_date::text as work_date,
               sc.start_time, sc.end_time, sc.capacity, sc.status,
@@ -127,13 +135,16 @@ export const technicianRouter = () => {
          from schedules sc
          left join stores st on st.id = sc.store_id
          left join appointments a on a.schedule_id = sc.id
-        where ${filters.join(" and ")}
+        where ${where}
         group by sc.id, st.name
         order by sc.work_date desc, sc.start_time asc
-        limit 120`,
-      values
+        limit $${values.length + 1} offset $${values.length + 2}`,
+      [...values, params.pageSize, offset]
     );
-    return c.json({ data: rows });
+    return c.json({
+      data: rows,
+      pagination: { page: params.page, pageSize: params.pageSize, total: countResult.rows[0].total, totalPages: Math.ceil(countResult.rows[0].total / params.pageSize) }
+    });
   }));
 
   app.post("/technician/me/schedules", asyncHandler(async (c) => {
