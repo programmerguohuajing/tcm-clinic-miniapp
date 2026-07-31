@@ -11,8 +11,19 @@ export default {
 
     // API routes go to Hono app
     if (url.pathname.startsWith("/api/") || url.pathname === "/api") {
-      const app = createApp(env);
-      return app.fetch(request, env);
+      try {
+        const app = createApp(env);
+        return await app.fetch(request, env);
+      } catch (err) {
+        return new Response(
+          JSON.stringify({
+            error: "WORKER_INIT_FAILED",
+            message: String(err?.message || err),
+            stack: String(err?.stack || "").slice(0, 2000)
+          }),
+          { status: 500, headers: { "content-type": "application/json" } }
+        );
+      }
     }
 
     // Serve static files for all other routes (SPA fallback to index.html)
