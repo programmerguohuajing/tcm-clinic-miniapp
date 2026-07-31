@@ -32,7 +32,12 @@ const commissionTotal = ref(0);
 const activeTab = ref("appointments");
 
 /* ---------- computed ---------- */
-const practitionerOptions = computed(() => bootstrapState.practitioners.map((item) => ({ label: item.name, value: Number(item.id) })));
+const practitionerOptions = computed(() => {
+  const list = props.storeId
+    ? bootstrapState.practitioners.filter((p) => p.store_id == props.storeId)
+    : bootstrapState.practitioners;
+  return list.map((item) => ({ label: item.name, value: Number(item.id) }));
+});
 const isAdminMode = computed(() => !!props.showToast);
 const profile = computed(() => summary.value.profile || {});
 const cards = computed(() => summary.value.cards || {});

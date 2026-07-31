@@ -12,7 +12,12 @@ const props = defineProps({ storeId: [String, Number], showToast: Function });
 const rows = ref([]);
 const updatingKey = ref("");
 const filters = reactive({ keyword: "", status: "", practitionerId: "" });
-const practitionerOptions = computed(() => bootstrapState.practitioners.map((item) => ({ label: item.name, value: Number(item.id) })));
+const practitionerOptions = computed(() => {
+  const list = props.storeId
+    ? bootstrapState.practitioners.filter((p) => p.store_id == props.storeId)
+    : bootstrapState.practitioners;
+  return list.map((item) => ({ label: item.name, value: Number(item.id) }));
+});
 const orderStatusOptions = [
   { label: "待确认", value: "pending" },
   { label: "已确认", value: "confirmed" },
@@ -235,7 +240,7 @@ const scheduleOptions = computed(() => {
       </el-form-item>
       <el-form-item label="技师 *">
         <el-select v-model="phoneBookingForm.practitionerId" filterable clearable placeholder="请选择技师" style="width: 100%" @change="onPractitionerChange">
-          <el-option v-for="item in bootstrapState.practitioners" :key="item.id" :label="item.name" :value="Number(item.id)" />
+          <el-option v-for="item in practitionerOptions" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
       <el-form-item label="排班时段 *">

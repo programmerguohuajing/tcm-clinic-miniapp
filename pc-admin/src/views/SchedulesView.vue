@@ -14,7 +14,12 @@ const props = defineProps({ storeId: [String, Number], showToast: Function });
 const rows = ref([]);
 const filters = reactive({ practitionerId: "", date: "" });
 
-const practitionerOptions = computed(() => [{ label: "请选择技师", value: "" }, ...bootstrapState.practitioners.map((p) => ({ label: p.name, value: Number(p.id) }))]);
+const practitionerOptions = computed(() => {
+  const list = props.storeId
+    ? bootstrapState.practitioners.filter((p) => p.store_id == props.storeId)
+    : bootstrapState.practitioners;
+  return [{ label: "请选择技师", value: "" }, ...list.map((p) => ({ label: p.name, value: Number(p.id) }))];
+});
 
 const columns = [
   { key: "work_date", label: "日期" },

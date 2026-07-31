@@ -14,7 +14,12 @@ const props = defineProps({ storeId: [String, Number], showToast: Function });
 const rules = ref([]);
 const estimates = ref([]);
 
-const practitionerOptions = computed(() => [{ label: "全部技师", value: "" }, ...bootstrapState.practitioners.map((p) => ({ label: p.name, value: Number(p.id) }))]);
+const practitionerOptions = computed(() => {
+  const list = props.storeId
+    ? bootstrapState.practitioners.filter((p) => p.store_id == props.storeId)
+    : bootstrapState.practitioners;
+  return [{ label: "全部技师", value: "" }, ...list.map((p) => ({ label: p.name, value: Number(p.id) }))];
+});
 const serviceOptions = computed(() => [{ label: "全部项目", value: "" }, ...bootstrapState.services.map((s) => ({ label: s.name, value: Number(s.id) }))]);
 
 async function load() {
