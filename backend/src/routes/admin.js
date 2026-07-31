@@ -1,6 +1,5 @@
 import { Hono } from "hono";
 import { z } from "zod";
-import { randomUUID } from "node:crypto";
 import { query, tx } from "../config/db.js";
 import { asyncHandler } from "../middleware/async-handler.js";
 import { requireAdmin, requireRole } from "../middleware/auth.js";
@@ -629,7 +628,7 @@ export const adminRouter = () => {
         where s.id = $8 and s.practitioner_id = $9
        returning *`,
       [
-        `TCM${randomUUID().slice(0, 8).toUpperCase()}`,
+        `TCM${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
         userId,
         payload.serviceId,
         payload.practitionerId,

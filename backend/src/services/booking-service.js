@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import { query } from "../config/db.js";
 
 /**
@@ -79,7 +78,7 @@ export async function createAppointment({
   }
 
   const service = svcResult.rows[0];
-  const orderNo = `TCM${randomUUID().slice(0, 8).toUpperCase()}`;
+  const orderNo = `TCM${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
 
   // Atomic INSERT — SELECT validates schedule exists and belongs to practitioner
   // DB trigger (enforce_schedule_capacity) enforces capacity atomically
