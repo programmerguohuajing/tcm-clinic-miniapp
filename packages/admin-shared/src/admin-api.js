@@ -21,6 +21,7 @@ export function createAdminApi(request) {
     saveSchedule: (data) => request("/admin/schedules", { method: "POST", data }),
     bulkSchedules: (data) => request("/admin/schedules/bulk", { method: "POST", data }),
     orders: (params) => request(`/admin/orders${query(params)}`),
+    createOrder: (data) => request("/admin/orders", { method: "POST", data }),
     updateOrderStatus: (id, status) => request(`/admin/orders/${id}/status`, { method: "PATCH", data: { status } }),
     commissionRules: (params) => request(`/admin/commission-rules${query(params)}`),
     saveCommissionRule: (data) => request(data.id ? `/admin/commission-rules/${data.id}` : "/admin/commission-rules", { method: data.id ? "PATCH" : "POST", data }),

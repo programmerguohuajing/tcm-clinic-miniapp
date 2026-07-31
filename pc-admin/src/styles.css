@@ -795,6 +795,16 @@ menu {
   transform: translateY(0);
 }
 
+.phone-error {
+  margin: 14px 0;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: rgba(220, 38, 38, 0.06);
+  border: 1px solid rgba(220, 38, 38, 0.18);
+  color: var(--red);
+  font-size: 13px;
+}
+
 .empty {
   padding: 38px;
   color: var(--muted);
