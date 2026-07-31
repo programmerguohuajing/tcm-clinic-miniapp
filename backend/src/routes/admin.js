@@ -440,6 +440,16 @@ export const adminRouter = () => {
     return c.json({ data: practitioner });
   }));
 
+  app.delete("/admin/practitioners/:id", asyncHandler(async (c) => {
+    const { id } = idParam.parse(c.req.param());
+    const result = await query(`delete from practitioners where id=$1 returning id`, [id]);
+    if (!result.rows.length) {
+      return c.json({ message: "技师不存在" }, 404);
+    }
+    await audit(c, "delete_practitioner", "practitioner", id);
+    return c.json({ data: { id } });
+  }));
+
   // ── Schedules ──
   app.get("/admin/schedules", asyncHandler(async (c) => {
     const params = optionalStoreId.extend({
@@ -468,7 +478,8 @@ export const adminRouter = () => {
   }));
 
   app.post("/admin/schedules", asyncHandler(async (c) => {
-    const schema = z.object({
+    const body = await c.req.json();
+    const data = z.object({
       storeId: z.coerce.number().int().positive().optional(),
       practitionerId: z.coerce.number().int().positive(),
       workDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -476,8 +487,10 @@ export const adminRouter = () => {
       endTime: z.string().regex(/^\d{2}:\d{2}$/),
       capacity: z.coerce.number().int().positive().max(50).default(1),
       status: z.enum(["open", "closed"]).default("open")
+    }).parse({
+      ...body,
+      storeId: body.storeId === "" || body.storeId === null || body.storeId === undefined ? undefined : body.storeId
     });
-    const data = schema.parse(await c.req.json());
     const { rows } = await query(
       `insert into schedules (store_id, practitioner_id, work_date, start_time, end_time, capacity, status)
        values ($1,$2,$3,$4,$5,$6,$7)
@@ -491,7 +504,8 @@ export const adminRouter = () => {
   }));
 
   app.post("/admin/schedules/bulk", asyncHandler(async (c) => {
-    const schema = z.object({
+    const body = await c.req.json();
+    const data = z.object({
       storeId: z.coerce.number().int().positive().optional(),
       practitionerId: z.coerce.number().int().positive(),
       startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -502,8 +516,10 @@ export const adminRouter = () => {
         endTime: z.string().regex(/^\d{2}:\d{2}$/),
         capacity: z.coerce.number().int().positive().max(50).default(1)
       })).min(1)
+    }).parse({
+      ...body,
+      storeId: body.storeId === "" || body.storeId === null || body.storeId === undefined ? undefined : body.storeId
     });
-    const data = schema.parse(await c.req.json());
     const { rows } = await query(
       `with days as (
          select d::date as work_date
