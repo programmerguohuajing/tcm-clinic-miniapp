@@ -180,8 +180,17 @@ export const technicianRouter = () => {
   }));
 
   app.get("/technician/me/appointments", asyncHandler(async (c) => {
-    const params = adminPractitionerSchema().parse(c.req.query());
+    const params = z.object({
+      practitionerId: z.coerce.number().int().positive().optional(),
+      page: z.coerce.number().int().positive().default(1),
+      pageSize: z.coerce.number().int().positive().max(100).default(10)
+    }).parse(c.req.query());
     const practitionerId = resolvePractitionerId(c, params);
+    const offset = (params.page - 1) * params.pageSize;
+    const countResult = await query(
+      `select count(*)::int as total from appointments a where a.practitioner_id = $1`,
+      [practitionerId]
+    );
     const { rows } = await query(
       `select a.id, a.order_no, a.status, a.payment_status, a.appointment_date::text as appointment_date,
               a.start_time, a.end_time, a.amount, a.note,
@@ -193,16 +202,26 @@ export const technicianRouter = () => {
          left join stores st on st.id = a.store_id
         where a.practitioner_id = $1
         order by a.appointment_date desc, a.start_time desc
-        limit 100`,
-      [practitionerId]
+        limit $2 offset $3`,
+      [practitionerId, params.pageSize, offset]
     );
-    return c.json({ data: rows });
+    return c.json({
+      data: rows,
+      pagination: { page: params.page, pageSize: params.pageSize, total: countResult.rows[0].total, totalPages: Math.ceil(countResult.rows[0].total / params.pageSize) }
+    });
   }));
 
   app.get("/technician/me/commissions", asyncHandler(async (c) => {
-    const params = adminPractitionerSchema().parse(c.req.query());
+    const params = z.object({
+      practitionerId: z.coerce.number().int().positive().optional(),
+      page: z.coerce.number().int().positive().default(1),
+      pageSize: z.coerce.number().int().positive().max(100).default(10)
+    }).parse(c.req.query());
     const practitionerId = resolvePractitionerId(c, params);
     const rows = await commissionRows(practitionerId);
+    const offset = (params.page - 1) * params.pageSize;
+    const total = rows.length;
+    const paged = rows.slice(offset, offset + params.pageSize);
     const summary = rows.reduce((acc, item) => {
       acc.grossAmount += Number(item.gross_amount || 0);
       acc.commissionAmount += Number(item.commission_amount || 0);
@@ -215,7 +234,8 @@ export const technicianRouter = () => {
           grossAmount: summary.grossAmount.toFixed(2),
           commissionAmount: summary.commissionAmount.toFixed(2)
         },
-        rows
+        rows: paged,
+        pagination: { page: params.page, pageSize: params.pageSize, total, totalPages: Math.ceil(total / params.pageSize) }
       }
     });
   }));

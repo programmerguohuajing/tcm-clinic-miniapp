@@ -18,12 +18,19 @@ const summary = ref({
   profile: {},
   cards: { todayAppointments: 0, futureSchedules: 0, grossAmount: "0.00", commissionAmount: "0.00" }
 });
+
 const appointments = ref([]);
+const appointmentPage = ref(1);
+const appointmentTotal = ref(0);
+
 const schedules = ref([]);
-const commissions = ref({ summary: { grossAmount: "0.00", commissionAmount: "0.00" }, rows: [] });
-const filters = reactive({ date: "", practitionerId: "" });
 const schedulePage = ref(1);
 const scheduleTotal = ref(0);
+const filters = reactive({ date: "", practitionerId: "" });
+
+const commissions = ref({ summary: { grossAmount: "0.00", commissionAmount: "0.00" }, rows: [] });
+const commissionPage = ref(1);
+const commissionTotal = ref(0);
 
 const practitionerOptions = computed(() => bootstrapState.practitioners.map((item) => ({ label: item.name, value: Number(item.id) })));
 const isAdminMode = computed(() => !!props.showToast);
@@ -36,6 +43,13 @@ const cardItems = computed(() => [
   { label: "服务业绩", value: money(cards.value.grossAmount) },
   { label: "预估提成", value: money(cards.value.commissionAmount) }
 ]);
+
+const tabs = [
+  { key: "appointments", label: "近期预约", icon: "📋" },
+  { key: "schedules", label: "我的排班", icon: "📅" },
+  { key: "commissions", label: "我的提成", icon: "💰" }
+];
+const activeTab = ref("appointments");
 
 const appointmentColumns = [
   { key: "order_no", label: "订单号" },
@@ -89,38 +103,57 @@ async function guardLoad(loader) {
   }
 }
 
-async function loadAll() {
-  schedulePage.value = 1;
-  await guardLoad(async () => {
-    await loadBootstrap();
-    const queryParams = isAdminMode.value && filters.practitionerId ? { practitionerId: Number(filters.practitionerId) } : {};
-    const [summaryData, appointmentRows, scheduleRows, commissionData] = await Promise.all([
-      adminApi.technicianSummary(queryParams),
-      adminApi.technicianAppointments(queryParams),
-      adminApi.technicianSchedules({ ...queryParams, date: filters.date ? filters.date : undefined }),
-      adminApi.technicianCommissions(queryParams)
-    ]);
-    summary.value = {
-      profile: summaryData.profile || {},
-      cards: { ...summary.value.cards, ...(summaryData.cards || {}) }
-    };
-    appointments.value = appointmentRows || [];
-    schedules.value = scheduleRows || [];
-    commissions.value = {
-      summary: { ...commissions.value.summary, ...(commissionData.summary || {}) },
-      rows: commissionData.rows || []
-    };
-  });
+function queryParams() {
+  return isAdminMode.value && filters.practitionerId ? { practitionerId: Number(filters.practitionerId) } : {};
+}
+
+async function loadSummary() {
+  const data = await adminApi.technicianSummary(queryParams());
+  summary.value = {
+    profile: data.profile || {},
+    cards: { ...summary.value.cards, ...(data.cards || {}) }
+  };
+}
+
+async function loadAppointments() {
+  const result = await adminApi.technicianAppointments({ ...queryParams(), page: appointmentPage.value, pageSize: 10 });
+  appointments.value = result.data || [];
+  appointmentTotal.value = result.pagination?.total || 0;
 }
 
 async function loadSchedules() {
+  const result = await adminApi.technicianSchedules({ ...queryParams(), date: filters.date ? filters.date : undefined, page: schedulePage.value, pageSize: 10 });
+  schedules.value = result.data || [];
+  scheduleTotal.value = result.pagination?.total || 0;
+}
+
+async function loadCommissions() {
+  const result = await adminApi.technicianCommissions({ ...queryParams(), page: commissionPage.value, pageSize: 10 });
+  commissions.value = result.data || { summary: { grossAmount: "0.00", commissionAmount: "0.00" }, rows: [] };
+  commissionTotal.value = result.pagination?.total || 0;
+}
+
+async function loadAll() {
+  appointmentPage.value = 1;
+  schedulePage.value = 1;
+  commissionPage.value = 1;
   await guardLoad(async () => {
-    const queryParams = isAdminMode.value && filters.practitionerId ? { practitionerId: Number(filters.practitionerId) } : {};
-    const result = await adminApi.technicianSchedules({ ...queryParams, date: filters.date ? filters.date : undefined, page: schedulePage.value, pageSize: 10 });
-    schedules.value = result.data || [];
-    scheduleTotal.value = result.pagination?.total || 0;
-    summary.value = await adminApi.technicianSummary(queryParams);
+    await loadBootstrap();
+    await Promise.all([loadSummary(), loadAppointments(), loadSchedules(), loadCommissions()]);
   });
+}
+
+async function loadActiveTab() {
+  if (activeTab.value === "appointments") await loadAppointments();
+  else if (activeTab.value === "schedules") await loadSchedules();
+  else if (activeTab.value === "commissions") await loadCommissions();
+}
+
+function onTabChange(key) {
+  activeTab.value = key;
+  if (key === "appointments") { appointmentPage.value = 1; loadAppointments(); }
+  else if (key === "schedules") { schedulePage.value = 1; loadSchedules(); }
+  else if (key === "commissions") { commissionPage.value = 1; loadCommissions(); }
 }
 
 function resetScheduleFilter() {
@@ -181,16 +214,27 @@ onMounted(loadAll);
         </div>
       </div>
 
-      <PageSection title="近期预约">
+      <div class="tab-bar">
+        <button v-for="tab in tabs" :key="tab.key" class="tab-item" :class="{ active: activeTab === tab.key }" @click="onTabChange(tab.key)">
+          <span>{{ tab.icon }}</span> {{ tab.label }}
+        </button>
+      </div>
+
+      <PageSection v-if="activeTab === 'appointments'" title="近期预约">
         <DataTable :columns="appointmentColumns" :rows="appointments">
           <template #user="{ row }">{{ row.user_name || '-' }}<br /><small>{{ row.user_phone || '' }}</small></template>
           <template #time="{ row }">{{ dateText(row.appointment_date) }} {{ timeText(row.start_time) }}</template>
           <template #amount="{ row }">{{ money(row.amount) }}</template>
           <template #status="{ row }"><StatusPill :value="row.status" /></template>
         </DataTable>
+        <div v-if="appointmentTotal > 10" style="margin-top: 14px; display: flex; justify-content: flex-end; gap: 8px; align-items: center;">
+          <button class="ghost mini" :disabled="appointmentPage <= 1" @click="appointmentPage--; loadAppointments()">上一页</button>
+          <span style="font-size: 13px; color: var(--muted);">{{ appointmentPage }} / {{ Math.ceil(appointmentTotal / 10) }}</span>
+          <button class="ghost mini" :disabled="appointmentPage >= Math.ceil(appointmentTotal / 10)" @click="appointmentPage++; loadAppointments()">下一页</button>
+        </div>
       </PageSection>
 
-      <PageSection title="我的排班" style="margin-top: 18px;">
+      <PageSection v-if="activeTab === 'schedules'" title="我的排班">
         <template #actions>
           <div class="toolbar">
             <el-date-picker v-model="filters.date" value-format="YYYY-MM-DD" placeholder="日期" style="width: 150px" />
@@ -204,14 +248,14 @@ onMounted(loadAll);
           <template #time="{ row }">{{ timeText(row.start_time) }}-{{ timeText(row.end_time) }}</template>
           <template #status="{ row }"><StatusPill :value="row.status" /></template>
         </DataTable>
-        <div v-if="scheduleTotal > 10" class="pagination-bar" style="margin-top: 14px; display: flex; justify-content: flex-end; gap: 8px; align-items: center;">
+        <div v-if="scheduleTotal > 10" style="margin-top: 14px; display: flex; justify-content: flex-end; gap: 8px; align-items: center;">
           <button class="ghost mini" :disabled="schedulePage <= 1" @click="schedulePage--; loadSchedules()">上一页</button>
           <span style="font-size: 13px; color: var(--muted);">{{ schedulePage }} / {{ Math.ceil(scheduleTotal / 10) }}</span>
           <button class="ghost mini" :disabled="schedulePage >= Math.ceil(scheduleTotal / 10)" @click="schedulePage++; loadSchedules()">下一页</button>
         </div>
       </PageSection>
 
-      <PageSection title="我的提成" style="margin-top: 18px;">
+      <PageSection v-if="activeTab === 'commissions'" title="我的提成">
         <div class="metric-grid compact-grid" style="margin-bottom: 14px;">
           <div class="metric-card">
             <span>服务业绩</span>
@@ -229,6 +273,11 @@ onMounted(loadAll);
           <template #commission_amount="{ row }">{{ money(row.commission_amount) }}</template>
           <template #status="{ row }"><StatusPill :value="row.status" /></template>
         </DataTable>
+        <div v-if="commissionTotal > 10" style="margin-top: 14px; display: flex; justify-content: flex-end; gap: 8px; align-items: center;">
+          <button class="ghost mini" :disabled="commissionPage <= 1" @click="commissionPage--; loadCommissions()">上一页</button>
+          <span style="font-size: 13px; color: var(--muted);">{{ commissionPage }} / {{ Math.ceil(commissionTotal / 10) }}</span>
+          <button class="ghost mini" :disabled="commissionPage >= Math.ceil(commissionTotal / 10)" @click="commissionPage++; loadCommissions()">下一页</button>
+        </div>
       </PageSection>
     </template>
 
