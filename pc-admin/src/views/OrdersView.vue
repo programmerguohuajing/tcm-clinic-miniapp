@@ -220,7 +220,7 @@ const scheduleOptions = computed(() => {
     </DataTable>
   </PageSection>
 
-  <el-dialog v-model="phoneBookingVisible" title="电话预约" width="520px" @close="closePhoneBooking">
+  <el-dialog v-model="phoneBookingVisible" title="电话预约" width="520px" class="tcm-dialog" @close="closePhoneBooking">
     <el-form label-position="top" class="form-grid">
       <el-form-item label="客户手机号 *">
         <el-input v-model="phoneBookingForm.customerPhone" maxlength="11" placeholder="请输入手机号" />
