@@ -469,10 +469,18 @@ export const adminRouter = () => {
     const { rows } = await query(
       `select sc.id, sc.store_id, sc.practitioner_id, sc.work_date::text as work_date,
               sc.start_time, sc.end_time, sc.capacity, sc.status, sc.created_at,
-              p.name as practitioner_name, st.name as store_name
+              p.name as practitioner_name, st.name as store_name,
+              coalesce(b.booked_count, 0)::int as booked_count,
+              (sc.status = 'open' and coalesce(b.booked_count, 0) < sc.capacity) as available
          from schedules sc
          join practitioners p on p.id = sc.practitioner_id
          left join stores st on st.id = sc.store_id
+         left join lateral (
+           select count(*)::int as booked_count
+             from appointments a
+            where a.schedule_id = sc.id
+              and a.status in ('pending','confirmed','completed')
+         ) b on true
         ${where}
         order by sc.work_date desc, sc.start_time asc
         limit 300`,
