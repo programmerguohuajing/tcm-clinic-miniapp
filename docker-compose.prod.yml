@@ -9,7 +9,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      DATABASE_URL: postgres://${POSTGRES_USER:-tcm_app}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/${POSTGRES_DB:-tcm_clinic}
+      DATABASE_URL: ${DATABASE_URL:?set DATABASE_URL}
     depends_on:
       postgres:
         condition: service_healthy

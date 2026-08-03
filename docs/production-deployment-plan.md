@@ -223,7 +223,7 @@ pnpm --filter tcm-clinic-api start
 ```env
 NODE_ENV=production
 PORT=3000
-DATABASE_URL=postgres://tcm_app:strong_password@postgres:5432/tcm_clinic
+DATABASE_URL=<postgres connection string>
 JWT_SECRET=至少32字节随机字符串
 WECHAT_APP_ID=正式小程序 AppID
 WECHAT_APP_SECRET=正式小程序 AppSecret

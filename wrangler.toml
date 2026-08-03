@@ -9,7 +9,6 @@ custom_domain = true
 
 [vars]
 NODE_ENV = "production"
-DATABASE_URL = "postgresql://neondb_owner:npg_uJNWpXFMC6L9@ep-orange-heart-azq9f905-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 ADMIN_LOGIN_PHONE = "13800000000"
 ADMIN_LOGIN_PASSWORD = "admin123"
 JWT_SECRET = "tcm-clinic-jwt-secret-change-in-production"
