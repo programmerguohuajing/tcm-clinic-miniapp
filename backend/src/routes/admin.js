@@ -966,7 +966,14 @@ export const adminRouter = () => {
 
   app.delete("/admin/users/:id", requireRole("owner"), asyncHandler(async (c) => {
     const { id } = idParam.parse(c.req.param());
-    await query(`delete from users where id = $1 returning id`, [id]);
+    // 先解除关联数据的外键约束（级联置空），再删除用户
+    await tx([
+      ["update appointments set user_id = null where user_id = $1", [id]],
+      ["update reviews set user_id = null where user_id = $1", [id]],
+      ["update coupons set user_id = null where user_id = $1", [id]],
+      ["update health_records set user_id = null where user_id = $1", [id]],
+      ["delete from users where id = $1", [id]]
+    ]);
     try { await audit(c, "delete_user", "user", id, {}); } catch (_e) { /* audit must not fail the delete */ }
     return c.json({ data: { id } });
   }));
