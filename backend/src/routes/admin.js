@@ -967,7 +967,7 @@ export const adminRouter = () => {
   app.delete("/admin/users/:id", requireRole("owner"), asyncHandler(async (c) => {
     const { id } = idParam.parse(c.req.param());
     await query(`delete from users where id = $1 returning id`, [id]);
-    await audit(c, "delete_user", "user", id, {});
+    try { await audit(c, "delete_user", "user", id, {}); } catch (_e) { /* audit must not fail the delete */ }
     return c.json({ data: { id } });
   }));
 
