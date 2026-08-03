@@ -375,15 +375,12 @@ export const adminRouter = () => {
       storeId: body.storeId === "" || body.storeId === null || body.storeId === undefined ? undefined : body.storeId,
     });
 
-    const result = await tx([
-      [
-        `insert into practitioners (store_id, name, title, avatar_url, bio, specialties, rating, status)
-         values ($1,$2,$3,$4,$5,$6,$7,$8) returning *`,
-        [data.storeId || null, data.name, data.title, emptyToNull(data.avatarUrl), emptyToNull(data.bio), toArray(data.specialties), data.rating, data.status]
-      ]
-    ]);
-
-    const practitioner = result[0].rows[0];
+    const practitionerRows = await query(
+      `insert into practitioners (store_id, name, title, avatar_url, bio, specialties, rating, status)
+       values ($1,$2,$3,$4,$5,$6,$7,$8) returning *`,
+      [data.storeId || null, data.name, data.title, emptyToNull(data.avatarUrl), emptyToNull(data.bio), toArray(data.specialties), data.rating, data.status]
+    );
+    const practitioner = practitionerRows.rows[0];
 
     // Manually run the dependent inserts with the actual ID
     if (data.storeId) {
