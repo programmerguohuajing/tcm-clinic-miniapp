@@ -380,9 +380,7 @@ export const adminRouter = () => {
         `insert into practitioners (store_id, name, title, avatar_url, bio, specialties, rating, status)
          values ($1,$2,$3,$4,$5,$6,$7,$8) returning *`,
         [data.storeId || null, data.name, data.title, emptyToNull(data.avatarUrl), emptyToNull(data.bio), toArray(data.specialties), data.rating, data.status]
-      ],
-      ...(data.storeId ? [[`insert into practitioner_stores (practitioner_id, store_id, is_primary) values ($1,$2,true) on conflict do nothing`, ["__PLACEHOLDER__", data.storeId]]] : []),
-      ...(data.serviceIds.length ? [[`insert into practitioner_services (practitioner_id, service_id) select $1, unnest($2::int[]) on conflict do nothing`, ["__PLACEHOLDER__", data.serviceIds]]] : [])
+      ]
     ]);
 
     const practitioner = result[0].rows[0];
