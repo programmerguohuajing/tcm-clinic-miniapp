@@ -966,11 +966,11 @@ export const adminRouter = () => {
 
   app.delete("/admin/users/:id", requireRole("owner"), asyncHandler(async (c) => {
     const { id } = idParam.parse(c.req.param());
-    await query("update appointments set user_id = null where user_id = $1", [id]);
-    await query("update reviews set user_id = null where user_id = $1", [id]);
-    await query("update coupons set user_id = null where user_id = $1", [id]);
-    await query("update health_records set user_id = null where user_id = $1", [id]);
-    await query("delete from users where id = $1", [id]);
+    console.log("[delete-user] start id=", id);
+    const r1 = await query("update appointments set user_id = null where user_id = $1", [id]);
+    console.log("[delete-user] appointments cleared, rowCount=", r1.rowCount);
+    const r2 = await query("delete from users where id = $1", [id]);
+    console.log("[delete-user] user deleted, rowCount=", r2.rowCount);
     try { await audit(c, "delete_user", "user", id, {}); } catch (_e) { /* audit must not fail the delete */ }
     return c.json({ data: { id } });
   }));
