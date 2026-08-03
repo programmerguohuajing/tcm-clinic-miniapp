@@ -12,6 +12,7 @@ import { dateText, timeText } from "../utils/format";
 
 const props = defineProps({ storeId: [String, Number], showToast: Function });
 const rows = ref([]);
+const loading = ref(false);
 const filters = reactive({ practitionerId: "", date: "" });
 
 const practitionerOptions = computed(() => {
@@ -31,8 +32,13 @@ const columns = [
 ];
 
 async function load() {
-  await loadBootstrap();
-  rows.value = await adminApi.schedules({ storeId: props.storeId, ...filters });
+  loading.value = true;
+  try {
+    await loadBootstrap();
+    rows.value = await adminApi.schedules({ storeId: props.storeId, ...filters });
+  } finally {
+    loading.value = false;
+  }
 }
 
 function resetFilters() {
@@ -119,7 +125,7 @@ watch(() => props.storeId, load);
         <button class="ghost" @click="openBulk">批量排班</button>
       </div>
     </template>
-    <DataTable :columns="columns" :rows="rows">
+    <DataTable :columns="columns" :rows="rows" :loading="loading">
       <template #work_date="{ row }">{{ dateText(row.work_date) }}</template>
       <template #time="{ row }">{{ timeText(row.start_time) }}-{{ timeText(row.end_time) }}</template>
       <template #status="{ row }"><StatusPill :value="row.status" /></template>

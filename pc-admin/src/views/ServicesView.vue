@@ -12,12 +12,18 @@ import { money } from "../utils/format";
 
 const props = defineProps({ storeId: [String, Number], showToast: Function });
 const rows = ref([]);
+const loading = ref(false);
 
 const storeOptions = computed(() => [{ label: "通用（全部门店可见）", value: "" }, ...bootstrapState.stores.map((s) => ({ label: s.name, value: Number(s.id) }))]);
 
 async function load() {
-  await loadBootstrap();
-  rows.value = await adminApi.services({ storeId: props.storeId });
+  loading.value = true;
+  try {
+    await loadBootstrap();
+    rows.value = await adminApi.services({ storeId: props.storeId });
+  } finally {
+    loading.value = false;
+  }
 }
 
 const { editor, openEditor, saveEditor } = useCrudEditor({ onSaved: load, showToast: props.showToast });
@@ -69,6 +75,7 @@ watch(() => props.storeId, load);
         { key: 'actions', label: '操作' }
       ]"
       :rows="rows"
+      :loading="loading"
     >
       <template #store_name="{ row }">{{ row.store_name || "通用" }}</template>
       <template #duration_minutes="{ row }">{{ row.duration_minutes }} 分钟</template>

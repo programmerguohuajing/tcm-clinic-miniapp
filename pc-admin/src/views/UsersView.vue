@@ -12,13 +12,19 @@ import { ElMessageBox, ElMessage } from "element-plus";
 
 const props = defineProps({ storeId: [String, Number], showToast: Function });
 const rows = ref([]);
+const loading = ref(false);
 const filters = reactive({ keyword: "", adminRole: "", canManage: "" });
 
 // 角色值→中文映射
 const roleLabelMap = Object.fromEntries(statusOptions.roles.map(r => [r.value, r.label]));
 
 async function load() {
-  rows.value = await adminApi.users(filters);
+  loading.value = true;
+  try {
+    rows.value = await adminApi.users(filters);
+  } finally {
+    loading.value = false;
+  }
 }
 
 function resetFilters() {
@@ -92,6 +98,7 @@ onMounted(load);
         { key: 'actions', label: '操作' }
       ]"
       :rows="rows"
+      :loading="loading"
     >
       <template #total_spend="{ row }">{{ money(row.total_spend) }}</template>
       <template #can_manage="{ row }"><StatusPill :value="row.can_manage" /></template>

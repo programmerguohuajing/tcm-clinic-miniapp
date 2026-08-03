@@ -9,16 +9,22 @@ function formatDate(value) {
 }
 
 const rows = ref([]);
+const loading = ref(false);
 const filters = reactive({ keyword: "", action: "", targetType: "", dateRange: [] });
 
 async function load() {
-  rows.value = await adminApi.auditLogs({
-    keyword: filters.keyword,
-    action: filters.action,
-    targetType: filters.targetType,
-    startDate: filters.dateRange?.[0] || "",
-    endDate: filters.dateRange?.[1] || ""
-  });
+  loading.value = true;
+  try {
+    rows.value = await adminApi.auditLogs({
+      keyword: filters.keyword,
+      action: filters.action,
+      targetType: filters.targetType,
+      startDate: filters.dateRange?.[0] || "",
+      endDate: filters.dateRange?.[1] || ""
+    });
+  } finally {
+    loading.value = false;
+  }
 }
 
 function resetFilters() {
@@ -53,6 +59,7 @@ onMounted(load);
         { key: 'detail', label: '详情' }
       ]"
       :rows="rows"
+      :loading="loading"
     >
       <template #created_at="{ row }">{{ formatDate(row.created_at) }}</template>
       <template #target="{ row }">{{ row.target_type || "-" }} #{{ row.target_id || "" }}</template>

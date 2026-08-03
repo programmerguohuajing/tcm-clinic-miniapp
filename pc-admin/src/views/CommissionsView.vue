@@ -13,6 +13,7 @@ import { money } from "../utils/format";
 const props = defineProps({ storeId: [String, Number], showToast: Function });
 const rules = ref([]);
 const estimates = ref([]);
+const loading = ref(false);
 
 const practitionerOptions = computed(() => {
   const list = props.storeId
@@ -23,13 +24,18 @@ const practitionerOptions = computed(() => {
 const serviceOptions = computed(() => [{ label: "全部项目", value: "" }, ...bootstrapState.services.map((s) => ({ label: s.name, value: Number(s.id) }))]);
 
 async function load() {
-  await loadBootstrap();
-  const [ruleRows, dashboard] = await Promise.all([
-    adminApi.commissionRules(),
-    adminApi.dashboard({ storeId: props.storeId })
-  ]);
-  rules.value = ruleRows;
-  estimates.value = dashboard.commissions || [];
+  loading.value = true;
+  try {
+    await loadBootstrap();
+    const [ruleRows, dashboard] = await Promise.all([
+      adminApi.commissionRules(),
+      adminApi.dashboard({ storeId: props.storeId })
+    ]);
+    rules.value = ruleRows;
+    estimates.value = dashboard.commissions || [];
+  } finally {
+    loading.value = false;
+  }
 }
 
 const { editor, openEditor, saveEditor } = useCrudEditor({ onSaved: load, showToast: props.showToast });
@@ -75,6 +81,7 @@ watch(() => props.storeId, load);
         { key: 'actions', label: '操作' }
       ]"
       :rows="rules"
+      :loading="loading"
     >
       <template #practitioner_name="{ row }">{{ row.practitioner_name || "全部" }}</template>
       <template #service_name="{ row }">{{ row.service_name || "全部" }}</template>

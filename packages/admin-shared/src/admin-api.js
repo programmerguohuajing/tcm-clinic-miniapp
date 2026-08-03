@@ -17,6 +17,7 @@ export function createAdminApi(request) {
     saveService: (data) => request(data.id ? `/admin/services/${data.id}` : "/admin/services", { method: data.id ? "PATCH" : "POST", data }),
     practitioners: (params) => request(`/admin/practitioners${query(params)}`),
     savePractitioner: (data) => request(data.id ? `/admin/practitioners/${data.id}` : "/admin/practitioners", { method: data.id ? "PATCH" : "POST", data }),
+    deletePractitioner: (id) => request(`/admin/practitioners/${id}`, { method: "DELETE" }),
     schedules: (params) => request(`/admin/schedules${query(params)}`),
     saveSchedule: (data) => request("/admin/schedules", { method: "POST", data }),
     bulkSchedules: (data) => request("/admin/schedules/bulk", { method: "POST", data }),

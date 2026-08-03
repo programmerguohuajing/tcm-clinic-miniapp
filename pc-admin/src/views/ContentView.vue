@@ -13,15 +13,21 @@ import { money } from "../utils/format";
 const props = defineProps({ storeId: [String, Number], showToast: Function });
 const activities = ref([]);
 const articles = ref([]);
+const loading = ref(false);
 
 async function load() {
-  await loadBootstrap();
-  const [activityRows, articleRows] = await Promise.all([
-    adminApi.activities({ storeId: props.storeId }),
-    adminApi.articles({ storeId: props.storeId })
-  ]);
-  activities.value = activityRows;
-  articles.value = articleRows;
+  loading.value = true;
+  try {
+    await loadBootstrap();
+    const [activityRows, articleRows] = await Promise.all([
+      adminApi.activities({ storeId: props.storeId }),
+      adminApi.articles({ storeId: props.storeId })
+    ]);
+    activities.value = activityRows;
+    articles.value = articleRows;
+  } finally {
+    loading.value = false;
+  }
 }
 
 const { editor, openEditor, saveEditor } = useCrudEditor({ onSaved: load, showToast: props.showToast });
@@ -72,6 +78,7 @@ watch(() => props.storeId, load);
         { key: 'is_active', label: '状态' }
       ]"
       :rows="activities"
+      :loading="loading"
     >
       <template #store_name="{ row }">{{ row.store_name || "通用" }}</template>
       <template #title="{ row }">{{ row.title }}<br /><small>{{ row.subtitle || "" }}</small></template>
@@ -90,6 +97,7 @@ watch(() => props.storeId, load);
         { key: 'status', label: '状态' }
       ]"
       :rows="articles"
+      :loading="loading"
     >
       <template #store_name="{ row }">{{ row.store_name || "通用" }}</template>
       <template #title="{ row }">{{ row.title }}<br /><small>{{ row.summary || "" }}</small></template>

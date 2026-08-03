@@ -12,10 +12,16 @@ import { jsonText } from "../utils/format";
 
 const props = defineProps({ storeId: [String, Number], showToast: Function });
 const rows = ref([]);
+const loading = ref(false);
 
 async function load() {
-  await loadBootstrap();
-  rows.value = await adminApi.homepageConfigs({ storeId: props.storeId });
+  loading.value = true;
+  try {
+    await loadBootstrap();
+    rows.value = await adminApi.homepageConfigs({ storeId: props.storeId });
+  } finally {
+    loading.value = false;
+  }
 }
 
 const { editor, openEditor, saveEditor } = useCrudEditor({ onSaved: load, showToast: props.showToast });
@@ -63,6 +69,7 @@ watch(() => props.storeId, load);
         { key: 'actions', label: '操作' }
       ]"
       :rows="rows"
+      :loading="loading"
     >
       <template #store_name="{ row }">{{ row.store_name || "通用" }}</template>
       <template #payload="{ row }"><code>{{ JSON.stringify(row.payload) }}</code></template>

@@ -9,6 +9,7 @@ import { adminApi } from "../services/adminApi";
 
 const props = defineProps({ storeId: [String, Number], showToast: Function });
 const rows = ref([]);
+const loading = ref(false);
 const filters = reactive({ keyword: "", status: "", rating: "" });
 const reviewStatusOptions = [
   { label: "显示", value: "visible" },
@@ -17,7 +18,12 @@ const reviewStatusOptions = [
 const ratingOptions = [1, 2, 3, 4, 5].map((value) => ({ label: `${value} 星`, value }));
 
 async function load() {
-  rows.value = await adminApi.reviews(filters);
+  loading.value = true;
+  try {
+    rows.value = await adminApi.reviews(filters);
+  } finally {
+    loading.value = false;
+  }
 }
 
 function resetFilters() {
@@ -75,6 +81,7 @@ onMounted(load);
         { key: 'actions', label: '操作' }
       ]"
       :rows="rows"
+      :loading="loading"
     >
       <template #rating="{ row }">{{ "★".repeat(row.rating || 0) }}</template>
       <template #status="{ row }"><StatusPill :value="row.status" /></template>

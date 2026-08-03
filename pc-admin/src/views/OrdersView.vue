@@ -10,6 +10,7 @@ import { ElMessageBox, ElMessage } from "element-plus";
 
 const props = defineProps({ storeId: [String, Number], showToast: Function });
 const rows = ref([]);
+const loading = ref(false);
 const updatingKey = ref("");
 const filters = reactive({ keyword: "", status: "", practitionerId: "" });
 const practitionerOptions = computed(() => {
@@ -39,8 +40,13 @@ const columns = [
 ];
 
 async function load() {
-  await loadBootstrap();
-  rows.value = await adminApi.orders({ storeId: props.storeId, ...filters });
+  loading.value = true;
+  try {
+    await loadBootstrap();
+    rows.value = await adminApi.orders({ storeId: props.storeId, ...filters });
+  } finally {
+    loading.value = false;
+  }
 }
 
 function resetFilters() {
@@ -198,7 +204,7 @@ const scheduleOptions = computed(() => {
         <button class="primary" @click="openPhoneBooking">新建订单</button>
       </div>
     </template>
-    <DataTable :columns="columns" :rows="rows">
+    <DataTable :columns="columns" :rows="rows" :loading="loading">
       <template #user="{ row }">{{ row.user_name }}<br /><small>{{ row.user_phone || "" }}</small></template>
       <template #time="{ row }">{{ dateText(row.appointment_date) }} {{ timeText(row.start_time) }}</template>
       <template #amount="{ row }">{{ money(row.amount) }}</template>

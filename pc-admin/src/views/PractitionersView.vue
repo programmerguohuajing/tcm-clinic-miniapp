@@ -9,9 +9,11 @@ import { useCrudEditor } from "../composables/useCrudEditor";
 import { statusOptions } from "../constants/status";
 import { adminApi } from "../services/adminApi";
 import { splitKeywords } from "../utils/format";
+import { ElMessageBox, ElMessage } from "element-plus";
 
 const props = defineProps({ storeId: [String, Number], showToast: Function });
 const rows = ref([]);
+const loading = ref(false);
 const serviceOptions = computed(() => bootstrapState.services.map((s) => ({ label: s.name, value: Number(s.id) })));
 
 const columns = [
@@ -26,8 +28,13 @@ const columns = [
 ];
 
 async function load() {
-  await loadBootstrap();
-  rows.value = await adminApi.practitioners({ storeId: props.storeId });
+  loading.value = true;
+  try {
+    await loadBootstrap();
+    rows.value = await adminApi.practitioners({ storeId: props.storeId });
+  } finally {
+    loading.value = false;
+  }
 }
 
 const { editor, openEditor, saveEditor } = useCrudEditor({ onSaved: load, showToast: props.showToast });
@@ -60,17 +67,41 @@ function edit(row = {}) {
   });
 }
 
+async function removePractitioner(row) {
+  try {
+    await ElMessageBox.confirm(`确认删除技师「${row.name}」？删除后无法恢复。`, "删除技师", {
+      confirmButtonText: "删除",
+      cancelButtonText: "取消",
+      type: "warning"
+    });
+  } catch {
+    return;
+  }
+  try {
+    await adminApi.deletePractitioner(row.id);
+    ElMessage.success("技师已删除");
+    load();
+  } catch (error) {
+    props.showToast?.(error.message || "删除失败");
+  }
+}
+
 onMounted(load);
 watch(() => props.storeId, load);
 </script>
 
 <template>
   <PageSection title="技师档案" action-text="新增技师" @action="edit()">
-    <DataTable :columns="columns" :rows="rows">
+    <DataTable :columns="columns" :rows="rows" :loading="loading">
       <template #specialties="{ row }">{{ (row.specialties || []).join("、") || "-" }}</template>
       <template #services="{ row }">{{ (row.services || []).map((s) => s.name).join("、") || "-" }}</template>
       <template #status="{ row }"><StatusPill :value="row.status" /></template>
-      <template #actions="{ row }"><button class="ghost mini" @click="edit(row)">编辑</button></template>
+      <template #actions="{ row }">
+        <div class="actions">
+          <button class="ghost mini" @click="edit(row)">编辑</button>
+          <button class="danger mini" @click="removePractitioner(row)">删除</button>
+        </div>
+      </template>
     </DataTable>
   </PageSection>
   <FormDialog :editor="editor" @close="editor.visible = false" @save="saveEditor" />

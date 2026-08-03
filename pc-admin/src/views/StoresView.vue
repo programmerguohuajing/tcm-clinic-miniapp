@@ -10,6 +10,7 @@ import { statusOptions } from "../constants/status";
 
 const props = defineProps({ storeId: [String, Number], showToast: Function });
 const rows = ref([]);
+const loading = ref(false);
 
 const columns = [
   { key: "name", label: "门店" },
@@ -22,7 +23,12 @@ const columns = [
 ];
 
 async function load() {
-  rows.value = await adminApi.stores();
+  loading.value = true;
+  try {
+    rows.value = await adminApi.stores();
+  } finally {
+    loading.value = false;
+  }
 }
 
 const { editor, openEditor, saveEditor } = useCrudEditor({ onSaved: load, showToast: props.showToast });
@@ -58,7 +64,7 @@ onMounted(load);
 
 <template>
   <PageSection title="门店列表" action-text="新增门店" @action="edit()">
-    <DataTable :columns="columns" :rows="rows">
+    <DataTable :columns="columns" :rows="rows" :loading="loading">
       <template #status="{ row }">
         <StatusPill :value="row.status" />
         <StatusPill v-if="row.is_default" value="默认" />
