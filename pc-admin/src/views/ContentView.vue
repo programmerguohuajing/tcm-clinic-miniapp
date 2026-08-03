@@ -80,7 +80,7 @@ watch(() => props.storeId, load);
     </DataTable>
   </PageSection>
 
-  <PageSection title="文章管理" action-text="新增文章" @action="addArticle">
+  <PageSection title="文章管理" action-text="新增文章" @action="addArticle" style="margin-top: 24px">
     <DataTable
       :columns="[
         { key: 'store_name', label: '门店' },

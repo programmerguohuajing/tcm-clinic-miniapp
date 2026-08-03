@@ -32,6 +32,14 @@ jobs:
       - name: Generate static files for Workers
         run: node backend/scripts/build-static.js
 
+      - name: Set DATABASE_URL secret
+        run: |
+          cd backend
+          pnpm exec wrangler secret put DATABASE_URL <<< "$DATABASE_URL"
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
       - name: Deploy to Cloudflare Workers
         run: cd backend && pnpm exec wrangler deploy
         env:
