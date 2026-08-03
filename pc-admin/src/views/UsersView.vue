@@ -8,10 +8,14 @@ import { useCrudEditor } from "../composables/useCrudEditor";
 import { statusOptions } from "../constants/status";
 import { adminApi } from "../services/adminApi";
 import { money } from "../utils/format";
+import { ElMessageBox, ElMessage } from "element-plus";
 
 const props = defineProps({ storeId: [String, Number], showToast: Function });
 const rows = ref([]);
 const filters = reactive({ keyword: "", adminRole: "", canManage: "" });
+
+// 角色值→中文映射
+const roleLabelMap = Object.fromEntries(statusOptions.roles.map(r => [r.value, r.label]));
 
 async function load() {
   rows.value = await adminApi.users(filters);
@@ -36,6 +40,25 @@ function edit(row) {
     ],
     submit: (model) => adminApi.updateUserRole(row.id, model)
   });
+}
+
+async function removeUser(row) {
+  try {
+    await ElMessageBox.confirm(`确认删除用户「${row.nickname}」？删除后无法恢复。`, "删除用户", {
+      confirmButtonText: "删除",
+      cancelButtonText: "取消",
+      type: "warning"
+    });
+  } catch {
+    return;
+  }
+  try {
+    await adminApi.deleteUser(row.id);
+    ElMessage.success("用户已删除");
+    load();
+  } catch (error) {
+    props.showToast?.(error.message || "删除失败");
+  }
 }
 
 onMounted(load);
@@ -72,7 +95,13 @@ onMounted(load);
     >
       <template #total_spend="{ row }">{{ money(row.total_spend) }}</template>
       <template #can_manage="{ row }"><StatusPill :value="row.can_manage" /></template>
-      <template #actions="{ row }"><button class="ghost mini" @click="edit(row)">配置权限</button></template>
+      <template #admin_role="{ row }">{{ roleLabelMap[row.admin_role] || row.admin_role }}</template>
+      <template #actions="{ row }">
+        <div class="actions">
+          <button class="ghost mini" @click="edit(row)">配置权限</button>
+          <button class="danger mini" @click="removeUser(row)">删除</button>
+        </div>
+      </template>
     </DataTable>
   </PageSection>
   <FormDialog :editor="editor" @close="editor.visible = false" @save="saveEditor" />

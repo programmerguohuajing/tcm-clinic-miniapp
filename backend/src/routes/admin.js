@@ -964,6 +964,13 @@ export const adminRouter = () => {
     return c.json({ data: rows[0] });
   }));
 
+  app.delete("/admin/users/:id", requireRole("owner"), asyncHandler(async (c) => {
+    const { id } = idParam.parse(c.req.param());
+    await query(`delete from users where id = $1 returning id`, [id]);
+    await audit(c, "delete_user", "user", id, {});
+    return c.json({ data: { id } });
+  }));
+
   // ── Reviews ──
   app.get("/admin/reviews", asyncHandler(async (c) => {
     const params = z.object({

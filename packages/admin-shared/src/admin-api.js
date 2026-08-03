@@ -32,6 +32,7 @@ export function createAdminApi(request) {
     articles: (params) => request(`/admin/articles${query(params)}`),
     createArticle: (data) => request("/admin/articles", { method: "POST", data }),
     users: (params) => request(`/admin/users${query(params)}`),
+    deleteUser: (id) => request(`/admin/users/${id}`, { method: "DELETE" }),
     updateUserRole: (id, data) => request(`/admin/users/${id}/role`, { method: "PATCH", data }),
     reviews: (params) => request(`/admin/reviews${query(params)}`),
     updateReview: (id, data) => request(`/admin/reviews/${id}`, { method: "PATCH", data }),
