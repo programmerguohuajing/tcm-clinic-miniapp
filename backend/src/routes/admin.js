@@ -661,7 +661,7 @@ export const adminRouter = () => {
          order_no, user_id, service_id, practitioner_id, schedule_id,
          appointment_date, start_time, end_time, amount, note, store_id, status
        )
-       select $1,$2,$3,$4,$5,s.work_date,s.start_time,s.end_time,$6,$7,s.store_id,'confirmed'
+       select $1,$2,$3,$4,$5,s.work_date,s.start_time,s.end_time,$6,$7,s.store_id,'pending'
          from schedules s
         where s.id = $8 and s.practitioner_id = $9
        returning *`,
