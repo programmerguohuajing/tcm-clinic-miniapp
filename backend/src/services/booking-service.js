@@ -49,18 +49,32 @@ export async function createAppointment({
   familyMemberId,
   note
 }) {
-  // Fast-fail: check for duplicate booking
+  // Fast-fail: check for duplicate booking window
   const dupResult = await query(
     `select exists(
-       select 1 from appointments
-       where user_id = $1 and schedule_id = $2
-         and status in ('pending','confirmed')
-     ) as duplicate`,
+       select 1 from appointments a
+       join schedules s on s.id = a.schedule_id
+       where a.user_id = $1 and a.schedule_id = $2
+         and a.status in ('pending','confirmed')
+     ) as duplicate_slot,
+     exists(
+       select 1 from appointments a
+        where a.user_id = $1
+          and a.appointment_date = (select work_date from schedules where id = $2)
+          and a.start_time = (select start_time from schedules where id = $2)
+          and a.end_time = (select end_time from schedules where id = $2)
+          and a.status in ('pending','confirmed')
+     ) as duplicate_window`,
     [userId, scheduleId]
   );
 
-  if (dupResult.rows[0]?.duplicate) {
+  if (dupResult.rows[0]?.duplicate_slot) {
     const err = new Error("您已预约了该时段，请勿重复预约");
+    err.statusCode = 409;
+    throw err;
+  }
+  if (dupResult.rows[0]?.duplicate_window) {
+    const err = new Error("您在同一时间段内已有其他预约");
     err.statusCode = 409;
     throw err;
   }

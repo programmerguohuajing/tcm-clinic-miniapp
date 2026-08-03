@@ -620,7 +620,32 @@ export const adminRouter = () => {
       userId = inserted.rows[0].id;
     }
 
-    // 2. Get service price
+    // 2. Verify schedule and check duplicate booking window
+    const scheduleResult = await query(
+      `select work_date, start_time, end_time from schedules where id = $1 limit 1`,
+      [payload.scheduleId]
+    );
+    if (!scheduleResult.rows[0]) {
+      return c.json({ error: { code: "NOT_FOUND", message: "排班时段不存在" } }, 404);
+    }
+    const { work_date, start_time, end_time } = scheduleResult.rows[0];
+
+    const dupResult = await query(
+      `select exists(
+         select 1 from appointments
+         where user_id = $1
+           and appointment_date = $2
+           and start_time = $3
+           and end_time = $4
+           and status in ('pending','confirmed')
+       ) as duplicate`,
+      [userId, work_date, start_time, end_time]
+    );
+    if (dupResult.rows[0]?.duplicate) {
+      return c.json({ error: { code: "DUPLICATE_BOOKING", message: "该用户在同一时间段内已有预约" } }, 409);
+    }
+
+    // 3. Get service price
     const svcResult = await query(
       `select price from services where id = $1 and is_active = true`,
       [payload.serviceId]
@@ -630,7 +655,7 @@ export const adminRouter = () => {
     }
     const amount = svcResult.rows[0].price;
 
-    // 3. Create appointment (phone bookings are confirmed directly)
+    // 4. Create appointment (phone bookings are confirmed directly)
     const { rows } = await query(
       `insert into appointments (
          order_no, user_id, service_id, practitioner_id, schedule_id,
@@ -652,10 +677,9 @@ export const adminRouter = () => {
         payload.practitionerId
       ]
     );
-
     const appointment = rows[0];
 
-    // 4. Audit log
+    // 5. Audit log
     await audit(c, "create_phone_order", "appointment", appointment.id, {
       customerPhone: payload.customerPhone,
       customerName: payload.customerName,
