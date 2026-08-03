@@ -966,11 +966,16 @@ export const adminRouter = () => {
 
   app.delete("/admin/users/:id", requireRole("owner"), asyncHandler(async (c) => {
     const { id } = idParam.parse(c.req.param());
-    console.log("[delete-user] start id=", id);
-    const r1 = await query("update appointments set user_id = null where user_id = $1", [id]);
-    console.log("[delete-user] appointments cleared, rowCount=", r1.rowCount);
-    const r2 = await query("delete from users where id = $1", [id]);
-    console.log("[delete-user] user deleted, rowCount=", r2.rowCount);
+    // 先解除所有关联数据的外键约束，再删除用户
+    await query("delete from appointments where user_id = $1", [id]);
+    await query("delete from health_records where user_id = $1", [id]);
+    await query("delete from coupons where user_id = $1", [id]);
+    await query("delete from reviews where user_id = $1", [id]);
+    await query("delete from family_members where user_id = $1", [id]);
+    const result = await query("delete from users where id = $1 returning id", [id]);
+    if (!result.rows.length) {
+      return c.json({ error: { code: "NOT_FOUND", message: "用户不存在" } }, 404);
+    }
     try { await audit(c, "delete_user", "user", id, {}); } catch (_e) { /* audit must not fail the delete */ }
     return c.json({ data: { id } });
   }));

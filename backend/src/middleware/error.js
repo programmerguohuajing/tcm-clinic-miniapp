@@ -29,7 +29,8 @@ export function errorMiddleware(err, c) {
     return c.json({
       error: {
         code: "INTERNAL_ERROR",
-        message: "服务器内部错误"
+        message: err.message || "服务器内部错误",
+        detail: process.env.NODE_ENV === "development" ? err.stack : undefined
       }
     }, 500);
   }
