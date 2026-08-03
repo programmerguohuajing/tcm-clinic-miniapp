@@ -47,6 +47,7 @@ function edit(row = {}) {
       status: row.status || "active"
     },
     fields: [
+      { name: "storeId", label: "所属门店", type: "select", options: [{ label: "请选择门店", value: "" }, ...bootstrapState.stores.map((s) => ({ label: s.name, value: Number(s.id) }))] },
       { name: "name", label: "技师姓名" },
       { name: "title", label: "职称" },
       { name: "rating", label: "评分", type: "number" },
