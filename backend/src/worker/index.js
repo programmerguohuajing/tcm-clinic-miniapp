@@ -40,7 +40,9 @@ export default {
       return new Response(file.body, {
         headers: {
           "content-type": file.contentType,
-          "cache-control": "public, max-age=86400",
+          "cache-control": url.pathname === "/" || url.pathname === "/index.html"
+            ? "no-cache"
+            : "public, max-age=86400",
         },
       });
     }
@@ -51,7 +53,7 @@ export default {
       return new Response(index.body, {
         headers: {
           "content-type": "text/html",
-          "cache-control": "public, max-age=86400",
+          "cache-control": "no-cache",
         },
       });
     }
