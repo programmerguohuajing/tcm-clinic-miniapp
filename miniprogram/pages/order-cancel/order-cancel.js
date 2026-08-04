@@ -3,6 +3,7 @@ const { STATUS_TEXT } = require("../../utils/constants");
 
 Page({
   data: {
+    loading: true,
     orderId: null,
     order: null
   },
@@ -13,9 +14,11 @@ Page({
   },
 
   async loadOrder() {
+    this.setData({ loading: true });
     try {
       const order = await request(`/me/appointments/${this.data.orderId}`);
       this.setData({
+        loading: false,
         order: {
           ...order,
           statusText: STATUS_TEXT[order.status] || order.status,
@@ -24,6 +27,7 @@ Page({
         }
       });
     } catch (error) {
+      this.setData({ loading: false });
       wx.showToast({ title: error.message || "加载失败", icon: "none" });
     }
   },

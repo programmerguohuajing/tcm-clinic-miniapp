@@ -5,6 +5,7 @@ const mock = require("../../utils/mock-data");
 
 Page({
   data: {
+    loading: true,
     store: null,
     hero: {
       headline: "为身体预约一段安静的时间",
@@ -34,6 +35,7 @@ Page({
   },
 
   async loadHome() {
+    this.setData({ loading: true });
     try {
       const app = getApp();
       const stores = await request("/stores");
@@ -47,6 +49,7 @@ Page({
       ]);
       const heroConfig = configs.find((item) => item.section_key === "hero");
       this.setData({
+        loading: false,
         store,
         hero: {
           ...this.data.hero,
@@ -56,6 +59,7 @@ Page({
         articles
       });
     } catch (error) {
+      this.setData({ loading: false });
       if (isDev()) {
         this.setData({
           activities: mock.activities,

@@ -3,6 +3,9 @@
     <view class="eyebrow">TECHNICIAN DESK</view>
     <view class="title">{{summary.profile.name}}</view>
     <view class="subtitle">{{summary.profile.title}} · {{summary.profile.store_name || '未绑定门店'}}</view>
+    <view class="avatar-row" wx:if="{{summary.profile.avatar_url}}">
+      <image class="avatar-large" src="{{summary.profile.avatar_url}}" mode="aspectFill" />
+    </view>
   </view>
 
   <view class="metric-grid">

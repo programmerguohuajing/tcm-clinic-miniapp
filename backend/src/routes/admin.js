@@ -64,7 +64,7 @@ export const adminRouter = () => {
     const [stores, services, practitioners] = await Promise.all([
       query(`select id, name, city, address, phone, business_hours, is_default, status from stores order by is_default desc, id`),
       query(`select id, store_id, name, category, price, duration_minutes, is_active from services order by sort_order desc, id desc`),
-      query(`select id, store_id, name, title, status, rating from practitioners order by id desc`)
+      query(`select id, store_id, name, title, avatar_url, status, rating from practitioners order by id desc`)
     ]);
 
     return c.json({ data: { stores: stores.rows, services: services.rows, practitioners: practitioners.rows } });

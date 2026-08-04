@@ -43,6 +43,7 @@ const profile = computed(() => summary.value.profile || {});
 const cards = computed(() => summary.value.cards || {});
 
 const initials = computed(() => (profile.value.name || "").slice(0, 1));
+const avatarUrl = computed(() => profile.value.avatar_url || "");
 
 /* ---------- columns ---------- */
 const appointmentColumns = [
@@ -223,7 +224,8 @@ watch(() => bootstrapState.practitioners, (list) => {
     <div class="card tp-profile">
       <div class="tp-profile__inner">
         <div class="tp-profile__info">
-          <div class="avatar">{{ initials }}</div>
+          <img v-if="avatarUrl" :src="avatarUrl" class="avatar" referrerpolicy="no-referrer" />
+          <div v-else class="avatar">{{ initials }}</div>
           <div>
             <h2>{{ profile.name || "技师工作台" }}</h2>
             <p>{{ profile.title || "-" }} · {{ profile.store_name || "未绑定门店" }}</p>

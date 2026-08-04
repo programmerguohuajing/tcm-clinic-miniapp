@@ -43,7 +43,7 @@ export const appointmentsRouter = () => {
       `select a.id, a.order_no, a.status, a.payment_status, a.appointment_date::text as appointment_date,
               a.start_time, a.end_time, a.amount, a.note,
               s.name as service_name,
-              p.name as practitioner_name,
+              p.name as practitioner_name, p.avatar_url as practitioner_avatar_url,
               fm.name as family_member_name
          from appointments a
          join services s on s.id = a.service_id

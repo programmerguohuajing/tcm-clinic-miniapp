@@ -47,6 +47,7 @@ function edit(row = {}) {
       storeId: row.store_id ? Number(row.store_id) : (props.storeId ? Number(props.storeId) : ""),
       name: row.name || "",
       title: row.title || "",
+      avatarUrl: row.avatar_url || "",
       rating: row.rating || 5,
       specialties: (row.specialties || []).join("，"),
       bio: row.bio || "",
@@ -57,6 +58,7 @@ function edit(row = {}) {
       { name: "storeId", label: "所属门店", type: "select", options: [{ label: "请选择门店", value: "" }, ...bootstrapState.stores.map((s) => ({ label: s.name, value: Number(s.id) }))] },
       { name: "name", label: "技师姓名" },
       { name: "title", label: "职称" },
+      { name: "avatarUrl", label: "头像图片 URL", wide: true },
       { name: "rating", label: "评分", type: "number" },
       { name: "specialties", label: "擅长方向，逗号分隔", wide: true },
       { name: "bio", label: "简介", type: "textarea", wide: true },
@@ -93,6 +95,12 @@ watch(() => props.storeId, load);
 <template>
   <PageSection title="技师档案" action-text="新增技师" @action="edit()">
     <DataTable :columns="columns" :rows="rows" :loading="loading">
+      <template #name="{ row }">
+        <div class="row-with-avatar">
+          <img v-if="row.avatar_url" :src="row.avatar_url" class="row-avatar" referrerpolicy="no-referrer" />
+          <span>{{ row.name }}</span>
+        </div>
+      </template>
       <template #specialties="{ row }">{{ (row.specialties || []).join("、") || "-" }}</template>
       <template #services="{ row }">{{ (row.services || []).map((s) => s.name).join("、") || "-" }}</template>
       <template #status="{ row }"><StatusPill :value="row.status" /></template>
@@ -106,3 +114,18 @@ watch(() => props.storeId, load);
   </PageSection>
   <FormDialog :editor="editor" @close="editor.visible = false" @save="saveEditor" />
 </template>
+
+<style scoped>
+.row-with-avatar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.row-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+</style>

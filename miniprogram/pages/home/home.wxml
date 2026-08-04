@@ -1,4 +1,5 @@
 <view class="page">
+  <view wx:if="{{loading}}" class="loading-mask"><view class="loading-spinner"></view></view>
   <view class="hero-card home-hero">
     <view class="eyebrow">QI RETREAT</view>
     <view wx:if="{{store}}" class="pill">{{store.name}} · {{store.business_hours}}</view>

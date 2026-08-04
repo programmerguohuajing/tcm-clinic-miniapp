@@ -122,6 +122,14 @@
   flex: 1;
 }
 
+.order-avatar {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
 .order-title {
   color: #10241e;
   font-size: 30rpx;

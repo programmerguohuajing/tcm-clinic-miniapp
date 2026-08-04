@@ -56,7 +56,7 @@ export const technicianRouter = () => {
     const practitionerId = resolvePractitionerId(c, params);
     const [profileResult, todayResult, futureResult, commissionsResult] = await Promise.all([
       query(
-        `select p.id, p.name, p.title, p.rating, p.status, st.name as store_name
+        `select p.id, p.name, p.title, p.avatar_url, p.rating, p.status, st.name as store_name
            from practitioners p
            left join stores st on st.id = p.store_id
           where p.id = $1`,

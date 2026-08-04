@@ -11,6 +11,7 @@ function today() {
 
 Page({
   data: {
+    loading: true,
     date: today(),
     services: [],
     practitioners: [],
@@ -25,12 +26,14 @@ Page({
   },
 
   async loadServices() {
+    this.setData({ loading: true });
     try {
       const storeId = getApp().globalData.storeId;
       const services = await request(`/services${storeId ? `?storeId=${storeId}` : ""}`);
-      this.setData({ services });
+      this.setData({ loading: false, services });
       if (services[0]) this.selectService({ currentTarget: { dataset: { item: services[0] } } });
     } catch (error) {
+      this.setData({ loading: false });
       if (isDev()) {
         wx.showToast({ title: "接口失败，使用演示项目", icon: "none" });
         this.setData({ services: mock.services });

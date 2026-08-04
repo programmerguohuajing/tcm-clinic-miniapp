@@ -2,6 +2,7 @@ const { request } = require("../../utils/request");
 
 Page({
   data: {
+    loading: true,
     orderId: null,
     order: null,
     date: "",
@@ -22,6 +23,7 @@ Page({
   },
 
   async loadOrder() {
+    this. setData({ loading: true });
     try {
       const order = await request(`/me/appointments/${this.data.orderId}`);
       this.setData({

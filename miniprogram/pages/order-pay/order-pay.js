@@ -2,6 +2,7 @@ const { request } = require("../../utils/request");
 
 Page({
   data: {
+    loading: true,
     orderId: null,
     order: null,
     paying: false
@@ -13,9 +14,11 @@ Page({
   },
 
   async loadOrder() {
+    this. setData({ loading: true });
     try {
       const order = await request(`/me/appointments/${this.data.orderId}`);
       this.setData({
+        loading: false,
         order: {
           ...order,
           startLabel: order.start_time.slice(0, 5),
@@ -23,6 +26,7 @@ Page({
         }
       });
     } catch (error) {
+      this.setData({ loading: false });
       wx.showToast({ title: error.message || "加载失败", icon: "none" });
     }
   },

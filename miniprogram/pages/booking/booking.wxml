@@ -1,4 +1,5 @@
 <view class="page">
+  <view wx:if="{{loading}}" class="loading-mask"><view class="loading-spinner"></view></view>
   <view class="hero-card booking-hero">
     <view class="eyebrow">PRIVATE BOOKING</view>
     <view class="title">选择一段属于身体的安静时光</view>

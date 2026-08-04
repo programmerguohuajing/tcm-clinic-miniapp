@@ -1,4 +1,5 @@
 <view class="page order-cancel">
+  <view wx:if="{{loading}}" class="loading-mask"><view class="loading-spinner"></view></view>
   <view wx:if="{{order}}" class="card">
     <view class="card-title">取消预约</view>
     <view class="subtitle">您即将取消以下预约：</view>

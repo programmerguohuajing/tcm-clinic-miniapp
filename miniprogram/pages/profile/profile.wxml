@@ -40,6 +40,7 @@
   <block wx:for="{{appointments}}" wx:key="id">
     <view class="list-card order-card" bindtap="goOrderDetail" data-id="{{item.id}}">
       <view class="order-top">
+        <image wx:if="{{item.practitioner_avatar_url}}" class="order-avatar" src="{{item.practitioner_avatar_url}}" mode="aspectFill" />
         <view class="order-info">
           <view class="order-title">{{item.service_name}}</view>
           <view class="subtitle">{{item.practitioner_name}} · {{item.appointment_date}} {{item.startLabel}}</view>

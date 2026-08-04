@@ -1,4 +1,5 @@
 <view class="page order-reschedule">
+  <view wx:if="{{loading}}" class="loading-mask"><view class="loading-spinner"></view></view>
   <view wx:if="{{order}}" class="card current-order">
     <view class="card-title">当前预约</view>
     <view class="detail-row">

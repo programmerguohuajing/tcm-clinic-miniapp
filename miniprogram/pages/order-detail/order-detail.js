@@ -3,6 +3,7 @@ const { STATUS_TEXT, PAYMENT_STATUS_TEXT } = require("../../utils/constants");
 
 Page({
   data: {
+    loading: true,
     orderId: null,
     order: null,
     actions: []
@@ -18,10 +19,12 @@ Page({
   },
 
   async loadOrder() {
+    this.setData({ loading: true });
     try {
       const order = await request(`/me/appointments/${this.data.orderId}`);
       const actions = this.buildActions(order);
       this.setData({
+        loading: false,
         order: {
           ...order,
           statusText: STATUS_TEXT[order.status] || order.status,
@@ -33,6 +36,7 @@ Page({
         actions
       });
     } catch (error) {
+      this.setData({ loading: false });
       wx.showToast({ title: error.message || "加载失败", icon: "none" });
     }
   },

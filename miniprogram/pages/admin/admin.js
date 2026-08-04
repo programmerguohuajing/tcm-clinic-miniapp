@@ -99,6 +99,7 @@ const adminApi = {
   services: (params) => request(`/admin/services${query(params)}`),
   saveService: (data) => request(data.id ? `/admin/services/${data.id}` : "/admin/services", { method: data.id ? "PATCH" : "POST", data }),
   practitioners: (params) => request(`/admin/practitioners${query(params)}`),
+  deletePractitioner: (id) => request(`/admin/practitioners/${id}`, { method: "DELETE" }),
   savePractitioner: (data) => request(data.id ? `/admin/practitioners/${data.id}` : "/admin/practitioners", { method: data.id ? "PATCH" : "POST", data }),
   schedules: (params) => request(`/admin/schedules${query(params)}`),
   saveSchedule: (data) => request("/admin/schedules", { method: "POST", data }),
@@ -488,6 +489,32 @@ Page({
     });
   },
 
+  async deletePractitioner(event) {
+    const { id, name } = event.currentTarget.dataset;
+    try {
+      await new Promise((resolve, reject) => {
+        wx.showModal({
+          title: "删除技师",
+          content: `确认删除技师「${name}」？删除后无法恢复。`,
+          confirmText: "删除",
+          confirmColor: "#f56c6c",
+          success: (res) => {
+            if (res.confirm) resolve();
+            else reject(new Error("cancel"));
+          }
+        });
+      });
+    } catch {
+      return;
+    }
+    await this.runLoad(async () => {
+      await adminApi.deletePractitioner(id);
+      wx.showToast({ title: "技师已删除" });
+      await this.loadBootstrap(true);
+      await this.loadActive();
+    });
+  },
+
   moduleConfig() {
     const { activeKey, storeId, bootstrap } = this.data;
     const pickOptions = (rows, emptyLabel) => [
@@ -535,13 +562,14 @@ Page({
         fields: () => [
           { name: "name", label: "技师姓名" },
           { name: "title", label: "职称" },
+          { name: "avatarUrl", label: "头像图片 URL" },
           { name: "rating", label: "评分", type: "number" },
           { name: "specialties", label: "擅长方向，逗号分隔", type: "textarea" },
           { name: "bio", label: "简介", type: "textarea" },
           { name: "serviceIds", label: "可服务项目", type: "checks", options: services().filter((item) => item.value !== "") },
           { name: "status", label: "状态", type: "select", options: statusOptions.practitioner }
         ],
-        model: (row = {}) => ({ id: row.id, storeId: row.store_id ? Number(row.store_id) : (storeId ? Number(storeId) : ""), name: row.name || "", title: row.title || "", rating: row.rating || 5, specialties: (row.specialties || []).join("，"), bio: row.bio || "", serviceIds: (row.services || []).map((service) => Number(service.id)), status: row.status || "active" })
+        model: (row = {}) => ({ id: row.id, storeId: row.store_id ? Number(row.store_id) : (storeId ? Number(storeId) : ""), name: row.name || "", title: row.title || "", avatarUrl: row.avatar_url || "", rating: row.rating || 5, specialties: (row.specialties || []).join("，"), bio: row.bio || "", serviceIds: (row.services || []).map((service) => Number(service.id)), status: row.status || "active" })
       },
       schedules: {
         title: "技师排班",

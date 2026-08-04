@@ -16,8 +16,13 @@
       <button class="remove-btn" catchtap="removeFavorite" data-id="{{item.id}}">取消收藏</button>
     </view>
     <view class="card fav-card" wx:if="{{item.target_type === 'practitioner'}}">
-      <view class="fav-name">{{item.practitioner_name || '未知技师'}}</view>
-      <view class="subtitle">{{item.practitioner_title || ''}}</view>
+      <view class="fav-row">
+        <image wx:if="{{item.avatar_url}}" class="avatar-small" src="{{item.avatar_url}}" mode="aspectFill" />
+        <view class="fav-info">
+          <view class="fav-name">{{item.practitioner_name || '未知技师'}}</view>
+          <view class="subtitle">{{item.practitioner_title || ''}}</view>
+        </view>
+      </view>
       <button class="remove-btn" catchtap="removeFavorite" data-id="{{item.id}}">取消收藏</button>
     </view>
   </block>

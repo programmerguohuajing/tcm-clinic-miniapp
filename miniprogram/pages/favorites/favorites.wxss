@@ -58,3 +58,23 @@
 .remove-btn::after {
   border: 0;
 }
+
+.fav-row {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+}
+
+.avatar-small {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: #e7f7f1;
+  color: #18a67d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  font-weight: 700;
+  flex-shrink: 0;
+}

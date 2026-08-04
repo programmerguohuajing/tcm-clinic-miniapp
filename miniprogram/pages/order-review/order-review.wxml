@@ -1,4 +1,5 @@
 <view class="page order-review">
+  <view wx:if="{{loading}}" class="loading-mask"><view class="loading-spinner"></view></view>
   <view wx:if="{{order}}" class="review-summary">
     <view class="reviewed-service">{{order.service_name}}</view>
     <view class="subtitle">{{order.appointment_date}} · {{order.practitioner_name}}</view>

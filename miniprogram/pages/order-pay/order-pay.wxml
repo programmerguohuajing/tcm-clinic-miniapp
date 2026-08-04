@@ -1,4 +1,5 @@
 <view class="page order-pay">
+  <view wx:if="{{loading}}" class="loading-mask"><view class="loading-spinner"></view></view>
   <view wx:if="{{order}}" class="pay-card">
     <view class="pay-icon">¥</view>
     <view class="pay-amount">{{order.amount}}</view>
