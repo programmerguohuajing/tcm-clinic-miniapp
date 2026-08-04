@@ -3,7 +3,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 28rpx 0;
-  border-bottom: 1rpx solid rgba(222, 225, 228, 0.4);
+  border-bottom: 1rpx solid rgba(200, 235, 222, 0.4);
 }
 
 .setting-item:last-child {
@@ -11,18 +11,18 @@
 }
 
 .setting-label {
-  color: #2d3035;
+  color: #10241e;
   font-size: 28rpx;
   font-weight: 700;
 }
 
 .setting-value {
-  color: #9aa0a6;
+  color: #8aa099;
   font-size: 26rpx;
 }
 
 .setting-arrow {
-  color: #9aa0a6;
+  color: #8aa099;
   font-size: 36rpx;
   font-weight: 300;
 }

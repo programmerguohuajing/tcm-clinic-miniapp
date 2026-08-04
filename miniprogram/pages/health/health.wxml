@@ -1,5 +1,6 @@
 <view class="page">
   <view class="hero-card health-hero">
+    <view class="eyebrow">WELLNESS ARCHIVE</view>
     <view class="title">把身体的细微变化，留给下一次疗愈</view>
     <view class="subtitle">记录体质、症状与问诊备注，让顾问为你安排更合适的调理节奏。</view>
   </view>

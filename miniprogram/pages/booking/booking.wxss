@@ -1,18 +1,20 @@
 .booking-hero {
   padding: 38rpx;
-  background: #ffffff;
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.96), rgba(231, 247, 241, 0.74)),
+    radial-gradient(circle at 82% 12%, rgba(185, 242, 223, 0.52), transparent 230rpx);
 }
 
 .booking-hero .title {
-  color: #2d3035;
+  color: #10241e;
 }
 
 .booking-hero .subtitle {
-  color: #73777d;
+  color: #6a7c75;
 }
 
 .booking-hero .eyebrow {
-  color: #e76f3c;
+  color: #18a67d;
 }
 
 .chip-scroll {
@@ -25,9 +27,9 @@
   min-height: 132rpx;
   margin-right: 18rpx;
   padding: 22rpx 24rpx;
-  border: 2rpx solid rgba(222, 225, 228, 0.9);
+  border: 2rpx solid rgba(200, 235, 222, 0.9);
   border-radius: 30rpx;
-  color: #2d3035;
+  color: #10241e;
   background: rgba(255, 255, 255, 0.9);
   box-sizing: border-box;
   vertical-align: top;
@@ -45,7 +47,7 @@
 .service-chip text {
   overflow: hidden;
   margin-top: 10rpx;
-  color: #73777d;
+  color: #6a7c75;
   font-size: 22rpx;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -54,9 +56,9 @@
 .service-chip.active,
 .practitioner-card.active,
 .slot.active {
-  border-color: #e76f3c;
-  background: #fff0e7;
-  box-shadow: 0 12rpx 30rpx rgba(231, 111, 60, 0.12);
+  border-color: #18a67d;
+  background: #e7f7f1;
+  box-shadow: 0 12rpx 30rpx rgba(24, 166, 125, 0.12);
 }
 
 .practitioner-card {
@@ -65,14 +67,14 @@
   gap: 20rpx;
   margin-bottom: 20rpx;
   padding: 24rpx;
-  border: 2rpx solid rgba(222, 225, 228, 0.9);
+  border: 2rpx solid rgba(200, 235, 222, 0.9);
 }
 
 .avatar {
   width: 118rpx;
   height: 118rpx;
   border-radius: 999rpx;
-  background: #fff0e7;
+  background: #e7f7f1;
   filter: saturate(0.95);
 }
 
@@ -82,14 +84,14 @@
 }
 
 .practitioner-name {
-  color: #2d3035;
+  color: #10241e;
   font-size: 30rpx;
   font-weight: 800;
   line-height: 1.35;
 }
 
 .practitioner-name text {
-  color: #73777d;
+  color: #6a7c75;
   font-size: 22rpx;
   font-weight: 400;
 }
@@ -104,13 +106,13 @@
 .tags text {
   padding: 6rpx 14rpx;
   border-radius: 999rpx;
-  color: #e76f3c;
-  background: #fff0e7;
+  color: #18a67d;
+  background: #e7f7f1;
   font-size: 20rpx;
 }
 
 .rating {
-  color: #e76f3c;
+  color: #18a67d;
   font-size: 30rpx;
   font-weight: 800;
 }
@@ -123,19 +125,19 @@
 
 .slot {
   padding: 24rpx;
-  border: 2rpx solid rgba(222, 225, 228, 0.9);
+  border: 2rpx solid rgba(200, 235, 222, 0.9);
   border-radius: 28rpx;
   background: rgba(255, 255, 255, 0.92);
 }
 
 .slot view {
-  color: #2d3035;
+  color: #10241e;
   font-size: 28rpx;
   font-weight: 800;
 }
 
 .slot text {
-  color: #73777d;
+  color: #6a7c75;
   font-size: 22rpx;
 }
 

@@ -1,140 +1,94 @@
-.home-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 18rpx;
-  margin: 4rpx 4rpx 24rpx;
-}
-
-.home-brand {
-  color: #17191c;
-  font-size: 38rpx;
-  font-weight: 800;
-  line-height: 1.25;
-}
-
-.home-store {
-  margin-top: 8rpx;
-  color: #73777d;
-  font-size: 22rpx;
-  line-height: 1.4;
-}
-
-.home-header-mark {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8rpx;
-  min-width: 72rpx;
-  height: 44rpx;
-  padding: 4rpx 14rpx 8rpx;
-  border: 1rpx solid #dee1e4;
-  border-radius: 999rpx;
-  color: #2d3035;
-  background: #ffffff;
-}
-
-.home-header-mark view {
-  width: 8rpx;
-  height: 8rpx;
-  border-radius: 50%;
-  background: #2d3035;
-}
-
 .home-hero {
-  padding: 32rpx;
-  background: #ffffff;
-}
-
-.home-hero-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20rpx;
+  min-height: 596rpx;
+  padding: 38rpx;
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.96), rgba(231, 247, 241, 0.72)),
+    radial-gradient(circle at 76% 12%, rgba(185, 242, 223, 0.48), transparent 250rpx);
 }
 
 .home-hero .title {
-  min-width: 0;
-  flex: 1;
+  position: relative;
+  z-index: 1;
+  margin-top: 24rpx;
   max-width: 560rpx;
-}
-
-.home-hero-arrow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 60rpx;
-  height: 60rpx;
-  flex-shrink: 0;
-  border-radius: 16rpx;
-  color: #ffffff;
-  background: #e76f3c;
-  font-size: 42rpx;
-  line-height: 1;
 }
 
 .home-hero .subtitle {
-  max-width: 560rpx;
+  position: relative;
+  z-index: 1;
   margin-top: 18rpx;
+  max-width: 560rpx;
 }
 
 .hero-button {
+  position: relative;
+  z-index: 1;
   width: 244rpx;
-  margin: 28rpx 0 0;
+  margin: 32rpx 0 0;
 }
 
-.booking-route {
-  display: flex;
-  align-items: center;
-  margin-top: 18rpx;
-  padding: 20rpx 18rpx;
-  border: 1rpx solid #dee1e4;
-  border-radius: 20rpx;
-  background: #ffffff;
+.retreat-photo {
+  position: relative;
+  height: 252rpx;
+  margin: 28rpx 0 8rpx;
+  overflow: hidden;
+  border: 1rpx solid rgba(200, 235, 222, 0.92);
+  border-radius: 34rpx;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(231, 247, 241, 0.86)),
+    radial-gradient(circle at 24% 22%, rgba(185, 242, 223, 0.72), transparent 130rpx);
 }
 
-.route-step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 112rpx;
-  gap: 8rpx;
-  color: #73777d;
-  font-size: 22rpx;
-  line-height: 1.2;
+.retreat-photo::after {
+  content: "";
+  position: absolute;
+  right: 34rpx;
+  bottom: -56rpx;
+  width: 230rpx;
+  height: 230rpx;
+  border: 1rpx solid rgba(24, 166, 125, 0.08);
+  border-radius: 999rpx;
+  background: rgba(24, 166, 125, 0.08);
+}
+
+.moon {
+  position: absolute;
+  left: 42rpx;
+  top: 42rpx;
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 999rpx;
+  background: radial-gradient(circle at 34% 32%, #ffffff, #b9f2df);
+  box-shadow: 0 12rpx 34rpx rgba(24, 166, 125, 0.18);
+}
+
+.incense-line {
+  position: absolute;
+  left: 188rpx;
+  top: 76rpx;
+  width: 2rpx;
+  height: 138rpx;
+  background: rgba(16, 36, 30, 0.16);
+  box-shadow: 32rpx 28rpx 0 rgba(16, 36, 30, 0.09), 64rpx -10rpx 0 rgba(16, 36, 30, 0.07);
+}
+
+.ritual-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14rpx;
+  margin-top: 22rpx;
+}
+
+.ritual-row view {
+  min-width: 0;
+  padding: 22rpx 0;
+  border: 1rpx solid #c8ebde;
+  border-radius: 999rpx;
+  color: #18a67d;
+  background: rgba(255, 255, 255, 0.86);
+  font-size: 26rpx;
+  font-weight: 800;
   text-align: center;
-}
-
-.route-step text {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44rpx;
-  height: 44rpx;
-  border: 1rpx solid #dee1e4;
-  border-radius: 50%;
-  color: #73777d;
-  background: #ffffff;
-  font-size: 20rpx;
-  font-weight: 800;
-}
-
-.route-step.active {
-  color: #e76f3c;
-  font-weight: 800;
-}
-
-.route-step.active text {
-  border-color: #e76f3c;
-  color: #ffffff;
-  background: #e76f3c;
-}
-
-.route-line {
-  height: 1rpx;
-  flex: 1;
-  margin: 0 6rpx 28rpx;
-  background: #dee1e4;
 }
 
 .activity-scroll {
@@ -144,34 +98,34 @@
 .activity-card {
   display: inline-block;
   width: 520rpx;
-  margin-right: 18rpx;
-  padding: 16rpx;
-  border: 1rpx solid #dee1e4;
-  border-radius: 20rpx;
-  background: #ffffff;
-  box-shadow: 0 8rpx 24rpx rgba(45, 48, 53, 0.06);
+  margin-right: 22rpx;
+  padding: 18rpx;
+  border: 1rpx solid rgba(200, 235, 222, 0.9);
+  border-radius: 34rpx;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 14rpx 36rpx rgba(16, 36, 30, 0.08);
   vertical-align: top;
   box-sizing: border-box;
 }
 
 .activity-cover {
   width: 100%;
-  height: 248rpx;
-  border-radius: 14rpx;
-  background: #fff0e7;
+  height: 260rpx;
+  border-radius: 28rpx;
+  background: #e7f7f1;
   filter: saturate(0.92) contrast(1.02);
 }
 
 .activity-tag {
-  margin-top: 16rpx;
+  margin-top: 18rpx;
 }
 
 .activity-title {
   display: -webkit-box;
-  margin-top: 12rpx;
+  margin-top: 14rpx;
   overflow: hidden;
-  color: #2d3035;
-  font-size: 30rpx;
+  color: #10241e;
+  font-size: 32rpx;
   font-weight: 800;
   line-height: 1.35;
   text-overflow: ellipsis;
@@ -184,29 +138,29 @@
   display: flex;
   align-items: baseline;
   gap: 16rpx;
-  margin-top: 16rpx;
+  margin-top: 18rpx;
 }
 
 .origin {
-  color: #9aa0a6;
+  color: #8aa099;
   font-size: 24rpx;
   text-decoration: line-through;
 }
 
 .article-card {
   display: flex;
+  gap: 22rpx;
+  margin-bottom: 22rpx;
+  padding: 20rpx;
   align-items: center;
-  gap: 18rpx;
-  margin-bottom: 18rpx;
-  padding: 16rpx;
 }
 
 .article-cover {
   flex: none;
-  width: 176rpx;
-  height: 176rpx;
-  border-radius: 14rpx;
-  background: #fff0e7;
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: 30rpx;
+  background: #e7f7f1;
   filter: saturate(0.92);
 }
 
@@ -219,7 +173,7 @@
   display: -webkit-box;
   margin-top: 10rpx;
   overflow: hidden;
-  color: #2d3035;
+  color: #10241e;
   font-size: 30rpx;
   font-weight: 800;
   line-height: 1.4;
@@ -247,7 +201,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(45, 48, 53, 0.45);
+  background: rgba(16, 36, 30, 0.45);
+  backdrop-filter: blur(6rpx);
 }
 
 .phone-overlay-card {
@@ -255,39 +210,31 @@
   z-index: 1;
   width: 100%;
   max-height: 78vh;
-  padding: 42rpx 36rpx 40rpx;
-  border-radius: 24rpx 24rpx 0 0;
+  padding: 52rpx 48rpx 48rpx;
+  border-radius: 40rpx 40rpx 0 0;
   background: #ffffff;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20rpx;
-  box-shadow: 0 -10rpx 28rpx rgba(45, 48, 53, 0.12);
+  gap: 24rpx;
+  box-shadow: 0 -14rpx 48rpx rgba(16, 36, 30, 0.12);
   overflow-y: auto;
 }
 
 .phone-overlay-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: 16rpx;
-  color: #ffffff;
-  background: #e76f3c;
-  font-size: 42rpx;
+  font-size: 88rpx;
   line-height: 1;
 }
 
 .phone-overlay-title {
-  color: #2d3035;
-  font-size: 34rpx;
+  color: #10241e;
+  font-size: 36rpx;
   font-weight: 800;
   text-align: center;
 }
 
 .phone-overlay-desc {
-  color: #73777d;
+  color: #6a7c75;
   font-size: 26rpx;
   text-align: center;
   line-height: 1.5;
@@ -298,46 +245,46 @@
   width: 100%;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16rpx;
-  padding: 14rpx 0;
+  gap: 20rpx;
+  padding: 20rpx 0;
 }
 
 .phone-overlay-feature {
   display: flex;
   align-items: center;
-  gap: 10rpx;
-  padding: 16rpx 18rpx;
-  border: 1rpx solid #dee1e4;
-  border-radius: 16rpx;
-  background: #f4f5f6;
-  color: #2d3035;
+  gap: 12rpx;
+  padding: 18rpx 22rpx;
+  border: 1rpx solid rgba(200, 235, 222, 0.9);
+  border-radius: 24rpx;
+  background: rgba(231, 247, 241, 0.5);
+  color: #10241e;
   font-size: 24rpx;
   font-weight: 700;
 }
 
 .phone-overlay-feature-icon {
-  color: #e76f3c;
+  color: #18a67d;
   font-size: 28rpx;
   font-weight: 800;
 }
 
 .phone-overlay-button {
   width: 100%;
-  height: 88rpx;
+  height: 90rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   border: 0;
-  border-radius: 18rpx;
+  border-radius: 20rpx;
   color: #ffffff;
-  background: #e76f3c;
+  background: linear-gradient(135deg, #18a67d, #14d4a0);
   font-size: 30rpx;
   font-weight: 800;
-  box-shadow: 0 10rpx 22rpx rgba(231, 111, 60, 0.2);
+  box-shadow: 0 14rpx 28rpx rgba(24, 166, 125, 0.28);
 }
 
 .phone-overlay-terms {
-  color: #9aa0a6;
+  color: #8aa099;
   font-size: 22rpx;
   text-align: center;
 }
