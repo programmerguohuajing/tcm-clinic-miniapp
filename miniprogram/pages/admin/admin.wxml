@@ -91,6 +91,7 @@
       <view wx:if="{{item.detailText}}" class="record-detail">{{item.detailText}}</view>
       <view class="record-actions">
         <view wx:if="{{activeKey !== 'orders' && activeKey !== 'schedules' && activeKey !== 'content' && activeKey !== 'audit' && activeKey !== 'commissions' && activeKey !== 'payment'}}" class="ghost mini" data-id="{{item.id}}" bindtap="openRowEditor">编辑</view>
+        <view wx:if="{{activeKey === 'practitioners'}}" class="danger mini" data-id="{{item.id}}" data-name="{{item.titleText}}" bindtap="deletePractitioner">删除</view>
         <view wx:if="{{activeKey === 'commissions' && !item.commission_amount}}" class="ghost mini" data-id="{{item.id}}" bindtap="openRowEditor">编辑规则</view>
         <view wx:if="{{activeKey === 'orders'}}" class="order-actions">
           <view wx:if="{{item.status === 'pending'}}" class="ghost mini" data-id="{{item.id}}" data-status="confirmed" bindtap="updateOrder">确认</view>
