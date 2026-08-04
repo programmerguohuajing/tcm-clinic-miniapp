@@ -2,7 +2,7 @@
   width: 100%;
   max-height: 420rpx;
   border-radius: 36rpx;
-  background: #e7f7f1;
+  background: #fff0e7;
   margin-bottom: 28rpx;
 }
 
@@ -15,7 +15,7 @@
 }
 
 .activity-title {
-  color: #10241e;
+  color: #2d3035;
   font-size: 40rpx;
   font-weight: 800;
   line-height: 1.3;
@@ -33,20 +33,20 @@
 }
 
 .current-price {
-  color: #18a67d;
+  color: #e76f3c;
   font-size: 52rpx;
   font-weight: 800;
 }
 
 .original-price {
   margin-top: 8rpx;
-  color: #8aa099;
+  color: #9aa0a6;
   font-size: 26rpx;
   text-decoration: line-through;
 }
 
 .validity {
-  color: #6a7c75;
+  color: #73777d;
   font-size: 22rpx;
 }
 
@@ -59,8 +59,8 @@
   border: none;
   border-radius: 999rpx;
   color: #ffffff;
-  background: #18a67d;
-  box-shadow: 0 18rpx 34rpx rgba(24, 166, 125, 0.22);
+  background: #e76f3c;
+  box-shadow: 0 18rpx 34rpx rgba(231, 111, 60, 0.22);
   font-size: 30rpx;
   font-weight: 800;
 }

@@ -5,7 +5,7 @@
 
   <block wx:for="{{messages}}" wx:key="id">
     <view class="card message-card {{item.unread ? 'unread' : ''}}" bindtap="onMessageTap" data-id="{{item.id}}">
-      <view class="message-icon">{{item.type === 'payment_success' ? '✓' : item.type === 'appointment_cancelled' ? '✕' : item.type === 'review_reply' ? '💬' : '📋'}}</view>
+      <view class="message-icon">{{item.type === 'payment_success' ? '✓' : item.type === 'appointment_cancelled' ? '✕' : item.type === 'review_reply' ? '…' : '•'}}</view>
       <view class="message-body">
         <view class="message-title-row">
           <text class="message-type">{{item.typeText}}</text>
