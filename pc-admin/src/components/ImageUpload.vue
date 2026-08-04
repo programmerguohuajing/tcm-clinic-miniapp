@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import { ElMessage } from "element-plus";
+import { getToken } from "../services/auth";
 
 const props = defineProps({
   modelValue: {
@@ -36,9 +37,11 @@ async function handleFileChange(event) {
   try {
     const formData = new FormData();
     formData.append("file", file);
+    const token = getToken();
 
     const res = await fetch("/api/upload/image", {
       method: "POST",
+      headers: token ? { authorization: `Bearer ${token}` } : {},
       body: formData
     });
 
