@@ -3,14 +3,10 @@ import { ref } from "vue";
 import { ElMessage } from "element-plus";
 import { getToken } from "../services/auth";
 
-const props = defineProps({
+defineProps({
   modelValue: {
     type: String,
     default: ""
-  },
-  label: {
-    type: String,
-    default: "头像图片"
   }
 });
 
@@ -72,14 +68,23 @@ function clearImage() {
 
 <template>
   <div class="image-upload">
-    <div class="image-upload__label">{{ label }}</div>
+    <div class="image-upload__source">
+      <input
+        class="image-upload__url"
+        type="url"
+        :value="modelValue"
+        placeholder="粘贴在线图片地址"
+        @input="emit('update:modelValue', $event.target.value)"
+      />
+      <span class="image-upload__or">或</span>
+      <button class="upload-btn" :disabled="uploading" @click="triggerUpload">
+        {{ uploading ? "上传中..." : "上传本地图片" }}
+      </button>
+    </div>
     <div class="image-upload__body">
       <div v-if="modelValue" class="image-upload__preview">
         <img :src="modelValue" class="preview-img" referrerpolicy="no-referrer" alt="预览" />
         <div class="preview-actions">
-          <button class="upload-btn" :disabled="uploading" @click="triggerUpload">
-            {{ uploading ? "上传中..." : "重新上传" }}
-          </button>
           <button class="clear-btn" @click="clearImage">移除</button>
         </div>
       </div>
@@ -114,13 +119,37 @@ function clearImage() {
 .image-upload {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
-.image-upload__label {
-  font-size: 14px;
-  color: var(--el-text-color-regular);
-  line-height: 1.5;
+.image-upload__source {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  width: min(100%, 480px);
+}
+
+.image-upload__url {
+  min-width: 0;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--el-border-color);
+  border-radius: 4px;
+  outline: none;
+  color: var(--el-text-color-primary);
+  background: var(--el-fill-color-blank);
+  font: inherit;
+  transition: border-color 0.2s;
+}
+
+.image-upload__url:focus {
+  border-color: var(--el-color-primary);
+}
+
+.image-upload__or {
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
 }
 
 .image-upload__body {
