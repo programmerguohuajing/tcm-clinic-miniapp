@@ -77,7 +77,7 @@ function clearImage() {
         @input="emit('update:modelValue', $event.target.value)"
       />
       <span class="image-upload__or">或</span>
-      <button class="upload-btn" :disabled="uploading" @click="triggerUpload">
+      <button type="button" class="upload-btn" :disabled="uploading" @click="triggerUpload">
         {{ uploading ? "上传中..." : "上传本地图片" }}
       </button>
     </div>
