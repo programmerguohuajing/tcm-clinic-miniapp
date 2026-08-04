@@ -24,13 +24,15 @@ export function errorMiddleware(err, c) {
   }
 
   const status = err.statusCode || err.status || 500;
+  const isDevelopment = c.env?.NODE_ENV === "development"
+    || (typeof process !== "undefined" && process.env?.NODE_ENV === "development");
 
   if (status >= 500) {
     return c.json({
       error: {
         code: "INTERNAL_ERROR",
         message: err.message || "服务器内部错误",
-        detail: process.env.NODE_ENV === "development" ? err.stack : undefined
+        detail: isDevelopment ? err.stack : undefined
       }
     }, 500);
   }
