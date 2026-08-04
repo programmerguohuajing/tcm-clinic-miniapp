@@ -17,6 +17,7 @@ import { reviewsRouter } from "./routes/reviews.js";
 import { contentRouter } from "./routes/content.js";
 import { userRouter } from "./routes/user.js";
 import { favoritesRouter } from "./routes/favorites.js";
+import { uploadRouter } from "./routes/upload.js";
 import { corsAllowlist } from "./config/env.js";
 
 export function createApp(env) {
@@ -32,7 +33,7 @@ export function createApp(env) {
         scriptSrcAttr: ["'self'", "'unsafe-inline'"],
         styleSrc: ["'self'", "https:", "'unsafe-inline'"],
         fontSrc: ["'self'", "https:", "data:"],
-        imgSrc: ["'self'", "data:"],
+        imgSrc: ["'self'", "data:", "blob:", "https:"],
         connectSrc: ["'self'"],
         frameAncestors: ["'self'"],
         objectSrc: ["'none'"],
@@ -67,7 +68,7 @@ export function createApp(env) {
       hits.set(slotKey, (hits.get(slotKey) || 0) + 1);
 
       if (hits.get(slotKey) > max) {
-        const retryAfter = Math.ceil((windowMs - (now % windowMs)) / 1000);
+        const retryAfter = Math.ceil((windowMs - (now % windowMs)) / 1_000);
         c.header("Retry-After", String(retryAfter));
         return c.json({ error: { code: "RATE_LIMITED", message: "请求过于频繁，请稍后重试" } }, 429);
       }
@@ -106,6 +107,7 @@ export function createApp(env) {
   app.route("/api", contentRouter());
   app.route("/api", userRouter());
   app.route("/api", favoritesRouter());
+  app.route("/api", uploadRouter());
   app.route("/api", adminRouter());
 
   app.notFound(notFoundMiddleware);

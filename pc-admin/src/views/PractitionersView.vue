@@ -58,7 +58,7 @@ function edit(row = {}) {
       { name: "storeId", label: "所属门店", type: "select", options: [{ label: "请选择门店", value: "" }, ...bootstrapState.stores.map((s) => ({ label: s.name, value: Number(s.id) }))] },
       { name: "name", label: "技师姓名" },
       { name: "title", label: "职称" },
-      { name: "avatarUrl", label: "头像图片 URL", wide: true },
+      { name: "avatarUrl", label: "头像图片", type: "upload" },
       { name: "rating", label: "评分", type: "number" },
       { name: "specialties", label: "擅长方向，逗号分隔", wide: true },
       { name: "bio", label: "简介", type: "textarea", wide: true },

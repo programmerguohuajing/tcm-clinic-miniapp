@@ -1,4 +1,6 @@
 <script setup>
+import ImageUpload from "./ImageUpload.vue";
+
 const props = defineProps({
   editor: {
     type: Object,
@@ -96,6 +98,12 @@ function getRules(field) {
           value-format="YYYY-MM-DD"
           placeholder="选择日期"
           teleported
+        />
+        <ImageUpload
+          v-else-if="field.type === 'upload'"
+          :model-value="editor.model[field.name]"
+          :label="field.label"
+          @update:model-value="editor.model[field.name] = $event"
         />
         <el-input
           v-else
