@@ -4,10 +4,29 @@ import { getStaticFile } from "./static-files.js";
 /**
  * Cloudflare Workers entry point.
  * Serves PC admin static files for non-API routes, and Hono app for /api/*.
+ * Uploads are served from R2 bucket.
  */
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+
+    // R2 uploads - serve directly from bucket
+    if (url.pathname.startsWith("/uploads/")) {
+      if (!env.R2_BUCKET) {
+        return new Response("Upload not configured", { status: 503 });
+      }
+      const key = url.pathname.slice("/uploads/".length);
+      const object = await env.R2_BUCKET.get(key);
+      if (!object) {
+        return new Response("Not Found", { status: 404 });
+      }
+      return new Response(object.body, {
+        headers: {
+          "Content-Type": object.httpMetadata?.contentType || "application/octet-stream",
+          "Cache-Control": "public, max-age=31536000, immutable",
+        },
+      });
+    }
 
     // API routes go to Hono app
     if (url.pathname.startsWith("/api/") || url.pathname === "/api") {

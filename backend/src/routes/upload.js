@@ -1,25 +1,16 @@
 import { Hono } from "hono";
 import { asyncHandler } from "../middleware/async-handler.js";
 import { requireAdmin } from "../middleware/auth.js";
-import { writeFileSync, mkdirSync, existsSync } from "node:fs";
-import { join, dirname, extname } from "node:path";
-import { fileURLToPath } from "node:url";
 import crypto from "node:crypto";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const UPLOAD_DIR = join(__dirname, "../../uploads");
-
-if (!existsSync(UPLOAD_DIR)) {
-  mkdirSync(UPLOAD_DIR, { recursive: true });
-}
-
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
-const MAX_SIZE = 5 * 1024 * 1024;
+const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
 export const uploadRouter = () => {
   const app = new Hono();
 
   app.post("/upload/image", requireAdmin(), asyncHandler(async (c) => {
+    const env = c.env;
     const body = await c.req.parseBody();
     const file = body["file"];
 
@@ -35,13 +26,28 @@ export const uploadRouter = () => {
       return c.json({ error: { code: "BAD_REQUEST", message: "图片大小不能超过 5MB" } }, 400);
     }
 
-    const ext = extname(file.name) || "." + file.type.split("/")[1];
-    const filename = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}${ext}`;
-    const filepath = join(UPLOAD_DIR, filename);
+    const ext = file.name.split(".").pop() || file.type.split("/")[1];
+    const filename = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
+    const arrayBuffer = await file.arrayBuffer();
 
-    const buffer = await file.arrayBuffer();
-    writeFileSync(filepath, Buffer.from(buffer));
+    // Use R2 if available, otherwise fall back to local file system
+    if (env.R2_BUCKET) {
+      await env.R2_BUCKET.put(filename, arrayBuffer, {
+        httpMetadata: { contentType: file.type },
+        customMetadata: { originalName: file.name },
+      });
+      const baseUrl = env.APP_URL || new URL(c.req.url).origin;
+      const url = `${baseUrl}/uploads/${filename}`;
+      return c.json({ data: { url, filename } }, 201);
+    }
 
+    // Local fallback (development)
+    const { writeFileSync, mkdirSync, existsSync } = await import("node:fs");
+    const { join } = await import("node:path");
+    const { fileURLToPath } = await import("node:url");
+    const UPLOAD_DIR = join(dirname(fileURLToPath(import.meta.url)), "../../uploads");
+    if (!existsSync(UPLOAD_DIR)) mkdirSync(UPLOAD_DIR, { recursive: true });
+    writeFileSync(join(UPLOAD_DIR, filename), Buffer.from(arrayBuffer));
     const baseUrl = process.env.APP_URL || `http://localhost:${process.env.PORT || 3000}`;
     const url = `${baseUrl}/uploads/${filename}`;
     return c.json({ data: { url, filename } }, 201);

@@ -14,3 +14,9 @@ JWT_EXPIRES_IN = "7d"
 CORS_ORIGIN = "*"
 ADMIN_LOGIN_PHONE = "13800000000"
 ADMIN_LOGIN_PASSWORD = "admin123"
+
+# R2 bucket for image uploads
+# Create a public bucket in Cloudflare R2 dashboard first
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "tcm-clinic-uploads"
