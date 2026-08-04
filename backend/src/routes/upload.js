@@ -9,7 +9,7 @@ const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 export const uploadRouter = () => {
   const app = new Hono();
 
-  app.post("/upload/image", requireAdmin(), asyncHandler(async (c) => {
+  app.post("/upload/image", requireAdmin, asyncHandler(async (c) => {
     const env = c.env;
     const body = await c.req.parseBody();
     const file = body["file"];
