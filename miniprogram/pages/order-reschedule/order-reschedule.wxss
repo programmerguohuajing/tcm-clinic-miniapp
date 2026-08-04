@@ -1,6 +1,6 @@
 .picker {
   padding: 20rpx 0;
-  color: #10241e;
+  color: #2d3035;
   font-size: 28rpx;
   font-weight: 800;
 }
@@ -13,30 +13,30 @@
 
 .slot {
   padding: 24rpx;
-  border: 2rpx solid rgba(200, 235, 222, 0.9);
+  border: 2rpx solid rgba(222, 225, 228, 0.9);
   border-radius: 28rpx;
   background: rgba(255, 255, 255, 0.92);
   text-align: center;
 }
 
 .slot view {
-  color: #10241e;
+  color: #2d3035;
   font-size: 28rpx;
   font-weight: 800;
 }
 
 .slot text {
-  color: #6a7c75;
+  color: #73777d;
   font-size: 22rpx;
 }
 
 .slot.active {
-  border-color: #18a67d;
-  background: #e7f7f1;
+  border-color: #e76f3c;
+  background: #fff0e7;
 }
 
 .loading-text {
   text-align: center;
-  color: #6a7c75;
+  color: #73777d;
   padding: 40rpx 0;
 }

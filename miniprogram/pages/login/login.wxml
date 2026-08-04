@@ -10,7 +10,7 @@
 
     <view class="login-body">
       <view class="login-illustration">
-        <text class="login-illustration-icon">🌿</text>
+        <view class="login-illustration-icon">+</view>
         <text class="login-illustration-text">授权手机号\n开启疗愈之旅</text>
       </view>
 
@@ -25,7 +25,6 @@
         bindgetphonenumber="onGetPhoneNumber"
         disabled="{{loading}}"
       >
-        <text class="login-button-icon">📱</text>
         <text>{{loading ? '授权中...' : '微信手机号一键登录'}}</text>
       </button>
 

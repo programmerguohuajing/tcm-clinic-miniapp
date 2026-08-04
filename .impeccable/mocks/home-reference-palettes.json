@@ -1,0 +1,8 @@
+{
+  "surface": "miniprogram-home-reference-palettes",
+  "label": "参考案例配色方向",
+  "prompt": "Four reference-driven mini-program UI palettes for 中医馆: Vermilion Clinic, Service Orange, Plum Care, and Cobalt Editorial; identical white-first service-booking layout inspired by modern clinic and Weimob-style appointment flows; high-contrast accent only, no beige, jade, teal, pastel gradients, glass, neon, emoji, or decorative herbs.",
+  "approved": true,
+  "approvedDirection": "B-service-orange",
+  "approvedAt": "2026-08-04"
+}
