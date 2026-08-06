@@ -26,13 +26,13 @@
   ],
   "window": {
     "navigationBarTitleText": "QI Retreat",
-    "navigationBarBackgroundColor": "#F4FBF8",
+    "navigationBarBackgroundColor": "#F4F5F6",
     "navigationBarTextStyle": "black",
-    "backgroundColor": "#F4FBF8"
+    "backgroundColor": "#F4F5F6"
   },
   "tabBar": {
-    "color": "#6A7C75",
-    "selectedColor": "#18A67D",
+    "color": "#73777D",
+    "selectedColor": "#E76F3C",
     "backgroundColor": "#FFFFFF",
     "borderStyle": "white",
     "list": [

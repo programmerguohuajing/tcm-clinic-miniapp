@@ -1,0 +1,183 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-04T00:00:00+08:00",
+  "title": "Design System: QI Retreat 小程序",
+  "extensions": {
+    "colorMeta": {
+      "mandarin": {
+        "role": "primary",
+        "displayName": "Mandarin Orange",
+        "canonical": "#E76F3C",
+        "tonalRamp": ["oklch(15% 0.10 45)", "oklch(27% 0.14 45)", "oklch(39% 0.16 45)", "oklch(51% 0.17 45)", "oklch(63% 0.16 45)", "oklch(75% 0.13 45)", "oklch(87% 0.08 45)", "oklch(95% 0.04 45)"]
+      },
+      "mandarin-pale": {
+        "role": "neutral",
+        "displayName": "Pale Mandarin",
+        "canonical": "#FFF0E7",
+        "tonalRamp": ["oklch(15% 0.03 48)", "oklch(27% 0.04 48)", "oklch(39% 0.05 48)", "oklch(51% 0.05 48)", "oklch(63% 0.05 48)", "oklch(75% 0.05 48)", "oklch(87% 0.04 48)", "oklch(95% 0.03 48)"]
+      },
+      "mandarin-border": {
+        "role": "neutral",
+        "displayName": "Mandarin Hairline",
+        "canonical": "#FFD8C7",
+        "tonalRamp": ["oklch(15% 0.04 45)", "oklch(27% 0.05 45)", "oklch(39% 0.06 45)", "oklch(51% 0.07 45)", "oklch(63% 0.07 45)", "oklch(75% 0.07 45)", "oklch(87% 0.06 45)", "oklch(95% 0.04 45)"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink Charcoal",
+        "canonical": "#17191C",
+        "tonalRamp": ["oklch(15% 0.01 255)", "oklch(27% 0.01 255)", "oklch(39% 0.01 255)", "oklch(51% 0.01 255)", "oklch(63% 0.01 255)", "oklch(75% 0.01 255)", "oklch(87% 0.008 255)", "oklch(95% 0.005 255)"]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Service Charcoal",
+        "canonical": "#2D3035",
+        "tonalRamp": ["oklch(15% 0.01 255)", "oklch(27% 0.01 255)", "oklch(39% 0.01 255)", "oklch(51% 0.01 255)", "oklch(63% 0.01 255)", "oklch(75% 0.01 255)", "oklch(87% 0.008 255)", "oklch(95% 0.005 255)"]
+      },
+      "text-muted": {
+        "role": "neutral",
+        "displayName": "Quiet Gray",
+        "canonical": "#73777D",
+        "tonalRamp": ["oklch(15% 0.008 255)", "oklch(27% 0.008 255)", "oklch(39% 0.008 255)", "oklch(51% 0.008 255)", "oklch(63% 0.008 255)", "oklch(75% 0.008 255)", "oklch(87% 0.006 255)", "oklch(95% 0.004 255)"]
+      },
+      "text-subtle": {
+        "role": "neutral",
+        "displayName": "Soft Gray",
+        "canonical": "#9AA0A6",
+        "tonalRamp": ["oklch(15% 0.006 255)", "oklch(27% 0.006 255)", "oklch(39% 0.006 255)", "oklch(51% 0.006 255)", "oklch(63% 0.006 255)", "oklch(75% 0.006 255)", "oklch(87% 0.005 255)", "oklch(95% 0.003 255)"]
+      },
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Cool Gray Canvas",
+        "canonical": "#F4F5F6",
+        "tonalRamp": ["oklch(15% 0.005 250)", "oklch(27% 0.005 250)", "oklch(39% 0.005 250)", "oklch(51% 0.005 250)", "oklch(63% 0.005 250)", "oklch(75% 0.005 250)", "oklch(87% 0.005 250)", "oklch(95% 0.005 250)"]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "White Service Surface",
+        "canonical": "#FFFFFF",
+        "tonalRamp": ["oklch(15% 0 0)", "oklch(27% 0 0)", "oklch(39% 0 0)", "oklch(51% 0 0)", "oklch(63% 0 0)", "oklch(75% 0 0)", "oklch(87% 0 0)", "oklch(100% 0 0)"]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Hairline Border",
+        "canonical": "#DEE1E4",
+        "tonalRamp": ["oklch(15% 0.006 250)", "oklch(27% 0.006 250)", "oklch(39% 0.006 250)", "oklch(51% 0.006 250)", "oklch(63% 0.006 250)", "oklch(75% 0.006 250)", "oklch(87% 0.006 250)", "oklch(95% 0.006 250)"]
+      },
+      "danger": {
+        "role": "neutral",
+        "displayName": "Cancel Red",
+        "canonical": "#C0392B",
+        "tonalRamp": ["oklch(15% 0.10 25)", "oklch(27% 0.13 25)", "oklch(39% 0.15 25)", "oklch(51% 0.16 25)", "oklch(63% 0.15 25)", "oklch(75% 0.12 25)", "oklch(87% 0.08 25)", "oklch(95% 0.04 25)"]
+      }
+    },
+    "typographyMeta": {
+      "display": {"displayName": "Display", "purpose": "Hero headlines that name the next service decision."},
+      "headline": {"displayName": "Headline", "purpose": "Clinic identity and top-level page statements."},
+      "title": {"displayName": "Title", "purpose": "Section headings, service names, records, and orders."},
+      "body": {"displayName": "Body", "purpose": "Descriptions, summaries, helper copy, and health notes."},
+      "label": {"displayName": "Label", "purpose": "Chips, route labels, tabs, dates, and metadata."},
+      "button": {"displayName": "Button", "purpose": "Appointment and secondary action labels."}
+    },
+    "shadows": [
+      {"name": "card-ambient", "value": "0 8rpx 24rpx rgba(45, 48, 53, 0.06)", "purpose": "Barely-there separation for hero, list, and activity cards."},
+      {"name": "action-lift", "value": "0 10rpx 22rpx rgba(231, 111, 60, 0.20)", "purpose": "Restrained lift under a primary appointment action."},
+      {"name": "sheet-separation", "value": "0 -10rpx 28rpx rgba(45, 48, 53, 0.12)", "purpose": "Separates the phone-auth bottom sheet from the dimmed page."}
+    ],
+    "motion": [
+      {"name": "ease-standard", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Short state transitions when the host supports motion."},
+      {"name": "press-duration", "value": "160ms", "purpose": "Quick pressed/selected feedback; honor reduced-motion settings."}
+    ],
+    "breakpoints": [
+      {"name": "phone-compact", "value": "375px", "purpose": "Narrow-phone QA reference for one-hand layout."},
+      {"name": "phone-wide", "value": "430px", "purpose": "Wide-phone QA reference; keep the same page rhythm."}
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one clear appointment action on a page.",
+      "html": "<button class=\"ds-btn-primary\" type=\"button\">预约私人调理</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; min-height: 88rpx; padding: 0 28rpx; border: 0; border-radius: 18rpx; color: #FFFFFF; background: #E76F3C; font: 800 28rpx/1.25 PingFang SC, Microsoft YaHei, sans-serif; box-shadow: 0 10rpx 22rpx rgba(231, 111, 60, 0.20); transition: background 160ms cubic-bezier(0.4, 0, 0.2, 1), transform 160ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-primary:hover { background: #C95B2F; } .ds-btn-primary:focus-visible { outline: 3rpx solid #FFD8C7; outline-offset: 4rpx; } .ds-btn-primary:active { transform: translateY(1rpx); } .ds-btn-primary[disabled] { opacity: 0.55; box-shadow: none; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "A low-emphasis action that stays available without competing with booking.",
+      "html": "<button class=\"ds-btn-ghost\" type=\"button\">查看详情</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; min-height: 84rpx; padding: 0 24rpx; border: 1rpx solid #DEE1E4; border-radius: 18rpx; color: #2D3035; background: #FFFFFF; font: 800 28rpx/1.25 PingFang SC, Microsoft YaHei, sans-serif; transition: border-color 160ms cubic-bezier(0.4, 0, 0.2, 1), background 160ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-ghost:hover { border-color: #E76F3C; background: #FFF0E7; } .ds-btn-ghost:focus-visible { outline: 3rpx solid #FFD8C7; outline-offset: 4rpx; } .ds-btn-ghost:active { background: #F4F5F6; }"
+    },
+    {
+      "name": "Service Chip",
+      "kind": "chip",
+      "refersTo": "service-chip",
+      "description": "A swipeable service choice with price and duration metadata.",
+      "html": "<button class=\"ds-chip\" type=\"button\"><span class=\"ds-chip-title\">肩颈经络疏通</span><span class=\"ds-chip-meta\">¥298 · 60分钟</span></button>",
+      "css": ".ds-chip { display: inline-flex; flex-direction: column; align-items: flex-start; justify-content: center; width: 300rpx; min-height: 132rpx; padding: 22rpx 24rpx; border: 2rpx solid #DEE1E4; border-radius: 30rpx; color: #2D3035; background: #FFFFFF; font-family: PingFang SC, Microsoft YaHei, sans-serif; text-align: left; transition: border-color 160ms cubic-bezier(0.4, 0, 0.2, 1), background 160ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-chip-title { overflow: hidden; width: 100%; font-size: 28rpx; font-weight: 800; line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; } .ds-chip-meta { margin-top: 10rpx; color: #73777D; font-size: 22rpx; line-height: 1.3; } .ds-chip:hover, .ds-chip.is-active { border-color: #E76F3C; background: #FFF0E7; } .ds-chip:focus-visible { outline: 3rpx solid #FFD8C7; outline-offset: 4rpx; } .ds-chip:active { transform: translateY(1rpx); }"
+    },
+    {
+      "name": "Surface Card",
+      "kind": "card",
+      "refersTo": "surface-card",
+      "description": "A white, bordered container for a focused service or health record.",
+      "html": "<article class=\"ds-card\"><h3>身体记录</h3><p>气虚夹湿 · 2026年8月4日</p></article>",
+      "css": ".ds-card { padding: 24rpx 28rpx; border: 1rpx solid #DEE1E4; border-radius: 24rpx; color: #2D3035; background: #FFFFFF; box-shadow: 0 8rpx 24rpx rgba(45, 48, 53, 0.06); } .ds-card h3 { margin: 0; color: #17191C; font: 800 32rpx/1.28 PingFang SC, Microsoft YaHei, sans-serif; } .ds-card p { margin: 12rpx 0 0; color: #73777D; font: 400 26rpx/1.62 PingFang SC, Microsoft YaHei, sans-serif; } .ds-card:focus-within { border-color: #E76F3C; }"
+    },
+    {
+      "name": "Input Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "A quiet, readable field for health records and short booking details.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">体质结论</span><input class=\"ds-input\" placeholder=\"如：气虚夹湿\" /></label>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 8rpx; color: #73777D; font: 700 22rpx/1.35 PingFang SC, Microsoft YaHei, sans-serif; } .ds-input { width: 100%; height: 84rpx; padding: 0 24rpx; border: 1rpx solid #DEE1E4; border-radius: 24rpx; box-sizing: border-box; color: #2D3035; background: #FFFFFF; font: 400 26rpx/1.62 PingFang SC, Microsoft YaHei, sans-serif; transition: border-color 160ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-input::placeholder { color: #9AA0A6; } .ds-input:focus-visible { border-color: #E76F3C; outline: 3rpx solid #FFD8C7; outline-offset: 2rpx; } .ds-input:disabled { color: #9AA0A6; background: #F4F5F6; opacity: 0.7; }"
+    },
+    {
+      "name": "Tab Navigation",
+      "kind": "nav",
+      "refersTo": "tabbar-item",
+      "description": "The native four-destination WeChat navigation with a quiet active signal.",
+      "html": "<nav class=\"ds-tabbar\"><a class=\"ds-tab is-active\" href=\"#home\">首页</a><a class=\"ds-tab\" href=\"#booking\">预约</a><a class=\"ds-tab\" href=\"#health\">档案</a><a class=\"ds-tab\" href=\"#profile\">我的</a></nav>",
+      "css": ".ds-tabbar { display: grid; grid-template-columns: repeat(4, 1fr); min-height: 96rpx; border-top: 1rpx solid #DEE1E4; background: #FFFFFF; } .ds-tab { display: flex; align-items: center; justify-content: center; min-height: 96rpx; color: #73777D; font: 700 22rpx/1.35 PingFang SC, Microsoft YaHei, sans-serif; text-decoration: none; transition: color 160ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-tab:hover, .ds-tab.is-active { color: #E76F3C; } .ds-tab:focus-visible { outline: 3rpx solid #FFD8C7; outline-offset: -4rpx; } .ds-tab:active { background: #FFF0E7; }"
+    },
+    {
+      "name": "Booking Route",
+      "kind": "custom",
+      "description": "A three-step route that makes the next appointment decision obvious.",
+      "html": "<div class=\"ds-route\"><div class=\"ds-route-step is-active\"><span>01</span><b>选择服务</b></div><i></i><div class=\"ds-route-step\"><span>02</span><b>选择技师</b></div><i></i><div class=\"ds-route-step\"><span>03</span><b>选择时段</b></div></div>",
+      "css": ".ds-route { display: flex; align-items: center; padding: 20rpx 18rpx; border: 1rpx solid #DEE1E4; border-radius: 20rpx; background: #FFFFFF; } .ds-route-step { display: flex; flex: 0 0 112rpx; flex-direction: column; align-items: center; gap: 8rpx; color: #73777D; font: 400 22rpx/1.2 PingFang SC, Microsoft YaHei, sans-serif; text-align: center; } .ds-route-step span { display: flex; align-items: center; justify-content: center; width: 44rpx; height: 44rpx; border: 1rpx solid #DEE1E4; border-radius: 50%; color: #73777D; background: #FFFFFF; font: 800 20rpx/1 PingFang SC, Microsoft YaHei, sans-serif; } .ds-route-step.is-active { color: #E76F3C; font-weight: 800; } .ds-route-step.is-active span { border-color: #E76F3C; color: #FFFFFF; background: #E76F3C; } .ds-route i { height: 1rpx; flex: 1; margin: 0 6rpx 28rpx; background: #DEE1E4; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Quiet Service Route（静谧预约路径）",
+    "overview": "这是一套服务优先的微信小程序视觉系统：让顾客在短暂、单手的访问里，先知道下一步，再决定看哪些信息。冷灰画布承托白色内容面，炭黑文字负责可信与可读，橘红只在预约动作、选择状态和路径进度出现，形成明确而克制的方向感。\n\n页面保持平面、干净、轻量的层次。卡片用细边框和很弱的环境阴影分组，不把疗愈体验包装成泛化的科技产品；内容、价格、技师和时段都以真实业务数据为中心。本文档约束 customer-facing 页面（首页、预约、档案、个人中心及其详情路径）；微信 Tab 导航、安全区和原生返回手势保持不变，移动管理端和技师端不在本表面的视觉范围内。",
+    "keyCharacteristics": [
+      "Cool gray canvas + white service surfaces",
+      "Mandarin orange as a scarce action and selection signal",
+      "Charcoal, high-contrast type with quiet metadata hierarchy",
+      "Flat depth: hairline borders first, restrained shadows second",
+      "Single-hand rhythm with short, scannable content blocks"
+    ],
+    "rules": [
+      {"name": "The Orange Is a Signal Rule", "body": "Reserve Mandarin Orange for the next action, a selected state, route progress, or an explicit price/link. Never wash an entire page in orange.", "section": "colors"},
+      {"name": "The Weight Before Color Rule", "body": "Establish hierarchy with size and weight first; use orange to clarify action or state, not to make ordinary copy louder.", "section": "typography"},
+      {"name": "The Flat-by-Default Rule", "body": "Start with a white surface and a hairline border; add a soft shadow only when it explains a state or a layer boundary.", "section": "elevation"}
+    ],
+    "dos": [
+      "Do use Mandarin Orange (#E76F3C) for the primary appointment action, active route step, selected state, price, or explicit link.",
+      "Do keep the Cool Gray Canvas (#F4F5F6), White Service Surface, Hairline Border (#DEE1E4), and Charcoal text relationship consistent across customer pages.",
+      "Do preserve generous touch areas (at least the existing 84–88rpx button heights), safe-area insets, and native WeChat Tab navigation.",
+      "Do pair status colors with words, icons, or labels so availability, errors, and cancellation are never color-only.",
+      "Do let real store, service, practitioner, slot, order, and health-record data carry the story; keep promotional content subordinate to the next useful action."
+    ],
+    "donts": [
+      "Don't add gradients, glass effects, backdrop filters, or translucent “AI product” surfaces to customer-facing pages.",
+      "Don't decorate with emoji, floating sparkle motifs, or generic technology illustrations; use the existing icon assets and plain text labels.",
+      "Don't turn Mandarin Orange into a full-page wash or use it for ordinary body copy that is not interactive.",
+      "Don't introduce oversized rounded card stacks (for example, new core cards at 36rpx+) when a 24rpx surface is sufficient.",
+      "Don't alter the WeChat Tab bar, safe-area behavior, existing API/data flows, or product facts while applying this visual system."
+    ]
+  }
+}

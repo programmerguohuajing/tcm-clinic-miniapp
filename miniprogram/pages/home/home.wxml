@@ -1,26 +1,41 @@
+<!--
+THESIS: A service-first clinic home that makes the next booking step obvious and refuses the promotional wellness-template homepage.
+OWN-WORLD: Cool gray canvas, charcoal type, white surfaces, hairline borders, and mandarin orange reserved for action, selection, and route progress.
+STORY: The visitor recognizes the clinic, chooses a service, and knows how to reach a confirmed slot before browsing health content.
+FIRST VIEWPORT: Clinic identity and location first; one appointment action and its service-to-time path above service cards, content, and the four-tab navigation.
+FORM: Operate mode, restrained palette strategy, approved Service Orange direction B; concept seed d3743ff9.
+FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+-->
 <view class="page">
   <view wx:if="{{loading}}" class="loading-mask"><view class="loading-spinner"></view></view>
-  <view class="hero-card home-hero">
-    <view class="eyebrow">QI RETREAT</view>
-    <view wx:if="{{store}}" class="pill">{{store.name}} · {{store.business_hours}}</view>
-    <view class="retreat-photo">
-      <view class="moon"></view>
-      <view class="incense-line"></view>
+  <view class="home-header">
+    <view>
+      <view class="home-brand">中医馆</view>
+      <view wx:if="{{store}}" class="home-store">{{store.name}} · {{store.business_hours}}</view>
     </view>
-    <view class="title">{{hero.headline}}</view>
+    <view class="home-header-mark"><view></view><view></view><view></view></view>
+  </view>
+
+  <view class="hero-card home-hero">
+    <view class="home-hero-top">
+      <view class="title">{{hero.headline}}</view>
+      <view class="home-hero-arrow">›</view>
+    </view>
     <view class="subtitle">{{hero.subtitle}}</view>
     <button class="primary-button hero-button" bindtap="goBooking">{{hero.button}}</button>
   </view>
 
-  <view class="ritual-row">
-    <view>耳穴</view>
-    <view>热敷</view>
-    <view>香灸</view>
+  <view class="booking-route">
+    <view class="route-step active"><text>01</text><label>选择服务</label></view>
+    <view class="route-line"></view>
+    <view class="route-step"><text>02</text><label>选择技师</label></view>
+    <view class="route-line"></view>
+    <view class="route-step"><text>03</text><label>选择时段</label></view>
   </view>
 
   <view class="section-title">
-    <text>私人疗愈仪式</text>
-    <text class="pill">RETREAT</text>
+    <text>服务项目</text>
+    <text class="muted">查看全部 ›</text>
   </view>
   <scroll-view scroll-x class="activity-scroll">
     <block wx:for="{{activities}}" wx:key="id">
@@ -38,8 +53,8 @@
   </scroll-view>
 
   <view class="section-title">
-    <text>疗愈札记</text>
-    <text class="muted">安静阅读</text>
+    <text>健康资讯</text>
+    <text class="muted">查看更多 ›</text>
   </view>
   <block wx:for="{{articles}}" wx:key="id">
     <view class="list-card article-card" bindtap="goArticleDetail" data-id="{{item.id}}">
@@ -58,7 +73,7 @@
 <view wx:if="{{showPhoneOverlay}}" class="phone-overlay">
   <view class="phone-overlay-backdrop"></view>
   <view class="phone-overlay-card">
-    <view class="phone-overlay-icon">🌿</view>
+    <view class="phone-overlay-icon">+</view>
     <view class="phone-overlay-title">欢迎来到青囊中医馆</view>
     <view class="phone-overlay-desc">请先授权手机号\n为您开启完整的疗愈体验</view>
     <view class="phone-overlay-features">

@@ -8,15 +8,15 @@
 }
 
 .message-card.unread {
-  background: rgba(24, 166, 125, 0.04);
+  background: rgba(231, 111, 60, 0.04);
 }
 
 .message-icon {
   width: 72rpx;
   height: 72rpx;
   border-radius: 999rpx;
-  background: #e7f7f1;
-  color: #18a67d;
+  background: #fff0e7;
+  color: #e76f3c;
   font-size: 32rpx;
   font-weight: 800;
   display: flex;
@@ -38,18 +38,18 @@
 }
 
 .message-type {
-  color: #10241e;
+  color: #2d3035;
   font-size: 28rpx;
   font-weight: 800;
 }
 
 .message-time {
-  color: #8aa099;
+  color: #9aa0a6;
   font-size: 22rpx;
 }
 
 .message-text {
-  color: #6a7c75;
+  color: #73777d;
   font-size: 24rpx;
   line-height: 1.6;
 }
@@ -58,7 +58,7 @@
   width: 16rpx;
   height: 16rpx;
   border-radius: 999rpx;
-  background: #18a67d;
+  background: #e76f3c;
   flex-shrink: 0;
   margin-top: 28rpx;
 }

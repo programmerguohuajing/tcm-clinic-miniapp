@@ -1,10 +1,7 @@
 page {
   min-height: 100%;
-  color: #10241e;
-  background:
-    radial-gradient(circle at 12% 0%, rgba(185, 242, 223, 0.5), transparent 30%),
-    radial-gradient(circle at 92% 8%, rgba(52, 120, 246, 0.08), transparent 26%),
-    linear-gradient(180deg, #f4fbf8 0%, #f8fffc 48%, #eef8f4 100%);
+  color: #2d3035;
+  background: #f4f5f6;
   font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
   overflow-wrap: break-word;
   word-break: break-word;
@@ -21,43 +18,31 @@ page {
 .list-card {
   position: relative;
   overflow: hidden;
-  border: 1rpx solid rgba(200, 235, 222, 0.9);
-  border-radius: 36rpx;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 18rpx 44rpx rgba(16, 36, 30, 0.08);
+  border: 1rpx solid #dee1e4;
+  border-radius: 24rpx;
+  background: #ffffff;
   box-sizing: border-box;
+  box-shadow: 0 8rpx 24rpx rgba(45, 48, 53, 0.06);
 }
 
 .hero-card::after {
-  content: "";
-  position: absolute;
-  right: -96rpx;
-  top: -112rpx;
-  width: 260rpx;
-  height: 260rpx;
-  border: 1rpx solid rgba(47, 125, 107, 0.08);
-  border-radius: 999rpx;
-  background: rgba(185, 242, 223, 0.3);
+  display: none;
 }
 
 .eyebrow {
-  color: #18a67d;
-  font-size: 22rpx;
-  font-weight: 700;
-  letter-spacing: 2rpx;
-  text-transform: uppercase;
+  display: none;
 }
 
 .title {
-  color: #10241e;
+  color: #17191c;
   font-size: 48rpx;
   font-weight: 800;
   line-height: 1.18;
-  letter-spacing: 0;
+  letter-spacing: -1rpx;
 }
 
 .subtitle {
-  color: #6a7c75;
+  color: #73777d;
   font-size: 26rpx;
   line-height: 1.62;
 }
@@ -68,9 +53,9 @@ page {
   justify-content: space-between;
   gap: 20rpx;
   min-width: 0;
-  margin: 44rpx 0 20rpx;
-  color: #10241e;
-  font-size: 34rpx;
+  margin: 40rpx 0 18rpx;
+  color: #2d3035;
+  font-size: 32rpx;
   font-weight: 800;
   line-height: 1.28;
 }
@@ -82,16 +67,16 @@ page {
 
 .pill {
   display: inline-block;
-  min-height: 46rpx;
+  min-height: 44rpx;
   max-width: 100%;
-  padding: 0 20rpx;
-  border: 1rpx solid #c8ebde;
-  border-radius: 999rpx;
-  color: #18a67d;
-  background: #e7f7f1;
+  padding: 0 16rpx;
+  border: 1rpx solid #ffd8c7;
+  border-radius: 12rpx;
+  color: #e76f3c;
+  background: #fff0e7;
   font-size: 22rpx;
   font-weight: 700;
-  line-height: 44rpx;
+  line-height: 42rpx;
   box-sizing: border-box;
   word-break: break-all;
 }
@@ -100,13 +85,13 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 92rpx;
-  padding: 0 30rpx;
+  min-height: 88rpx;
+  padding: 0 28rpx;
   border: none;
-  border-radius: 999rpx;
+  border-radius: 18rpx;
   color: #ffffff;
-  background: #18a67d;
-  box-shadow: 0 18rpx 34rpx rgba(24, 166, 125, 0.22);
+  background: #e76f3c;
+  box-shadow: 0 10rpx 22rpx rgba(231, 111, 60, 0.2);
   box-sizing: border-box;
   font-size: 28rpx;
   font-weight: 800;
@@ -123,12 +108,12 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 88rpx;
+  min-height: 84rpx;
   padding: 0 24rpx;
-  border: 1rpx solid #c8ebde;
-  border-radius: 999rpx;
-  color: #18a67d;
-  background: rgba(255, 255, 255, 0.86);
+  border: 1rpx solid #dee1e4;
+  border-radius: 18rpx;
+  color: #2d3035;
+  background: #ffffff;
   box-sizing: border-box;
   font-size: 26rpx;
   font-weight: 800;
@@ -139,16 +124,16 @@ page {
 .grid-two {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 20rpx;
+  gap: 18rpx;
 }
 
 .muted {
-  color: #6a7c75;
+  color: #73777d;
   line-height: 1.45;
 }
 
 .price {
-  color: #18a67d;
+  color: #e76f3c;
   font-weight: 800;
 }
 
@@ -172,20 +157,22 @@ textarea {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.94);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
 }
+
 .loading-spinner {
   width: 48px;
   height: 48px;
-  border: 4px solid #e8e8e8;
-  border-top-color: #0e7490;
+  border: 4px solid #eceef0;
+  border-top-color: #e76f3c;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
+
 @keyframes spin {
   to { transform: rotate(360deg); }
 }

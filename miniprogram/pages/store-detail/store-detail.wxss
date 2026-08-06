@@ -3,7 +3,7 @@
 }
 
 .store-name {
-  color: #10241e;
+  color: #2d3035;
   font-size: 36rpx;
   font-weight: 800;
 }
@@ -24,9 +24,9 @@
   flex: 1;
   min-height: 72rpx;
   padding: 0 16rpx;
-  border: 1rpx solid #c8ebde;
+  border: 1rpx solid #dee1e4;
   border-radius: 999rpx;
-  color: #18a67d;
+  color: #e76f3c;
   background: rgba(255, 255, 255, 0.86);
   font-size: 24rpx;
   font-weight: 800;
@@ -39,7 +39,7 @@
 }
 
 .action-btn.primary {
-  background: #18a67d;
+  background: #e76f3c;
   color: #ffffff;
 }
 
@@ -52,7 +52,7 @@
 }
 
 .service-item .service-name {
-  color: #10241e;
+  color: #2d3035;
   font-size: 28rpx;
   font-weight: 800;
 }
@@ -62,7 +62,7 @@
 }
 
 .service-item .price {
-  color: #18a67d;
+  color: #e76f3c;
   font-size: 32rpx;
   font-weight: 800;
   flex-shrink: 0;
@@ -70,6 +70,6 @@
 
 .empty-card {
   padding: 34rpx;
-  color: #6a7c75;
+  color: #73777d;
   text-align: center;
 }
