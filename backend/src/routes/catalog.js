@@ -75,15 +75,47 @@ export const catalogRouter = () => {
   }));
 
   app.get("/services", asyncHandler(async (c) => {
-    const { storeId } = storeQuery.parse(c.req.query());
+    const schema = z.object({
+      storeId: z.coerce.number().int().positive().optional(),
+      category: z.string().max(60).optional(),
+      tenantId: z.coerce.number().int().positive().optional()
+    });
+    const { storeId, category, tenantId } = schema.parse(c.req.query());
     const filter = storeFilter(storeId);
+    const params = [...filter.params];
+    let extra = filter.sql;
+    if (category) { extra += ` and category = $${params.length + 1}`; params.push(category); }
+    if (tenantId) { extra += ` and tenant_id = $${params.length + 1}`; params.push(tenantId); }
     const { rows } = await query(
-      `select id, name, category, description, duration_minutes, price, cover_url
+      `select id, name, category, goods_type, description, duration_minutes, price, cover_url
          from services
-        where is_active = true ${filter.sql}
+        where is_active = true ${extra}
         order by sort_order desc, id desc`,
-      filter.params
+      params
     );
+    return c.json({ data: rows });
+  }));
+
+  // R8 区块数据来源：会员卡 / 次卡（特殊商品类型）
+  app.get("/membership-cards", asyncHandler(async (c) => {
+    const schema = z.object({
+      tenantId: z.coerce.number().int().positive().optional(),
+      tenantSlug: z.string().max(80).optional(),
+      storeId: z.coerce.number().int().positive().optional()
+    });
+    const { tenantId, tenantSlug, storeId } = schema.parse(c.req.query());
+    let tid = tenantId;
+    if (!tid && tenantSlug) {
+      const t = await query(`select id from tenants where slug = $1`, [tenantSlug]);
+      tid = t.rows[0]?.id;
+    }
+    if (!tid) return c.json({ error: { code: "TENANT_REQUIRED", message: "缺少租户" } }, 400);
+    const params = [tid];
+    let sql = `select id, tenant_id, store_id, name, type, sessions, validity_days, price, description, sort_order
+                 from membership_cards where is_active = true and tenant_id = $1`;
+    if (storeId) { sql += ` and (store_id = $2 or store_id is null)`; params.push(storeId); }
+    sql += ` order by sort_order asc, id`;
+    const { rows } = await query(sql, params);
     return c.json({ data: rows });
   }));
 

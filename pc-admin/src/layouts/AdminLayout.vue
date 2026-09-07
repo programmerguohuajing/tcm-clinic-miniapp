@@ -1,18 +1,22 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { navItems } from "../constants/nav";
+import { navItems, resolveNavItems } from "../constants/nav";
 import { bootstrapState, loadBootstrap } from "../composables/useBootstrap";
 import { clearSession, getCurrentUser } from "../services/auth";
+import { adminApi } from "../services/adminApi";
 
 const route = useRoute();
 const router = useRouter();
 const storeId = ref("");
 const emit = defineEmits(["store-change", "refresh"]);
 const HOME_TAB_KEY = "dashboard";
-const openedTabs = ref([navItems[0]]);
+const openedTabs = ref([navItems[0]]); // 初始项；实际可见项由 visibleNav 决定
 const currentUser = ref(getCurrentUser());
 const sidebarOpen = ref(false);
+
+// 当前租户元信息（Phase 2/3）：品牌名 + 业态模板 + 套餐菜单，驱动侧边栏与品牌字
+const tenantMeta = ref({ brand: "", templateKey: "", planMenus: null });
 
 const pageTitle = computed(() => route.meta.title || "管理端");
 const displayUser = computed(() => {
@@ -33,21 +37,46 @@ const navIconMap = {
   orders: "OR",
   commissions: "CM",
   homepage: "HP",
+  pageConfig: "PC",
   content: "CT",
   users: "US",
   reviews: "RV",
-  audit: "AU"
+  audit: "AU",
+  transactions: "TX",
+  plans: "PL"
 };
+
+// 按套餐 + 业态过滤可见导航（Phase 2 模板化 + Phase 3 能力门控）
+const visibleNav = computed(() => resolveNavItems({
+  planMenus: tenantMeta.value.planMenus,
+  templateKey: tenantMeta.value.templateKey,
+}));
+const brandName = computed(() => tenantMeta.value.brand || "SAAS 管理端");
+
+async function loadTenantMeta() {
+  try {
+    const tenants = await adminApi.tenants();
+    const t = (tenants && tenants[0]) || null;
+    if (!t) return;
+    const meta = { brand: t.name || "", templateKey: t.industry_template_key || "", planMenus: null };
+    try {
+      const plan = await adminApi.tenantPlan(t.id);
+      if (plan && Array.isArray(plan.menus)) meta.planMenus = plan.menus;
+    } catch (_e) { /* 无套餐回退基础版 */ }
+    tenantMeta.value = meta;
+  } catch (_e) { /* 联调降级 */ }
+}
 
 onMounted(() => {
   currentUser.value = getCurrentUser();
   loadBootstrap();
+  loadTenantMeta();
 });
 
 watch(
   () => route.name,
   (routeName) => {
-    const currentTab = navItems.find((item) => item.key === routeName);
+    const currentTab = visibleNav.value.find((item) => item.key === routeName);
     if (!currentTab) return;
     if (!openedTabs.value.some((item) => item.key === currentTab.key)) {
       openedTabs.value = [...openedTabs.value, currentTab];
@@ -76,7 +105,7 @@ function closeTab(tab) {
   if (route.name !== tab.key) return;
 
   const fallbackIndex = Math.max(closedIndex - 1, 0);
-  const fallbackTab = nextTabs[fallbackIndex] || nextTabs[0] || navItems[0];
+  const fallbackTab = nextTabs[fallbackIndex] || nextTabs[0] || visibleNav.value[0] || navItems[0];
   router.push(fallbackTab.path);
 }
 
@@ -100,14 +129,14 @@ function goNav(path) {
       <div class="brand">
         <div class="seal">掌</div>
         <div>
-          <strong>青囊中医馆管理系统</strong>
-          <span>TCM ADMIN</span>
+          <strong>{{ brandName }}</strong>
+          <span>SAAS ADMIN</span>
         </div>
       </div>
 
       <nav>
         <button
-          v-for="item in navItems"
+          v-for="item in visibleNav"
           :key="item.key"
           class="nav-item"
           :class="{ active: route.name === item.key }"

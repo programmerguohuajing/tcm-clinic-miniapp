@@ -3,6 +3,7 @@ import { cors } from "hono/cors";
 import { secureHeaders } from "hono/secure-headers";
 import { initDb } from "./config/db.js";
 import { attachCurrentUser } from "./middleware/auth.js";
+import { tenantContext } from "./middleware/tenant-context.js";
 import { errorMiddleware, notFoundMiddleware } from "./middleware/error.js";
 import { asyncHandler } from "./middleware/async-handler.js";
 import { authRouter } from "./routes/auth.js";
@@ -18,6 +19,8 @@ import { contentRouter } from "./routes/content.js";
 import { userRouter } from "./routes/user.js";
 import { favoritesRouter } from "./routes/favorites.js";
 import { uploadRouter } from "./routes/upload.js";
+import { cpagesRouter } from "./routes/cpages.js";
+import { paymentsRouter } from "./routes/payments.js";
 import { corsAllowlist } from "./config/env.js";
 
 export function createApp(env) {
@@ -92,6 +95,9 @@ export function createApp(env) {
     return attachCurrentUser(c, next);
   });
 
+  // Phase 0 — 解析租户上下文（与认证解耦，所有 /api 请求都可带 x-tenant-id）
+  app.use("/api/*", tenantContext);
+
   app.use("/api/auth/admin-login", rateLimiter(60_000, 5));
   app.use("/api/appointments", rateLimiter(60_000, 10));
   app.use("/api", rateLimiter(60_000, 100));
@@ -108,6 +114,8 @@ export function createApp(env) {
   app.route("/api", userRouter());
   app.route("/api", favoritesRouter());
   app.route("/api", uploadRouter());
+  app.route("/api", cpagesRouter());
+  app.route("/api", paymentsRouter());
   app.route("/api", adminRouter());
 
   app.notFound(notFoundMiddleware);

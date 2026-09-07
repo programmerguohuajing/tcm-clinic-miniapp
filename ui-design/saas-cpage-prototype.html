@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SaaS 多业态 C 端 · UI 原型</title>
+<style>
+  /* ============ Design Tokens (继承 DESIGN.md 橘红服务台) ============ */
+  :root{
+    --bg:#F4F5F6; --surface:#FFFFFF; --title:#17191C; --text:#2D3035;
+    --muted:#73777D; --border:#DEE1E4;
+    --primary:#E76F3C; --primary-soft:#FFF0E7; --accent-border:#FFD8C7;
+    /* 间距（rpx/2 -> px） */
+    --px:12px; --py:14px; --section:20px; --card:12px;
+    --r-sm:6px; --r-md:9px; --r-lg:12px;
+    --shadow:0 4px 12px rgba(45,48,53,.06);
+    --font:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  }
+  /* 健身房主题：活力蓝绿，仅替换 primary 一族，验证"同一引擎 + 不同 token" */
+  [data-theme="gym"]{
+    --primary:#0EA5A4; --primary-soft:#E6FAF8; --accent-border:#BDEDE9;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);background:#ECEEF0;color:var(--text);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  /* ============ App Shell ============ */
+  .app{display:flex;min-height:100vh}
+  .sidebar{width:212px;background:#1B1D21;color:#C9CDD2;padding:20px 14px;position:sticky;top:0;height:100vh;overflow:auto}
+  .sidebar .logo{font-weight:800;color:#fff;font-size:15px;letter-spacing:.3px;margin-bottom:4px}
+  .sidebar .logo small{display:block;color:#7E848C;font-weight:500;font-size:11px;margin-top:3px;letter-spacing:0}
+  .nav{margin-top:22px;display:flex;flex-direction:column;gap:2px}
+  .nav button{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:none;border:0;color:#C9CDD2;
+    font-family:var(--font);font-size:13px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:.15s}
+  .nav button:hover{background:#2A2D33;color:#fff}
+  .nav button.active{background:var(--primary);color:#fff}
+  .nav .ix{width:16px;height:16px;flex:0 0 16px;opacity:.9}
+  .stage{flex:1;display:flex;flex-direction:column;min-width:0}
+  .topbar{height:58px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;
+    justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:5}
+  .topbar h1{font-size:15px;color:var(--title);font-weight:800}
+  .topbar .sub{font-size:12px;color:var(--muted);margin-left:10px;font-weight:500}
+  .switch{display:inline-flex;background:#F0F1F3;border-radius:8px;padding:3px}
+  .switch button{border:0;background:none;font-family:var(--font);font-size:12px;font-weight:700;color:var(--muted);
+    padding:6px 14px;border-radius:6px;cursor:pointer}
+  .switch button.on{background:#fff;color:var(--title);box-shadow:var(--shadow)}
+  .content{padding:26px 24px 60px;overflow:auto}
+  .panel{display:none}
+  .panel.active{display:block}
+  .lead{max-width:760px;color:var(--muted);font-size:13px;margin:2px 0 22px}
+
+  /* ============ Section titles ============ */
+  .h2{font-size:18px;font-weight:800;color:var(--title);margin:30px 0 4px}
+  .h3{font-size:14px;font-weight:800;color:var(--title);margin:20px 0 10px;display:flex;align-items:center;gap:8px}
+  .h3::before{content:"";width:4px;height:14px;background:var(--primary);border-radius:2px}
+  .note{background:#FFF8F2;border:1px solid var(--accent-border);color:#9A4B25;font-size:12px;
+    padding:10px 12px;border-radius:8px;margin:14px 0;line-height:1.55}
+  [data-theme="gym"] .note{background:#EFFBFA;border-color:var(--accent-border);color:#0B6B69}
+
+  /* ============ Design System grid ============ */
+  .dsgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;margin-top:10px}
+  .sw{height:64px;border-radius:10px;border:1px solid var(--border)}
+  .swlabel{font-size:11px;color:var(--muted);margin-top:6px}
+  .swlabel b{color:var(--text);font-weight:700;display:block;font-size:11px}
+  .comp-gallery{display:flex;flex-wrap:wrap;gap:18px;align-items:center;margin-top:10px;padding:18px;background:#fff;border:1px solid var(--border);border-radius:12px}
+  table.tok{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px;background:#fff;border-radius:10px;overflow:hidden}
+  table.tok th,table.tok td{border:1px solid var(--border);padding:8px 10px;text-align:left}
+  table.tok th{background:#F7F8F9;color:var(--title);font-weight:700}
+  table.tok td code{background:#F0F1F3;padding:1px 6px;border-radius:5px;font-size:11px}
+
+  /* ============ Buttons / chips ============ */
+  .btn{display:inline-flex;align-items:center;justify-content:center;font-family:var(--font);font-weight:700;
+    border:0;border-radius:var(--r-md);cursor:pointer;transition:.15s}
+  .btn-primary{background:var(--primary);color:#fff;height:40px;padding:0 18px;font-size:14px}
+  .btn-primary:hover{filter:brightness(.96)}
+  .btn-ghost{background:#fff;color:var(--text);height:38px;padding:0 16px;font-size:13px;border:1px solid var(--border)}
+  .chip{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:var(--r-sm);
+    background:var(--primary-soft);color:var(--primary);font-size:11px;font-weight:700;border:1px solid var(--accent-border)}
+  .chip.gray{background:#F0F1F3;color:var(--muted);border-color:var(--border)}
+
+  /* ============ Phone frame (C 端小程序) ============ */
+  .phone-wrap{display:flex;gap:30px;align-items:flex-start;flex-wrap:wrap}
+  .phone{width:360px;background:var(--bg);border-radius:30px;border:10px solid #1B1D21;overflow:hidden;
+    box-shadow:0 18px 40px rgba(27,29,33,.22);position:relative}
+  .phone .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:22px;background:#1B1D21;border-radius:0 0 14px 14px;z-index:9}
+  .screen{background:var(--bg);min-height:640px;padding:0;font-size:13px}
+  .screen .safe{padding:26px 12px 12px}
+  /* hero */
+  .hero{padding:14px 12px 16px}
+  .hero .brand{font-size:20px;font-weight:800;color:var(--title);letter-spacing:-.3px}
+  .hero .tag{font-size:13px;color:var(--muted);margin-top:4px}
+  .hero .loc{display:inline-flex;align-items:center;gap:4px;margin-top:10px;font-size:11px;color:var(--muted);
+    background:#fff;border:1px solid var(--border);padding:4px 9px;border-radius:20px}
+  /* booking route */
+  .route{display:flex;align-items:center;gap:0;margin:14px 0;padding:0 4px}
+  .route .step{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative}
+  .route .num{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:800;background:#fff;color:var(--muted);border:1px solid var(--border)}
+  .route .step.cur .num{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .route .lbl{font-size:11px;color:var(--muted);font-weight:700}
+  .route .step.cur .lbl{color:var(--primary)}
+  .route .line{flex:0 0 18px;height:1px;background:var(--border);margin-top:-18px}
+  /* section card */
+  .sec{padding:6px 12px 14px}
+  .sec-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px}
+  .sec-head .t{font-size:15px;font-weight:800;color:var(--title)}
+  .sec-head .s{font-size:11px;color:var(--muted)}
+  .hscroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px}
+  .hscroll::-webkit-scrollbar{height:0}
+  .svc{flex:0 0 132px;background:#fff;border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow)}
+  .svc .cov{height:74px;background:var(--primary-soft);display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:800;font-size:13px}
+  .svc .body{padding:9px 10px}
+  .svc .nm{font-size:13px;font-weight:700;color:var(--title)}
+  .svc .pr{font-size:12px;color:var(--primary);font-weight:800;margin-top:5px}
+  .svc .pr small{color:var(--muted);font-weight:500}
+  .info{background:#fff;border:1px solid var(--border);border-radius:var(--r-lg);padding:11px 12px;margin-bottom:9px;box-shadow:var(--shadow)}
+  .info .t{font-size:13px;font-weight:700;color:var(--title)}
+  .info .d{font-size:11px;color:var(--muted);margin-top:3px}
+  .member{margin:6px 12px 14px;background:var(--primary);border-radius:var(--r-lg);padding:14px;color:#fff;box-shadow:var(--shadow)}
+  .member .t{font-size:14px;font-weight:800}
+  .member .row{display:flex;gap:8px;margin-top:10px}
+  .member .mc{flex:1;background:rgba(255,255,255,.16);border-radius:9px;padding:9px;text-align:center}
+  .member .mc b{font-size:15px;display:block}
+  .member .mc span{font-size:10px;opacity:.9}
+  /* bottom nav */
+  .botnav{position:sticky;bottom:0;display:flex;background:#fff;border-top:1px solid var(--border)}
+  .botnav .it{flex:1;text-align:center;padding:8px 0 9px;font-size:10px;color:var(--muted);font-weight:700}
+  .botnav .it.on{color:var(--primary)}
+  .botnav .it .ic{width:20px;height:20px;margin:0 auto 3px;display:block}
+
+  /* ============ Admin editor (3 cols) ============ */
+  .admin{display:grid;grid-template-columns:240px 1fr 280px;gap:18px;align-items:start;margin-top:8px}
+  .lib{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px}
+  .lib .lh{font-size:12px;font-weight:800;color:var(--title);margin-bottom:10px}
+  .blk{display:flex;align-items:center;gap:8px;padding:9px 10px;border:1px solid var(--border);border-radius:9px;margin-bottom:8px;background:#fff}
+  .blk .grip{color:var(--muted);font-size:13px;cursor:grab}
+  .blk .bn{flex:1;font-size:12px;font-weight:700;color:var(--text)}
+  .blk .ord{font-size:10px;color:var(--muted);background:#F0F1F3;border-radius:5px;padding:1px 6px}
+  .toggle{position:relative;width:34px;height:19px;flex:0 0 34px}
+  .toggle input{opacity:0;width:0;height:0}
+  .toggle .sl{position:absolute;inset:0;background:#CFD3D8;border-radius:20px;transition:.15s;cursor:pointer}
+  .toggle .sl::before{content:"";position:absolute;width:15px;height:15px;left:2px;top:2px;background:#fff;border-radius:50%;transition:.15s}
+  .toggle input:checked+.sl{background:var(--primary)}
+  .toggle input:checked+.sl::before{transform:translateX(15px)}
+  .prop{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px}
+  .prop .ph{font-size:12px;font-weight:800;color:var(--title);margin-bottom:12px}
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:11px;color:var(--muted);font-weight:700;margin-bottom:5px}
+  .field input,.field select{width:100%;height:34px;border:1px solid var(--border);border-radius:8px;padding:0 10px;font-family:var(--font);font-size:12px;color:var(--text);background:#fff}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+  .prop .hint{font-size:11px;color:var(--muted);line-height:1.5;background:#F7F8F9;border-radius:8px;padding:9px 10px;margin-top:6px}
+  .prop .live{margin-top:14px;font-size:11px;color:#0B6B69;background:#EFFBFA;border:1px solid var(--accent-border);border-radius:8px;padding:8px 10px;display:none}
+  .prop .live.show{display:block}
+
+  /* ============ Template / term / plan tables ============ */
+  .card-box{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;margin-top:10px}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--primary-soft);color:var(--primary);border:1px solid var(--accent-border)}
+  .pill.off{background:#F0F1F3;color:var(--muted);border-color:var(--border)}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:980px){.admin{grid-template-columns:1fr}.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">多业态 C 端引擎<small>SaaS UI Prototype</small></div>
+    <nav class="nav" id="nav">
+      <button class="active" data-go="p-ds">
+        <svg class="ix" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>设计系统</button>
+      <button data-go="p-home">
+        <svg class="ix" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2"/><line x1="10" y1="18" x2="14" y2="18"/></svg>C 端首页</button>
+      <button data-go="p-editor">
+        <svg class="ix" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v4H4z"/><path d="M4 10h16v4H4z"/><path d="M4 16h10v4H4z"/></svg>区块编辑器</button>
+      <button data-go="p-tpl">
+        <svg class="ix" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>模板与术语</button>
+      <button data-go="p-plan">
+        <svg class="ix" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 6 6 .8-4.5 4.2 1 6.2L12 16.5 6.5 19.2l1-6.2L3 8.8 9 8z"/></svg>套餐门控</button>
+    </nav>
+  </aside>
+
+  <!-- Stage -->
+  <div class="stage">
+    <div class="topbar">
+      <div><h1 style="display:inline">SaaS 多业态 C 端</h1><span class="sub" id="topsub">UI 设计原型 · 基于未提交 PRD</span></div>
+      <div class="switch" id="homeSwitch" style="display:none">
+        <button class="on" data-ind="tcm">中医馆</button>
+        <button data-ind="gym">健身房</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ============ 1. 设计系统 ============ -->
+      <section class="panel active" id="p-ds">
+        <h2 class="h2">设计系统 · Design Tokens</h2>
+        <p class="lead">继承 DESIGN.md「橘红服务台」法则：冷灰画布 + 白卡 + 石墨文字，橘红仅承担行动 / 选择 / 进度（One Voice Rule）。多业态不改组件，只换主题 token 与术语字典——这是「0 代码新增业态」的视觉基础。</p>
+
+        <div class="h3">色彩 · 双主题 token 对照</div>
+        <div class="dsgrid">
+          <div><div class="sw" style="background:#F4F5F6"></div><div class="swlabel"><b>画布 Canvas</b>#F4F5F6</div></div>
+          <div><div class="sw" style="background:#FFFFFF"></div><div class="swlabel"><b>服务面 Surface</b>#FFFFFF</div></div>
+          <div><div class="sw" style="background:#17191C"></div><div class="swlabel"><b>深石墨标题</b>#17191C</div></div>
+          <div><div class="sw" style="background:#2D3035"></div><div class="swlabel"><b>石墨正文</b>#2D3035</div></div>
+          <div><div class="sw" style="background:#73777D"></div><div class="swlabel"><b>灰阶辅助</b>#73777D</div></div>
+          <div><div class="sw" style="background:#DEE1E4"></div><div class="swlabel"><b>发丝边界</b>#DEE1E4</div></div>
+          <div><div class="sw" style="background:#E76F3C"></div><div class="swlabel"><b>橘红·中医馆</b>#E76F3C</div></div>
+          <div><div class="sw" style="background:#0EA5A4"></div><div class="swlabel"><b>蓝绿·健身房</b>#0EA5A4</div></div>
+        </div>
+
+        <div class="h3">排版层级</div>
+        <table class="tok">
+          <tr><th>层级</th><th>字重</th><th>字号(px)</th><th>用途</th></tr>
+          <tr><td>Display</td><td>800</td><td>20–24</td><td><code>品牌主标题</code></td></tr>
+          <tr><td>Headline</td><td>800</td><td>15–16</td><td><code>模块标题</code></td></tr>
+          <tr><td>Title</td><td>800</td><td>13–15</td><td><code>卡片标题</code></td></tr>
+          <tr><td>Body</td><td>400</td><td>13</td><td><code>说明 / 摘要</code></td></tr>
+          <tr><td>Label</td><td>700</td><td>11</td><td><code>标签 / 步骤</code></td></tr>
+        </table>
+
+        <div class="h3">组件画廊</div>
+        <div class="comp-gallery">
+          <button class="btn btn-primary">立即预约</button>
+          <button class="btn btn-ghost">取消</button>
+          <span class="chip">当前选中</span>
+          <span class="chip gray">已满</span>
+          <div style="display:flex;flex-direction:column;gap:6px;min-width:160px">
+            <input class="field" style="height:34px;border:1px solid var(--border);border-radius:8px;padding:0 10px;font-family:var(--font);font-size:12px" value="输入框 · 聚焦转橘红" />
+          </div>
+        </div>
+
+        <div class="note">铁律（来自 DESIGN.md，UI 全程遵守）：不使用渐变 / 玻璃拟态 / 背景模糊；不使用 emoji 充当导航或业务图标；橘红是稀缺资源，一个视口只让它发声于行动与进度。</div>
+      </section>
+
+      <!-- ============ 2. C 端首页（引擎演示） ============ -->
+      <section class="panel" id="p-home">
+        <h2 class="h2">C 端首页 · 页面引擎双业态</h2>
+        <p class="lead">同一套区块配置（<code>section_key + payload</code>）经「业态模板 + 术语字典 + 主题 token」渲染出两套心智。点右上角切换中医馆 / 健身房，可见：业务词、品牌名、行动色、区块组合全部随配置变化，C 端硬编码业务词 = 0。</p>
+        <div class="phone-wrap">
+          <div class="phone" id="phoneHome">
+            <div class="notch"></div>
+            <div class="screen" data-theme="tcm">
+              <div class="safe" id="homeScreen"></div>
+              <div class="botnav" id="homeNav"></div>
+            </div>
+          </div>
+          <div style="max-width:320px">
+            <div class="h3" style="margin-top:0">本屏区块（tenant_page_configs）</div>
+            <table class="tok">
+              <tr><th>区块 key</th><th>中医馆</th><th>健身房</th></tr>
+              <tr><td><code>brand_hero</code></td><td>青囊中医馆</td><td>动能健身</td></tr>
+              <tr><td><code>booking_route</code></td><td>选服务→选技师→选时段</td><td>选课程→选教练→选时段</td></tr>
+              <tr><td><code>service_list</code></td><td>艾灸/推拿/问诊</td><td>力量/搏击/瑜伽</td></tr>
+              <tr><td><code>info_list</code></td><td>健康资讯</td><td>健身干货</td></tr>
+              <tr><td><code>membership</code></td><td class="pill off">隐藏</td><td class="pill">显示·会员卡</td></tr>
+            </table>
+            <div class="note" style="margin-top:14px">术语随模板切换：技师↔教练、预约↔约课、健康档案↔体测报告、健康资讯↔健身干货。代码零硬编码中文业务词（R3 验收）。</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 3. 区块编辑器 ============ -->
+      <section class="panel" id="p-editor">
+        <h2 class="h2">管理端 · 首页区块编辑器（R6）</h2>
+        <p class="lead">商户在 PC 管理端配置首页区块：开关、排序、文案、封面、数据来源。保存后 C 端即时生效。左=区块库，中=实时预览，右=属性面板。这是「商户自助品牌配置」的配置面。</p>
+        <div class="admin">
+          <!-- 左：区块库 -->
+          <div class="lib">
+            <div class="lh">区块库（拖拽排序 / 开关）</div>
+            <div id="blockList"></div>
+            <div class="hint" style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5">顺序即 sort_order；关闭后 C 端区块优雅隐藏（R4）。</div>
+          </div>
+          <!-- 中：实时预览 -->
+          <div>
+            <div class="phone" style="border-width:8px">
+              <div class="notch"></div>
+              <div class="screen" data-theme="tcm">
+                <div class="safe" id="editScreen"></div>
+                <div class="botnav" id="editNav"></div>
+              </div>
+            </div>
+          </div>
+          <!-- 右：属性面板 -->
+          <div class="prop">
+            <div class="ph">属性 · <span id="propName">brand_hero</span></div>
+            <div class="field"><label>区块标题 title</label><input id="fTitle" value="品牌头图" /></div>
+            <div class="field"><label>是否启用 is_active</label>
+              <select id="fActive"><option value="1">启用</option><option value="0">隐藏</option></select></div>
+            <div class="field"><label>排序 sort_order</label><input id="fSort" type="number" value="1" /></div>
+            <div class="field"><label>封面 cover_url</label><input id="fCover" value="https://cdn/hero.jpg" /></div>
+            <div class="field"><label>数据来源 payload.source</label>
+              <select id="fSource"><option>默认推荐</option><option>课程列表接口</option><option>资讯列表接口</option><option>会员卡列表</option></select></div>
+            <div class="hint">编辑任意字段 → 中间预览实时刷新。保存即写 <code>tenant_page_configs</code>，C 端下一次加载生效。</div>
+            <div class="live" id="liveTip">已保存 · C 端即时生效</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 4. 模板与术语 ============ -->
+      <section class="panel" id="p-tpl">
+        <h2 class="h2">管理端 · 业态模板与术语字典（R2 / R3）</h2>
+        <p class="lead">平台运营定义内置模板：模块清单 + 术语映射 + 默认区块。新商户选模板即得匹配页面与用语，无需代码改动（G1）。术语字典是消除硬编码业务词的核心层。</p>
+        <div class="two">
+          <div class="card-box">
+            <div class="h3" style="margin-top:0">内置模板 industry_templates</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <span class="pill">tcm_clinic · 中医馆</span>
+              <span class="pill">gym · 健身房</span>
+              <span class="pill off">beauty · 美容院(预留)</span>
+            </div>
+            <table class="tok" style="margin-top:12px">
+              <tr><th>模板</th><th>模块清单 modules</th></tr>
+              <tr><td><code>tcm_clinic</code></td><td>预约 / 技师 / 健康档案 / 资讯 / 商城</td></tr>
+              <tr><td><code>gym</code></td><td>约课 / 教练 / 体测 / 团课 / 会员卡</td></tr>
+            </table>
+          </div>
+          <div class="card-box">
+            <div class="h3" style="margin-top:0">术语字典 term_dictionary</div>
+            <table class="tok">
+              <tr><th>key</th><th>中医馆</th><th>健身房</th></tr>
+              <tr><td><code>technician</code></td><td>技师</td><td>教练</td></tr>
+              <tr><td><code>booking</code></td><td>预约</td><td>约课</td></tr>
+              <tr><td><code>health_record</code></td><td>健康档案</td><td>体测报告</td></tr>
+              <tr><td><code>service</code></td><td>服务项目</td><td>课程</td></tr>
+              <tr><td><code>info</code></td><td>健康资讯</td><td>健身干货</td></tr>
+            </table>
+          </div>
+        </div>
+        <div class="note">模板版本化（Q1）：升级模板不影响存量租户；存量租户继续用创建时快照，新租户用最新版。新增第三业态（美容院）只需补模板数据，不改渲染代码。</div>
+      </section>
+
+      <!-- ============ 5. 套餐门控 ============ -->
+      <section class="panel" id="p-plan">
+        <h2 class="h2">套餐能力包门控（Phase 3 · 仅门控不计费）</h2>
+        <p class="lead">SaaS 套餐仅决定「可用菜单 + 可用能力」，不做计费 / 用量（已确认）。<code>plan → menu/capability</code> 映射在管理端隐藏无权限的菜单与模块。支付能力本身可作为某套餐专属项。</p>
+        <table class="tok">
+          <tr><th>套餐</th><th>导航菜单</th><th>能力模块</th><th>支付</th></tr>
+          <tr><td><b>基础版</b></td><td>首页 / 预约 / 基础档案</td><td>单门店 · 核心预约</td><td class="pill off">无</td></tr>
+          <tr><td><b>专业版</b></td><td>+ 营销 / 数据看板 / 多门店</td><td>多门店 · 内容 · 团课</td><td class="pill">微信支付</td></tr>
+          <tr><td><b>旗舰版</b></td><td>全菜单</td><td>会员卡 / 分账预留 / API</td><td class="pill">微信+虚拟支付</td></tr>
+        </table>
+        <div class="note">基础版无支付（R11 / Q5）：个人主体商户若需收款，须升级到专业版以上。平台不碰资金、不抽成。</div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- 数据：双业态术语 + 区块 + 服务项 ---------- */
+const I18N = {
+  tcm:{
+    brand:"青囊中医馆", tag:"把脉问诊 · 调理身心", loc:"朝阳区 · 1.2km",
+    route:["选服务","选技师","选时段"], nav:["首页","预约","档案","我的"],
+    svcTitle:"服务项目", svcSub:"对症调理方案",
+    services:[["艾灸调理","¥198"],["颈肩推拿","¥168"],["中医问诊","¥120"]],
+    infoTitle:"健康资讯", infoSub:"养生科普",
+    infos:[["三伏天艾灸指南","冬病夏治正当时"],["久坐人群护腰 3 招","日常自我调理"]],
+    membership:false
+  },
+  gym:{
+    brand:"动能健身", tag:"科学训练 · 突破极限", loc:"国贸店 · 800m",
+    route:["选课程","选教练","选时段"], nav:["首页","约课","体测","我的"],
+    svcTitle:"热门课程", svcSub:"小班 / 私教",
+    services:[["力量塑形","¥99"],["燃脂搏击","¥89"],["瑜伽拉伸","¥79"]],
+    infoTitle:"健身干货", infoSub:"训练科普",
+    infos:[["新手增肌饮食清单","蛋白摄入怎么算"],["跑步膝盖保护 5 招","避免运动损伤"]],
+    membership:true
+  }
+};
+
+/* 渲染 C 端首页（引擎演示） */
+function renderHome(ind){
+  const d = I18N[ind];
+  const scr = document.getElementById("homeScreen");
+  let svc = d.services.map(x=>`
+    <div class="svc"><div class="cov">${x[0]}</div><div class="body"><div class="nm">${x[0]}</div><div class="pr">${x[1]}<small> /次</small></div></div></div>`).join("");
+  let info = d.infos.map(x=>`<div class="info"><div class="t">${x[0]}</div><div class="d">${x[1]}</div></div>`).join("");
+  let mem = d.membership ? `<div class="member"><div class="t">会员卡 · 次卡</div><div class="row">
+      <div class="mc"><b>季卡</b><span>¥999</span></div><div class="mc"><b>10次</b><span>¥599</span></div><div class="mc"><b>年卡</b><span>¥2999</span></div></div></div>` : "";
+  scr.innerHTML = `
+    <div class="hero"><div class="brand">${d.brand}</div><div class="tag">${d.tag}</div>
+      <div class="loc">${d.loc}</div></div>
+    <div class="route">
+      <div class="step cur"><div class="num">01</div><div class="lbl">${d.route[0]}</div></div>
+      <div class="line"></div>
+      <div class="step"><div class="num">02</div><div class="lbl">${d.route[1]}</div></div>
+      <div class="line"></div>
+      <div class="step"><div class="num">03</div><div class="lbl">${d.route[2]}</div></div>
+    </div>
+    <div class="sec"><div class="sec-head"><div class="t">${d.svcTitle}</div><div class="s">${d.svcSub}</div></div>
+      <div class="hscroll">${svc}</div></div>
+    <div class="sec"><div class="sec-head"><div class="t">${d.infoTitle}</div><div class="s">${d.infoSub}</div></div>${info}</div>
+    ${mem}
+    <div style="height:8px"></div>`;
+  // bottom nav
+  document.getElementById("homeNav").innerHTML = d.nav.map((n,i)=>`
+    <div class="it ${i===0?'on':''}"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>${n}</div>`).join("");
+  document.querySelector("#phoneHome .screen").setAttribute("data-theme", ind);
+}
+
+/* ---------- 管理端区块编辑器（实时预览） ---------- */
+const BLOCKS = [
+  {key:"brand_hero",  title:"品牌头图",   active:1, sort:1, cover:"https://cdn/hero.jpg",     source:"默认推荐"},
+  {key:"booking_route",title:"预约路线",  active:1, sort:2, cover:"",                          source:"默认推荐"},
+  {key:"service_list", title:"服务/课程", active:1, sort:3, cover:"",                          source:"课程列表接口"},
+  {key:"info_list",    title:"资讯/干货", active:1, sort:4, cover:"",                          source:"资讯列表接口"},
+  {key:"membership",   title:"会员卡",    active:0, sort:5, cover:"",                          source:"会员卡列表"}
+];
+let selKey = "brand_hero";
+const ICONS = {brand_hero:"图",booking_route:"路",service_list:"服",info_list:"讯",membership:"卡"};
+
+function renderEditor(){
+  // 区块库
+  const sorted = [...BLOCKS].sort((a,b)=>a.sort-b.sort);
+  document.getElementById("blockList").innerHTML = sorted.map(b=>`
+    <div class="blk" data-k="${b.key}">
+      <span class="grip">≡</span>
+      <span class="bn">${ICONS[b.key]} ${b.title}</span>
+      <span class="ord">#${b.sort}</span>
+      <label class="toggle"><input type="checkbox" ${b.active?'checked':''} data-toggle="${b.key}"><span class="sl"></span></label>
+    </div>`).join("");
+  // 预览（仅 active 区块）
+  const d = I18N.tcm;
+  const active = [...BLOCKS].filter(b=>b.active).sort((a,b)=>a.sort-b.sort);
+  let html = `<div class="hero"><div class="brand">${d.brand}</div><div class="tag">${d.tag}</div><div class="loc">${d.loc}</div></div>`;
+  active.forEach(b=>{
+    if(b.key==="booking_route") html += `<div class="route">
+        <div class="step cur"><div class="num">01</div><div class="lbl">${d.route[0]}</div></div><div class="line"></div>
+        <div class="step"><div class="num">02</div><div class="lbl">${d.route[1]}</div></div><div class="line"></div>
+        <div class="step"><div class="num">03</div><div class="lbl">${d.route[2]}</div></div></div>`;
+    if(b.key==="service_list") html += `<div class="sec"><div class="sec-head"><div class="t">${b.title}</div></div><div class="hscroll">${d.services.map(x=>`<div class="svc"><div class="cov">${x[0]}</div><div class="body"><div class="nm">${x[0]}</div><div class="pr">${x[1]}</div></div></div>`).join("")}</div></div>`;
+    if(b.key==="info_list") html += `<div class="sec"><div class="sec-head"><div class="t">${b.title}</div></div>${d.infos.map(x=>`<div class="info"><div class="t">${x[0]}</div><div class="d">${x[1]}</div></div>`).join("")}</div>`;
+    if(b.key==="membership") html += `<div class="member"><div class="t">会员卡 · 次卡</div><div class="row"><div class="mc"><b>季卡</b><span>¥999</span></div><div class="mc"><b>10次</b><span>¥599</span></div></div></div>`;
+    if(b.key==="brand_hero") {/* 已在顶部 */}
+  });
+  document.getElementById("editScreen").innerHTML = html + `<div style="height:8px"></div>`;
+  document.getElementById("editNav").innerHTML = d.nav.map((n,i)=>`<div class="it ${i===0?'on':''}">${n}</div>`).join("");
+  // 属性面板回填
+  const b = BLOCKS.find(x=>x.key===selKey);
+  document.getElementById("propName").textContent = b.key;
+  document.getElementById("fTitle").value = b.title;
+  document.getElementById("fActive").value = b.active?"1":"0";
+  document.getElementById("fSort").value = b.sort;
+  document.getElementById("fCover").value = b.cover||"";
+  document.getElementById("fSource").value = b.source;
+}
+function bindEditor(){
+  document.getElementById("blockList").addEventListener("change",e=>{
+    if(e.target.dataset.toggle){const b=BLOCKS.find(x=>x.key===e.target.dataset.toggle);b.active=e.target.checked?1:0;renderEditor();flash();}
+  });
+  document.getElementById("blockList").addEventListener("click",e=>{
+    const row=e.target.closest(".blk"); if(row){selKey=row.dataset.k;renderEditor();}
+  });
+  ["fTitle","fActive","fSort","fCover","fSource"].forEach(id=>{
+    document.getElementById(id).addEventListener("input",e=>{
+      const b=BLOCKS.find(x=>x.key===selKey);
+      if(id==="fTitle")b.title=e.target.value;
+      if(id==="fActive")b.active=e.target.value==="1"?1:0;
+      if(id==="fSort")b.sort=+e.target.value;
+      if(id==="fCover")b.cover=e.target.value;
+      if(id==="fSource")b.source=e.target.value;
+      renderEditor();flash();
+    });
+  });
+}
+function flash(){const t=document.getElementById("liveTip");t.classList.add("show");clearTimeout(flash._t);flash._t=setTimeout(()=>t.classList.remove("show"),1400);}
+
+/* ---------- 导航 & 切换 ---------- */
+document.getElementById("nav").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b)return;
+  document.querySelectorAll("#nav button").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  document.getElementById(b.dataset.go).classList.add("active");
+  document.getElementById("homeSwitch").style.display = b.dataset.go==="p-home" ? "inline-flex":"none";
+});
+document.getElementById("homeSwitch").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b)return;
+  document.querySelectorAll("#homeSwitch button").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on");
+  renderHome(b.dataset.ind);
+});
+
+/* init */
+renderHome("tcm");
+renderEditor();
+bindEditor();
+</script>
+</body>
+</html>

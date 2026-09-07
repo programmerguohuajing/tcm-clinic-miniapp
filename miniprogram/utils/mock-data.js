@@ -72,6 +72,27 @@ const articles = [
   }
 ];
 
+// 演示租户（青囊中医馆）术语与品牌——仅 dev 兜底使用，非渲染硬编码
+const brand = "青囊中医馆";
+const terms = {
+  technician: "技师",
+  booking: "预约",
+  health_record: "健康档案",
+  service: "服务项目",
+  info: "健康资讯",
+  nav_home: "首页",
+  nav_book: "预约",
+  nav_record: "档案",
+  nav_me: "我的",
+  route_1: "选服务",
+  route_2: "选技师",
+  route_3: "选时段",
+  brand_tagline: "把脉问诊 · 调理身心"
+};
+const stores = [
+  { id: 1, name: "青囊中医馆（总店）", business_hours: "09:00-21:00" }
+];
+
 function getMock(key) {
   if (!isDev()) return [];
   const map = { services, practitioners, slots, activities, articles };
@@ -81,8 +102,11 @@ function getMock(key) {
 module.exports = {
   activities,
   articles,
+  brand,
   getMock,
   practitioners,
   services,
-  slots
+  slots,
+  stores,
+  terms
 };

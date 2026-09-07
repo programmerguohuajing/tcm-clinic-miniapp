@@ -1,3 +1,4 @@
+// 全量导航项（key 与后端 entitlement.ALL_MENUS 对齐；标签走术语字典，不写死业务词）
 export const navItems = [
   { path: "/", key: "dashboard", label: "经营看板" },
   { path: "/stores", key: "stores", label: "多门店" },
@@ -8,11 +9,40 @@ export const navItems = [
   { path: "/orders", key: "orders", label: "预约订单" },
   { path: "/commissions", key: "commissions", label: "提成结算" },
   { path: "/homepage", key: "homepage", label: "首页配置" },
+  { path: "/page-config", key: "pageConfig", label: "页面配置" },
   { path: "/content", key: "content", label: "内容营销" },
   { path: "/users", key: "users", label: "会员权限" },
   { path: "/reviews", key: "reviews", label: "评价管理" },
-  { path: "/audit", key: "audit", label: "操作日志" }
+  { path: "/audit", key: "audit", label: "操作日志" },
+  { path: "/transactions", key: "transactions", label: "商户交易" },
+  { path: "/plans", key: "plans", label: "套餐管理" }
 ];
+
+// 业态模板 → 默认可见导航（Phase 2 管理端模板化）
+// 中医馆看不到团课/会员卡专属项（此处用统一 navItems，具体业态差异由套餐能力再过滤）
+export const navByTemplate = {
+  tcm_clinic: ["dashboard", "stores", "services", "practitioners", "schedules", "orders", "commissions", "homepage", "pageConfig", "content", "users", "reviews", "audit", "transactions", "plans"],
+  gym: ["dashboard", "stores", "services", "practitioners", "schedules", "orders", "commissions", "pageConfig", "content", "users", "reviews", "audit", "transactions", "plans"],
+};
+
+// 默认套餐（无套餐时回退基础版）
+export const DEFAULT_PLAN = "basic";
+
+// 按套餐 + 业态过滤导航（Phase 2 + Phase 3：模板决定基调，套餐决定能力门控）
+// planMenus: 后端返回的该套餐允许菜单 key 数组
+// templateKey: 业态模板 key（缺省全量）
+export function resolveNavItems({ planMenus, templateKey } = {}) {
+  let base = navItems;
+  if (templateKey && Array.isArray(navByTemplate[templateKey])) {
+    const allowed = new Set(navByTemplate[templateKey]);
+    base = navItems.filter((it) => allowed.has(it.key));
+  }
+  if (Array.isArray(planMenus) && planMenus.length) {
+    const allowed = new Set(planMenus);
+    return base.filter((it) => allowed.has(it.key));
+  }
+  return base;
+}
 
 export const statusMap = {
   active: "启用",

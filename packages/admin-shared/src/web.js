@@ -1,4 +1,4 @@
-import { createAdminApi } from "./admin-api.js";
+import { createCommerceApi } from "./admin-api.js";
 
 const RETRYABLE_STATUS = new Set([500, 502, 503, 504]);
 const MAX_RETRIES = 2;
@@ -45,4 +45,4 @@ export async function request(path, options = {}) {
   return payload.data ?? payload;
 }
 
-export const adminApi = createAdminApi(request);
+export const adminApi = createCommerceApi(request);

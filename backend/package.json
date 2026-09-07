@@ -10,7 +10,8 @@
     "deploy": "wrangler deploy",
     "db:init": "node scripts/init-db.js",
     "db:seed": "node scripts/seed-db.js",
-    "cf:dev": "wrangler dev"
+    "cf:dev": "wrangler dev",
+    "test": "node test/page-engine.test.mjs && node test/payment-router.test.mjs && node test/payment-gateway.test.mjs && node test/payments-flow.test.mjs && node test/entitlement.test.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.0",

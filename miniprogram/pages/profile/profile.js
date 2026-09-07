@@ -1,4 +1,5 @@
 const { request } = require("../../utils/request");
+const { loadPage } = require("../../utils/page-engine");
 
 Page({
   data: {
@@ -10,6 +11,9 @@ Page({
     canTechnician: false,
     appointments: [],
     familyMembers: [],
+    terms: {},
+    brand: "",
+    theme: null,
     statusText: {
       pending: "待确认",
       confirmed: "已确认",
@@ -20,7 +24,19 @@ Page({
   },
 
   onShow() {
+    this.loadEngineTerms();
     this.loadProfile();
+  },
+
+  async loadEngineTerms() {
+    try {
+      const page = await loadPage("profile");
+      const terms = (page && page.terms) || {};
+      this.setData({ terms, brand: page ? page.brand : "", theme: page && page.theme ? page.theme : null });
+      if (page && page.brand) wx.setNavigationBarTitle({ title: page.brand });
+    } catch (e) {
+      this.setData({ terms: {} });
+    }
   },
 
   async loadProfile() {

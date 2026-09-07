@@ -1,71 +1,96 @@
 <!--
-THESIS: A service-first clinic home that makes the next booking step obvious and refuses the promotional wellness-template homepage.
-OWN-WORLD: Cool gray canvas, charcoal type, white surfaces, hairline borders, and mandarin orange reserved for action, selection, and route progress.
-STORY: The visitor recognizes the clinic, chooses a service, and knows how to reach a confirmed slot before browsing health content.
-FIRST VIEWPORT: Clinic identity and location first; one appointment action and its service-to-time path above service cards, content, and the four-tab navigation.
-FORM: Operate mode, restrained palette strategy, approved Service Orange direction B; concept seed d3743ff9.
-FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+R5 改造：C 端首页由页面引擎渲染（术语字典 + 主题 token + 区块配置驱动），
+所有面向用户的业务词（品牌名 / 导航 / 路线 / 区块标题）来自引擎解析结果，
+代码层零硬编码业务词。新增业态只需新增模板数据，无需改动本文件。
 -->
-<view class="page">
+<view class="page" style="background-color: {{page.theme.bg}}">
   <view wx:if="{{loading}}" class="loading-mask"><view class="loading-spinner"></view></view>
+
   <view class="home-header">
     <view>
-      <view class="home-brand">中医馆</view>
+      <view class="home-brand">{{page.brand}}</view>
       <view wx:if="{{store}}" class="home-store">{{store.name}} · {{store.business_hours}}</view>
     </view>
     <view class="home-header-mark"><view></view><view></view><view></view></view>
   </view>
 
-  <view class="hero-card home-hero">
+  <view class="hero-card home-hero" style="background-color: {{page.theme.surface}}">
     <view class="home-hero-top">
-      <view class="title">{{hero.headline}}</view>
-      <view class="home-hero-arrow">›</view>
+      <view class="title">{{page.tagline}}</view>
+      <view class="home-hero-arrow" style="color: {{page.theme.primary}}">›</view>
     </view>
-    <view class="subtitle">{{hero.subtitle}}</view>
-    <button class="primary-button hero-button" bindtap="goBooking">{{hero.button}}</button>
+    <view class="subtitle">为每位顾客安排合适的{{page.terms.technician}}与{{page.terms.service}}</view>
+    <button class="primary-button hero-button" style="background-color: {{page.theme.primary}}" bindtap="goBooking">{{page.terms.booking}}</button>
   </view>
 
   <view class="booking-route">
-    <view class="route-step active"><text>01</text><label>选择服务</label></view>
-    <view class="route-line"></view>
-    <view class="route-step"><text>02</text><label>选择技师</label></view>
-    <view class="route-line"></view>
-    <view class="route-step"><text>03</text><label>选择时段</label></view>
+    <block wx:for="{{page.bookingRoute}}" wx:for-item="step" wx:key="step">
+      <view class="route-step {{index === 0 ? 'active' : ''}}">
+        <text>{{step.step}}</text><label>{{step.label}}</label>
+      </view>
+      <view wx:if="{{index < page.bookingRoute.length - 1}}" class="route-line"></view>
+    </block>
   </view>
 
-  <view class="section-title">
-    <text>服务项目</text>
-    <text class="muted">查看全部 ›</text>
-  </view>
-  <scroll-view scroll-x class="activity-scroll">
-    <block wx:for="{{activities}}" wx:key="id">
-      <view class="activity-card" bindtap="goActivityDetail" data-id="{{item.id}}">
-        <image class="activity-cover" src="{{item.cover_url}}" mode="aspectFill" lazy-load />
-        <view class="pill activity-tag">{{item.tag}}</view>
-        <view class="activity-title">{{item.title}}</view>
-        <view class="subtitle">{{item.subtitle}}</view>
-        <view class="activity-bottom">
-          <text class="price">¥{{item.price}}</text>
-          <text class="origin">¥{{item.original_price}}</text>
+  <!-- 动态区块：按 section.kind 渲染（模板预置区块，新增业态复用已有渲染原语） -->
+  <block wx:for="{{page.sections}}" wx:for-item="section" wx:key="section_key">
+    <view class="section-title">
+      <text>{{section.title}}</text>
+      <text class="muted">查看全部 ›</text>
+    </view>
+
+    <!-- 服务 / 课程 / 活动卡片列表 -->
+    <block wx:if="{{section.kind === 'service_list' || section.kind === 'activity_list'}}">
+      <scroll-view scroll-x class="activity-scroll">
+        <block wx:for="{{section.items}}" wx:for-item="it" wx:key="id">
+          <view class="activity-card" bindtap="{{section.kind === 'activity_list' ? 'goActivityDetail' : ''}}" data-id="{{it.id}}">
+            <image class="activity-cover" src="{{it.cover_url}}" mode="aspectFill" lazy-load />
+            <view class="pill activity-tag" wx:if="{{it.tag}}">{{it.tag}}</view>
+            <view class="activity-title">{{it.name || it.title}}</view>
+            <view class="subtitle">{{it.subtitle || it.description}}</view>
+            <view class="activity-bottom" wx:if="{{it.price}}">
+              <text class="price">¥{{it.price}}</text>
+              <text class="origin" wx:if="{{it.original_price}}">¥{{it.original_price}}</text>
+            </view>
+          </view>
+        </block>
+      </scroll-view>
+    </block>
+
+    <!-- 资讯 / 文章列表 -->
+    <block wx:elif="{{section.kind === 'info_list'}}">
+      <block wx:for="{{section.items}}" wx:for-item="it" wx:key="id">
+        <view class="list-card article-card" bindtap="goArticleDetail" data-id="{{it.id}}">
+          <image class="article-cover" src="{{it.cover_url}}" mode="aspectFill" lazy-load />
+          <view class="article-body">
+            <view class="pill" wx:if="{{it.category}}">{{it.category}}</view>
+            <view class="article-title">{{it.title}}</view>
+            <view class="subtitle">{{it.summary}}</view>
+            <view class="muted" wx:if="{{it.read_minutes}}">{{it.read_minutes}} 分钟阅读</view>
+          </view>
         </view>
+      </block>
+    </block>
+
+    <!-- 会员卡 / 次卡列表 -->
+    <block wx:elif="{{section.kind === 'membership'}}">
+      <block wx:for="{{section.items}}" wx:for-item="it" wx:key="id">
+        <view class="list-card membership-card" style="border-color: {{page.theme.accentBorder}}">
+          <view class="article-title">{{it.name}}</view>
+          <view class="subtitle">{{it.description}}</view>
+          <view class="muted">{{it.type === 'count' ? it.sessions + ' 次有效' : it.validity_days + ' 天有效'}}</view>
+          <view class="activity-bottom"><text class="price">¥{{it.price}}</text></view>
+        </view>
+      </block>
+    </block>
+
+    <!-- 其他未知区块类型兜底占位 -->
+    <block wx:else>
+      <view class="list-card membership-card" style="border-color: {{page.theme.accentBorder}}">
+        <view class="article-title">{{section.title}}</view>
+        <view class="subtitle">更多内容即将上线</view>
       </view>
     </block>
-  </scroll-view>
-
-  <view class="section-title">
-    <text>健康资讯</text>
-    <text class="muted">查看更多 ›</text>
-  </view>
-  <block wx:for="{{articles}}" wx:key="id">
-    <view class="list-card article-card" bindtap="goArticleDetail" data-id="{{item.id}}">
-      <image class="article-cover" src="{{item.cover_url}}" mode="aspectFill" lazy-load />
-      <view class="article-body">
-        <view class="pill">{{item.category}}</view>
-        <view class="article-title">{{item.title}}</view>
-        <view class="subtitle">{{item.summary}}</view>
-        <view class="muted">{{item.read_minutes}} 分钟阅读</view>
-      </view>
-    </view>
   </block>
 </view>
 
@@ -74,13 +99,13 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
   <view class="phone-overlay-backdrop"></view>
   <view class="phone-overlay-card">
     <view class="phone-overlay-icon">+</view>
-    <view class="phone-overlay-title">欢迎来到青囊中医馆</view>
-    <view class="phone-overlay-desc">请先授权手机号\n为您开启完整的疗愈体验</view>
+    <view class="phone-overlay-title">欢迎来到{{page.brand}}</view>
+    <view class="phone-overlay-desc">请先授权手机号\n为您开启完整的到店体验</view>
     <view class="phone-overlay-features">
-      <view class="phone-overlay-feature"><text class="phone-overlay-feature-icon">✓</text><text>在线预约服务</text></view>
-      <view class="phone-overlay-feature"><text class="phone-overlay-feature-icon">✓</text><text>查看健康档案</text></view>
-      <view class="phone-overlay-feature"><text class="phone-overlay-feature-icon">✓</text><text>会员积分管理</text></view>
-      <view class="phone-overlay-feature"><text class="phone-overlay-feature-icon">✓</text><text>预约消息提醒</text></view>
+      <view class="phone-overlay-feature"><text class="phone-overlay-feature-icon">✓</text><text>在线{{page.terms.booking}}</text></view>
+      <view class="phone-overlay-feature"><text class="phone-overlay-feature-icon">✓</text><text>查看{{page.terms.health_record}}</text></view>
+      <view class="phone-overlay-feature"><text class="phone-overflow-feature-icon">✓</text><text>会员积分管理</text></view>
+      <view class="phone-overlay-feature"><text class="phone-overlay-feature-icon">✓</text><text>{{page.terms.booking}}消息提醒</text></view>
     </view>
     <button class="phone-overlay-button" bindtap="goToLogin">微信手机号一键登录</button>
     <view class="phone-overlay-terms">登录即同意《用户协议》和《隐私政策》</view>

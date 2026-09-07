@@ -28,6 +28,13 @@ export function createAdminApi(request) {
     saveCommissionRule: (data) => request(data.id ? `/admin/commission-rules/${data.id}` : "/admin/commission-rules", { method: data.id ? "PATCH" : "POST", data }),
     homepageConfigs: (params) => request(`/admin/homepage-configs${query(params)}`),
     saveHomepageConfig: (data) => request(data.id ? `/admin/homepage-configs/${data.id}` : "/admin/homepage-configs", { method: data.id ? "PATCH" : "POST", data }),
+    // 多租户页面引擎（Phase 1 / R6）
+    tenants: (params) => request(`/cpages/tenants${query(params)}`),
+    updateTenant: (id, data) => request(`/cpages/admin/tenants/${id}`, { method: "PATCH", data }),
+    pageConfigs: (params) => request(`/cpages/admin/configs${query(params)}`),
+    savePageConfig: (data) => request("/cpages/admin/configs", { method: "POST", data }),
+    updatePageConfig: (id, data) => request(`/cpages/admin/configs/${id}`, { method: "PUT", data }),
+    deletePageConfig: (id) => request(`/cpages/admin/configs/${id}`, { method: "DELETE" }),
     activities: (params) => request(`/admin/activities${query(params)}`),
     createActivity: (data) => request("/admin/activities", { method: "POST", data }),
     articles: (params) => request(`/admin/articles${query(params)}`),
@@ -43,5 +50,23 @@ export function createAdminApi(request) {
     technicianSchedules: (params) => request(`/technician/me/schedules${query(params)}`),
     saveTechnicianSchedule: (data) => request("/technician/me/schedules", { method: "POST", data }),
     technicianCommissions: (params) => request(`/technician/me/commissions${query(params)}`)
+  };
+};
+
+// 支付与套餐（Phase 1.5d + Phase 3）
+export function createCommerceApi(request) {
+  const parent = createAdminApi(request);
+  return {
+    ...parent,
+    // 商户交易视图（R9）：按租户交易列表 + 汇总
+    merchantTransactions: (params) => request(`/payments/admin/merchant/transactions${query(params)}`),
+    // 退款发起（R8）
+    createRefund: (data) => request("/payments/refunds", { method: "POST", data }),
+    // 套餐列表（Phase 3）
+    plans: () => request("/cpages/admin/plans"),
+    // 租户当前套餐 + 可用菜单（Phase 3 门控）
+    tenantPlan: (tenantId) => request(`/cpages/admin/tenants/${tenantId}/plan`),
+    // 设置租户套餐（管理员操作）
+    setTenantPlan: (tenantId, planKey) => request(`/cpages/admin/tenants/${tenantId}/plan`, { method: "PUT", data: { planKey } }),
   };
 }

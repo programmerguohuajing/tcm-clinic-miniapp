@@ -1,5 +1,6 @@
 const { request } = require("../../utils/request");
 const { isDev } = require("../../utils/env");
+const { loadPage } = require("../../utils/page-engine");
 const mock = require("../../utils/mock-data");
 
 function today() {
@@ -18,11 +19,34 @@ Page({
     slots: [],
     selectedService: null,
     selectedPractitioner: null,
-    selectedSlot: null
+    selectedSlot: null,
+    terms: {},
+    brand: "",
+    bookingRoute: [],
+    theme: null
   },
 
   onLoad() {
+    this.loadEngineTerms();
     this.loadServices();
+  },
+
+  // 加载业态术语 / 品牌 / 预约流程（Phase 1 P1：术语随模板变化，不再硬编码业务词）
+  async loadEngineTerms() {
+    try {
+      const page = await loadPage("booking");
+      const terms = (page && page.terms) || mock.terms || {};
+      this.setData({
+        terms,
+        brand: page ? page.brand : (mock.brand || ""),
+        bookingRoute: page ? page.bookingRoute : [],
+        theme: page && page.theme ? page.theme : null,
+      });
+      if (page && page.brand) wx.setNavigationBarTitle({ title: page.brand });
+    } catch (e) {
+      const terms = mock.terms || {};
+      this.setData({ terms, bookingRoute: [], brand: mock.brand || "" });
+    }
   },
 
   async loadServices() {

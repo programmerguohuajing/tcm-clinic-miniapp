@@ -12,10 +12,13 @@ const routes = [
   { path: "/orders", name: "orders", component: () => import("../views/OrdersView.vue"), meta: { title: "预约订单" } },
   { path: "/commissions", name: "commissions", component: () => import("../views/CommissionsView.vue"), meta: { title: "提成结算" } },
   { path: "/homepage", name: "homepage", component: () => import("../views/HomepageConfigView.vue"), meta: { title: "首页配置" } },
+  { path: "/page-config", name: "pageConfig", component: () => import("../views/PageConfigView.vue"), meta: { title: "页面配置" } },
   { path: "/content", name: "content", component: () => import("../views/ContentView.vue"), meta: { title: "内容营销" } },
   { path: "/users", name: "users", component: () => import("../views/UsersView.vue"), meta: { title: "会员权限" } },
   { path: "/reviews", name: "reviews", component: () => import("../views/ReviewsView.vue"), meta: { title: "评价管理" } },
-  { path: "/audit", name: "audit", component: () => import("../views/AuditView.vue"), meta: { title: "操作日志" } }
+  { path: "/audit", name: "audit", component: () => import("../views/AuditView.vue"), meta: { title: "操作日志" } },
+  { path: "/transactions", name: "transactions", component: () => import("../views/MerchantTransactionsView.vue"), meta: { title: "商户交易" } },
+  { path: "/plans", name: "plans", component: () => import("../views/PlanManagementView.vue"), meta: { title: "套餐管理" } }
 ];
 
 const router = createRouter({
