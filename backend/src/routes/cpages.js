@@ -224,9 +224,18 @@ export const cpagesRouter = () => {
     const body = z.object({ planKey: z.string().min(1).max(40) }).parse(await c.req.json());
     const exists = await query(`select 1 from plans where key = $1`, [body.planKey]);
     if (!exists.rows[0]) return c.json({ error: { code: "PLAN_NOT_FOUND", message: "套餐不存在" } }, 404);
-    await query(`update tenant_plans set ended_at = now() where tenant_id = $1 and ended_at is null`, [id]);
+    // 结束其他生效行（不含目标套餐自身的历史行，避免误改）
+    await query(
+      `update tenant_plans set ended_at = now() where tenant_id = $1 and ended_at is null and plan_key <> $2`,
+      [id, body.planKey]
+    );
+    // upsert：目标套餐历史上挂过则复活该行（清 ended_at、刷新 started_at），
+    // 否则插入新行 —— 规避 unique(tenant_id, plan_key) 在"切回历史套餐"时的 duplicate key
     const { rows } = await query(
-      `insert into tenant_plans (tenant_id, plan_key) values ($1,$2) returning *`,
+      `insert into tenant_plans (tenant_id, plan_key) values ($1,$2)
+       on conflict (tenant_id, plan_key) do update
+         set started_at = now(), ended_at = null
+       returning *`,
       [id, body.planKey]
     );
     return c.json({ data: rows[0] }, 201);

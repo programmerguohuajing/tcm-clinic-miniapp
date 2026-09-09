@@ -87,6 +87,14 @@ async function main() {
   res = await req("/api/cpages/admin/tenants/1/plan", { headers: adminAuth });
   record("owner GET /api/admin/tenants/1/plan → 200", res.status === 200, `status=${res.status}`);
 
+  // 7b. 重复切换套餐回归（历史 bug：切回用过的套餐撞 unique(tenant_id, plan_key)）
+  res = await req("/api/cpages/admin/tenants/1/plan", { method: "PUT", headers: adminAuth, body: JSON.stringify({ planKey: "pro" }) });
+  record("owner PUT plan → pro 201", res.status === 201, `status=${res.status}`);
+  res = await req("/api/cpages/admin/tenants/1/plan", { method: "PUT", headers: adminAuth, body: JSON.stringify({ planKey: "flagship" }) });
+  record("owner PUT plan 切回旗舰版 → 201 (upsert 无 duplicate key)", res.status === 201, `status=${res.status}`);
+  const planAfter = await db.query("select plan_key from tenant_plans where tenant_id = 1 and ended_at is null");
+  record("切换后租户1生效套餐 = flagship", planAfter[0]?.plan_key === "flagship", JSON.stringify(planAfter));
+
   // 8. 伪造普通用户 token（DB 中 can_manage=false 用户）
   const normal = await db.query("select id, nickname from users where (can_manage = false or can_manage is null) order by id limit 1");
   let normalAuth = null;
