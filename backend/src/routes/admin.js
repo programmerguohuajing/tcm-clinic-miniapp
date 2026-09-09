@@ -958,7 +958,11 @@ export const adminRouter = () => {
       adminRole: z.enum(["member", "frontdesk", "manager", "owner"]).default("member"),
       canManage: z.boolean().default(false),
       points: z.coerce.number().int().min(0).default(0),
-      tenantId: z.coerce.number().int().positive().optional()
+      // 兼容 undefined/空串（z.coerce 会把 undefined 变 NaN 导致 500）
+      tenantId: z.preprocess(
+        (v) => (v === undefined || v === null || v === "" ? undefined : v),
+        z.number().int().positive().optional()
+      )
     });
     const data = schema.parse(await c.req.json());
 
@@ -987,7 +991,7 @@ export const adminRouter = () => {
       `insert into users (phone, nickname, member_level, admin_role, can_manage, points, tenant_id, created_at)
        values ($1,$2,$3,$4,$5,$6,$7, now())
        returning id, nickname, phone, member_level, points, admin_role, can_manage, tenant_id`,
-      [data.phone, data.nickname, data.memberLevel || null, adminRole, canManage, data.points, tenantId]
+      [data.phone, data.nickname, data.memberLevel || "青竹会员", adminRole, canManage, data.points, tenantId]
     );
     await audit(c, "create_user", "user", rows[0].id, { ...data, tenantId, adminRole, canManage });
     return c.json({ data: rows[0] }, 201);
@@ -999,7 +1003,10 @@ export const adminRouter = () => {
       adminRole: z.enum(["member", "frontdesk", "manager", "owner", "tenant_admin"]),
       canManage: z.boolean(),
       // 归属商户：设置 tenant_admin 时必填；其他角色可传 null 清除归属
-      tenantId: z.coerce.number().int().positive().nullable().optional()
+      tenantId: z.preprocess(
+        (v) => (v === undefined || v === "" ? undefined : v),
+        z.number().int().positive().nullable().optional()
+      )
     });
     const data = schema.parse(await c.req.json());
 

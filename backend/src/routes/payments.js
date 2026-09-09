@@ -439,7 +439,11 @@ export const paymentsRouter = () => {
 
   app.get("/admin/merchant/transactions", asyncHandler(async (c) => {
     const schema = z.object({
-      tenantId: z.coerce.number().int().positive(),
+      // 可选：商户管理员由 tenantScope 强制本租户；owner 不传则查全部租户
+      tenantId: z.preprocess(
+        (v) => (v === undefined || v === null || v === "" ? undefined : v),
+        z.number().int().positive().optional()
+      ),
       storeId: z.coerce.number().int().positive().optional(),
       status: z.string().max(20).optional(),
       channel: z.enum(CHANNELS).optional(),
@@ -449,10 +453,14 @@ export const paymentsRouter = () => {
       pageSize: z.coerce.number().int().positive().max(100).default(20),
     });
     const q = schema.parse(c.req.query());
-    const params = [q.tenantId];
+    // 越权防护：商户管理员强制只能看本租户交易
+    const txnScope = c.get("tenantScope");
+    const scopeTenantId = txnScope ?? q.tenantId ?? null;
+    const params = scopeTenantId ? [scopeTenantId] : [];
     let sql = `select id, out_trade_no, channel, goods_type, amount, currency, status, platform,
                       channel_order_id, mock, created_at, paid_at, delivered_at
-                 from payment_orders where tenant_id = $1`;
+                 from payment_orders`;
+    if (scopeTenantId) sql += ` where tenant_id = $1`;
     if (q.storeId) { sql += ` and store_id = $${params.length + 1}`; params.push(q.storeId); }
     if (q.status) { sql += ` and status = $${params.length + 1}`; params.push(q.status); }
     if (q.channel) { sql += ` and channel = $${params.length + 1}`; params.push(q.channel); }
@@ -464,12 +472,13 @@ export const paymentsRouter = () => {
     const { rows } = await query(sql, params);
 
     // 汇总（金额 / 笔数）
-    const sumParams = [q.tenantId];
+    const sumParams = scopeTenantId ? [scopeTenantId] : [];
     let sumSql = `select
         count(*) as total,
         coalesce(sum(amount) filter (where status in ('paid','delivering','delivered','refunding')),0) as paid_amount,
         coalesce(sum(amount) filter (where status='refunded'),0) as refunded_amount
-      from payment_orders where tenant_id = $1`;
+      from payment_orders`;
+    if (scopeTenantId) sumSql += ` where tenant_id = $1`;
     if (q.storeId) { sumSql += ` and store_id = $${sumParams.length + 1}`; sumParams.push(q.storeId); }
     if (q.channel) { sumSql += ` and channel = $${sumParams.length + 1}`; sumParams.push(q.channel); }
     const { rows: sum } = await query(sumSql, sumParams);
