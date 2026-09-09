@@ -2,6 +2,7 @@
 import { onMounted, ref } from "vue";
 import PageSection from "../components/PageSection.vue";
 import { adminApi } from "../services/adminApi";
+import { menuLabel, capabilityLabel } from "../constants/nav";
 
 const tenantId = ref(null);
 const plans = ref([]);
@@ -74,11 +75,11 @@ onMounted(load);
         <p class="desc">{{ p.description }}</p>
         <div class="block">
           <span class="block-title">菜单</span>
-          <span v-for="m in tagList(p.menus)" :key="m" class="chip">{{ m }}</span>
+          <span v-for="m in tagList(p.menus)" :key="m" class="chip">{{ menuLabel(m) }}</span>
         </div>
         <div class="block">
           <span class="block-title">能力</span>
-          <span v-for="c in tagList(p.capabilities)" :key="c" class="chip chip-cap">{{ c }}</span>
+          <span v-for="c in tagList(p.capabilities)" :key="c" class="chip chip-cap">{{ capabilityLabel(c) }}</span>
         </div>
       </div>
     </div>

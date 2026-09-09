@@ -29,6 +29,29 @@ export const navByTemplate = {
 // 默认套餐（无套餐时回退基础版）
 export const DEFAULT_PLAN = "basic";
 
+// 菜单 key → 中文标签（从 navItems 派生，单一维护源）
+export const MENU_LABELS = Object.fromEntries(navItems.map((it) => [it.key, it.label]));
+
+// 能力 key → 中文标签（后端 plans.capabilities 的取值）
+export const CAPABILITY_LABELS = {
+  booking: "在线预约",
+  single_store: "单门店",
+  multi_store: "多门店",
+  marketing: "营销工具",
+  data_board: "数据看板",
+  pay: "在线支付",
+  technician_portal: "技师工作台",
+  content_ops: "内容深度运营"
+};
+
+// 标签渲染兜底：字典缺失时回退原 key
+export function menuLabel(key) {
+  return MENU_LABELS[key] || key;
+}
+export function capabilityLabel(key) {
+  return CAPABILITY_LABELS[key] || key;
+}
+
 // 按套餐 + 业态过滤导航（Phase 2 + Phase 3：模板决定基调，套餐决定能力门控）
 // planMenus: 后端返回的该套餐允许菜单 key 数组
 // templateKey: 业态模板 key（缺省全量）
