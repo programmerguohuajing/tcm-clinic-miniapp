@@ -2,11 +2,21 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { query } from "../config/db.js";
 import { asyncHandler } from "../middleware/async-handler.js";
-import { requireAdmin } from "../middleware/auth.js";
+import { requireAdmin, requireRole } from "../middleware/auth.js";
 import { resolvePage } from "../services/page-engine.js";
 
 export const cpagesRouter = () => {
   const app = new Hono();
+
+  // 管理端守卫必须先于所有 /admin 路由注册（Hono 按注册顺序组链，
+  // 若 handler 先注册，后注册的中间件不会作用于它 → 鉴权缺口）
+  app.use("/admin/*", requireAdmin);
+
+  // 商户管理员 scope：tenant_admin 返回其租户 id（强制本租户），其他角色返回 null
+  function tenantAdminScope(c) {
+    const user = c.get("user");
+    return user?.admin_role === "tenant_admin" && user?.tenant_id ? user.tenant_id : null;
+  }
 
   // ── 查询辅助 ──
   async function fetchResolved(tenantId, pageKey) {
@@ -88,6 +98,11 @@ export const cpagesRouter = () => {
   // 更新租户品牌 / 主题 token（R6：品牌名、主色、标语）
   app.patch("/admin/tenants/:id", asyncHandler(async (c) => {
     const id = z.coerce.number().int().positive().parse(c.req.param("id"));
+    // 商户管理员仅可改本商户
+    const scoped = tenantAdminScope(c);
+    if (scoped && scoped !== id) {
+      return c.json({ error: { code: "FORBIDDEN", message: "无权操作其他商户" } }, 403);
+    }
     const body = z.object({
       name: z.string().max(100).optional(),
       brand_tagline: z.string().max(200).optional(),
@@ -116,9 +131,13 @@ export const cpagesRouter = () => {
     return c.json({ data: rows });
   }));
 
-  // 租户当前套餐 + 可用菜单（Phase 3 门控）
+  // 租户当前套餐 + 可用菜单（Phase 3 门控；商户管理员仅可读本商户）
   app.get("/admin/tenants/:id/plan", asyncHandler(async (c) => {
     const id = z.coerce.number().int().positive().parse(c.req.param("id"));
+    const scoped = tenantAdminScope(c);
+    if (scoped && scoped !== id) {
+      return c.json({ error: { code: "FORBIDDEN", message: "无权查看其他商户套餐" } }, 403);
+    }
     const { rows } = await query(
       `select p.key, p.name, p.menus, p.capabilities
          from tenant_plans tp join plans p on p.key = tp.plan_key
@@ -133,8 +152,8 @@ export const cpagesRouter = () => {
     return c.json({ data: rows[0] });
   }));
 
-  // 设置租户套餐（Phase 3）
-  app.put("/admin/tenants/:id/plan", asyncHandler(async (c) => {
+  // 设置租户套餐（Phase 3；套餐为平台商业决策，仅平台 owner 可改）
+  app.put("/admin/tenants/:id/plan", requireRole("owner"), asyncHandler(async (c) => {
     const id = z.coerce.number().int().positive().parse(c.req.param("id"));
     const body = z.object({ planKey: z.string().min(1).max(40) }).parse(await c.req.json());
     const exists = await query(`select 1 from plans where key = $1`, [body.planKey]);
@@ -156,10 +175,10 @@ export const cpagesRouter = () => {
   }));
 
   // ================= 管理端（需权限，R6） =================
-  app.use("/admin/*", requireAdmin);
-
-  // 租户来源：优先请求上下文（x-tenant-id），其次显式参数（开发回退）
+  // 租户来源：商户管理员强制本租户 → 请求上下文（x-tenant-id）→ 显式参数（开发回退）
   function ctxTenantId(c) {
+    const scoped = tenantAdminScope(c);
+    if (scoped) return scoped;
     const ctx = c.get("tenantId");
     if (ctx) return ctx;
     const q = c.req.query("tenantId");
@@ -213,13 +232,15 @@ export const cpagesRouter = () => {
     return c.json({ data: rows[0] }, 201);
   }));
 
-  // 更新区块配置（校验归属当前租户，防跨租户改写）
+  // 更新区块配置（校验归属当前租户，防跨租户改写；商户管理员强制本租户）
   app.put("/admin/configs/:id", asyncHandler(async (c) => {
     const id = z.coerce.number().int().positive().parse(c.req.param("id"));
     const tenantId = ctxTenantId(c);
     if (tenantId) {
       const owner = await query(`select 1 from tenant_page_configs where id = $1 and tenant_id = $2`, [id, tenantId]);
       if (!owner.rows[0]) return c.json({ error: { code: "FORBIDDEN", message: "无权操作该租户配置" } }, 403);
+    } else if (tenantAdminScope(c)) {
+      return c.json({ error: { code: "TENANT_REQUIRED", message: "缺少租户上下文" } }, 400);
     }
     const body = z.object({
       title: z.string().max(120).optional(),
@@ -245,13 +266,15 @@ export const cpagesRouter = () => {
     return c.json({ data: rows[0] });
   }));
 
-  // 删除区块配置（校验归属当前租户）
+  // 删除区块配置（校验归属当前租户；商户管理员强制本租户）
   app.delete("/admin/configs/:id", asyncHandler(async (c) => {
     const id = z.coerce.number().int().positive().parse(c.req.param("id"));
     const tenantId = ctxTenantId(c);
     if (tenantId) {
       const owner = await query(`select 1 from tenant_page_configs where id = $1 and tenant_id = $2`, [id, tenantId]);
       if (!owner.rows[0]) return c.json({ error: { code: "FORBIDDEN", message: "无权操作该租户配置" } }, 403);
+    } else if (tenantAdminScope(c)) {
+      return c.json({ error: { code: "TENANT_REQUIRED", message: "缺少租户上下文" } }, 400);
     }
     const { rowCount } = await query(`delete from tenant_page_configs where id = $1`, [id]);
     if (rowCount === 0) return c.json({ error: { code: "NOT_FOUND", message: "配置不存在" } }, 404);

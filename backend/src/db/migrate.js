@@ -76,6 +76,7 @@ export async function migrate(databaseUrl) {
   await run("migrate_template_pages", "migrate_template_pages.sql");
   await run("migrate_refunds", "migrate_refunds.sql");
   await run("migrate_plans", "migrate_plans.sql");
+  await run("migrate_user_tenant", "migrate_user_tenant.sql");
 
   console.log("[migrate] all done");
 }

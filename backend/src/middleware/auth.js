@@ -4,7 +4,7 @@ import { JWT_SECRET, DEMO_USER } from "../config/env.js";
 
 async function findUserById(userId) {
   const result = await query(
-    `select u.id, u.nickname, u.phone, u.points, u.member_level, u.admin_role, u.can_manage, u.can_technician,
+    `select u.id, u.nickname, u.phone, u.points, u.member_level, u.admin_role, u.can_manage, u.can_technician, u.tenant_id,
             p.id as technician_id
        from users u
        left join practitioners p on p.user_id = u.id
@@ -69,6 +69,24 @@ export function requireRole(...roles) {
     }
     return next();
   };
+}
+
+// 商户管理员守卫：平台 owner（任意租户）或 tenant_admin（仅限本租户）可过。
+// 通过后 c.set("tenantScope", tenantId | null)：null = 平台不限，数字 = 强制本租户。
+export function requireTenantAdmin(c, next) {
+  const user = c.get("user");
+  if (!user?.can_manage) {
+    return c.json({ message: "当前用户没有管理端权限" }, 403);
+  }
+  if (user.admin_role === "owner") {
+    c.set("tenantScope", null);
+    return next();
+  }
+  if (user.admin_role === "tenant_admin" && user.tenant_id) {
+    c.set("tenantScope", user.tenant_id);
+    return next();
+  }
+  return c.json({ message: "当前角色无权执行此操作" }, 403);
 }
 
 export function requireTechnician(c, next) {

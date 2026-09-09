@@ -103,6 +103,7 @@ export const statusOptions = {
     { label: "普通会员", value: "member" },
     { label: "前台", value: "frontdesk" },
     { label: "店长", value: "manager" },
+    { label: "商户管理员", value: "tenant_admin" },
     { label: "总部管理员", value: "owner" }
   ],
   bool: [

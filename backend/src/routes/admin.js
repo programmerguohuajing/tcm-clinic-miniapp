@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { query, tx } from "../config/db.js";
 import { asyncHandler } from "../middleware/async-handler.js";
-import { requireAdmin, requireRole } from "../middleware/auth.js";
+import { requireAdmin, requireRole, requireTenantAdmin } from "../middleware/auth.js";
 import { isProduction, maskPhone } from "../config/env.js";
 import { VALID_STATUS_TRANSITIONS } from "../config/constants.js";
 
@@ -908,12 +908,18 @@ export const adminRouter = () => {
   app.get("/admin/users", asyncHandler(async (c) => {
     const params = z.object({
       keyword: z.string().optional(),
-      adminRole: z.enum(["member", "frontdesk", "manager", "owner"]).optional(),
+      adminRole: z.enum(["member", "frontdesk", "manager", "owner", "tenant_admin"]).optional(),
       canManage: z.coerce.boolean().optional()
     }).parse(c.req.query());
     const { page, pageSize, offset, limit } = paginate(c);
     const values = [];
     const filters = [];
+    // 商户管理员只能看本租户用户（tenantScope 由 requireTenantAdmin 设置；此处兜底）
+    const user = c.get("user");
+    if (user?.admin_role === "tenant_admin" && user?.tenant_id) {
+      values.push(user.tenant_id);
+      filters.push(`u.tenant_id = $${values.length}`);
+    }
     if (params.keyword) {
       values.push(`%${params.keyword}%`);
       filters.push(`(u.nickname ilike $${values.length} or u.phone ilike $${values.length})`);
@@ -929,13 +935,14 @@ export const adminRouter = () => {
     const where = filters.length ? `where ${filters.join(" and ")}` : "";
     const countResult = await query(`select count(*)::int as total from users u ${where}`, values);
     const { rows } = await query(
-      `select u.id, u.nickname, ${isProduction() ? "mask_phone(u.phone) as phone" : "u.phone"}, u.member_level, u.points, u.admin_role, u.can_manage, u.created_at,
+      `select u.id, u.nickname, ${isProduction() ? "mask_phone(u.phone) as phone" : "u.phone"}, u.member_level, u.points, u.admin_role, u.can_manage, u.tenant_id, t.name as tenant_name, u.created_at,
               count(a.id)::int as appointment_count,
               coalesce(sum(a.amount) filter (where a.status in ('confirmed','completed')),0)::numeric(12,2) as total_spend
          from users u
+         left join tenants t on t.id = u.tenant_id
          left join appointments a on a.user_id = u.id
         ${where}
-        group by u.id
+        group by u.id, t.name
         order by u.id desc
         limit $${values.length + 1} offset $${values.length + 2}`,
       [...values, limit, offset]
@@ -943,17 +950,74 @@ export const adminRouter = () => {
     return c.json({ data: rows, pagination: paginationMeta(page, pageSize, countResult.rows[0].total) });
   }));
 
+  app.post("/admin/users", requireTenantAdmin, asyncHandler(async (c) => {
+    const schema = z.object({
+      phone: z.string().regex(/^1\d{10}$/, "手机号格式不正确"),
+      nickname: z.string().min(1).max(20).optional().default("新用户"),
+      memberLevel: z.string().max(20).optional(),
+      adminRole: z.enum(["member", "frontdesk", "manager", "owner"]).default("member"),
+      canManage: z.boolean().default(false),
+      points: z.coerce.number().int().min(0).default(0),
+      tenantId: z.coerce.number().int().positive().optional()
+    });
+    const data = schema.parse(await c.req.json());
+
+    // 商户管理员：强制本租户 + 普通用户（不可给管理角色 / 管理入口）
+    const scope = c.get("tenantScope");
+    let tenantId;
+    let adminRole = data.adminRole;
+    let canManage = data.canManage;
+    if (scope) {
+      tenantId = scope;
+      adminRole = "member";
+      canManage = false;
+    } else {
+      tenantId = data.tenantId ?? null;
+      if (tenantId) {
+        const tenant = await query("select id from tenants where id = $1", [tenantId]);
+        if (!tenant.rows[0]) return c.json({ error: { code: "NOT_FOUND", message: "归属商户不存在" } }, 404);
+      }
+    }
+
+    const exist = await query("select id from users where phone = $1 limit 1", [data.phone]);
+    if (exist.rows.length) {
+      return c.json({ error: { code: "CONFLICT", message: "该手机号已存在" } }, 409);
+    }
+    const { rows } = await query(
+      `insert into users (phone, nickname, member_level, admin_role, can_manage, points, tenant_id, created_at)
+       values ($1,$2,$3,$4,$5,$6,$7, now())
+       returning id, nickname, phone, member_level, points, admin_role, can_manage, tenant_id`,
+      [data.phone, data.nickname, data.memberLevel || null, adminRole, canManage, data.points, tenantId]
+    );
+    await audit(c, "create_user", "user", rows[0].id, { ...data, tenantId, adminRole, canManage });
+    return c.json({ data: rows[0] }, 201);
+  }));
+
   app.patch("/admin/users/:id/role", requireRole("owner"), asyncHandler(async (c) => {
     const { id } = idParam.parse(c.req.param());
     const schema = z.object({
-      adminRole: z.enum(["member", "frontdesk", "manager", "owner"]),
-      canManage: z.boolean()
+      adminRole: z.enum(["member", "frontdesk", "manager", "owner", "tenant_admin"]),
+      canManage: z.boolean(),
+      // 归属商户：设置 tenant_admin 时必填；其他角色可传 null 清除归属
+      tenantId: z.coerce.number().int().positive().nullable().optional()
     });
     const data = schema.parse(await c.req.json());
+
+    let tenantId = data.tenantId;
+    if (data.adminRole === "tenant_admin") {
+      if (!tenantId) {
+        return c.json({ error: { code: "BAD_REQUEST", message: "设置商户管理员必须指定归属商户" } }, 400);
+      }
+      const tenant = await query("select id from tenants where id = $1", [tenantId]);
+      if (!tenant.rows[0]) {
+        return c.json({ error: { code: "NOT_FOUND", message: "归属商户不存在" } }, 404);
+      }
+    }
+
     const { rows } = await query(
-      `update users set admin_role=$1, can_manage=$2, updated_at=now() where id=$3
-       returning id, nickname, admin_role, can_manage`,
-      [data.adminRole, data.canManage, id]
+      `update users set admin_role=$1, can_manage=$2, tenant_id=$3, updated_at=now() where id=$4
+       returning id, nickname, admin_role, can_manage, tenant_id`,
+      [data.adminRole, data.canManage, tenantId ?? null, id]
     );
     await audit(c, "update_user_role", "user", id, data);
     return c.json({ data: rows[0] });
