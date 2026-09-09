@@ -1,6 +1,7 @@
 // 全量导航项（key 与后端 entitlement.ALL_MENUS 对齐；标签走术语字典，不写死业务词）
 export const navItems = [
   { path: "/", key: "dashboard", label: "经营看板" },
+  { path: "/tenants", key: "tenants", label: "商户管理" },
   { path: "/stores", key: "stores", label: "多门店" },
   { path: "/services", key: "services", label: "服务项目" },
   { path: "/practitioners", key: "practitioners", label: "技师管理" },
@@ -21,8 +22,8 @@ export const navItems = [
 // 业态模板 → 默认可见导航（Phase 2 管理端模板化）
 // 中医馆看不到团课/会员卡专属项（此处用统一 navItems，具体业态差异由套餐能力再过滤）
 export const navByTemplate = {
-  tcm_clinic: ["dashboard", "stores", "services", "practitioners", "schedules", "orders", "commissions", "homepage", "pageConfig", "content", "users", "reviews", "audit", "transactions", "plans"],
-  gym: ["dashboard", "stores", "services", "practitioners", "schedules", "orders", "commissions", "pageConfig", "content", "users", "reviews", "audit", "transactions", "plans"],
+  tcm_clinic: ["dashboard", "tenants", "stores", "services", "practitioners", "schedules", "orders", "commissions", "homepage", "pageConfig", "content", "users", "reviews", "audit", "transactions", "plans"],
+  gym: ["dashboard", "tenants", "stores", "services", "practitioners", "schedules", "orders", "commissions", "pageConfig", "content", "users", "reviews", "audit", "transactions", "plans"],
 };
 
 // 默认套餐（无套餐时回退基础版）

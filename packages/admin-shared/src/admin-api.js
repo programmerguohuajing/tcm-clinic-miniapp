@@ -30,6 +30,12 @@ export function createAdminApi(request) {
     saveHomepageConfig: (data) => request(data.id ? `/admin/homepage-configs/${data.id}` : "/admin/homepage-configs", { method: data.id ? "PATCH" : "POST", data }),
     // 多租户页面引擎（Phase 1 / R6）
     tenants: (params) => request(`/cpages/tenants${query(params)}`),
+    // 业态模板列表（新建商户选择模板用）
+    templates: () => request("/cpages/templates"),
+    // 管理端商户列表（owner 全部 / 商户管理员本商户，含当前套餐）
+    adminTenants: () => request("/cpages/admin/tenants"),
+    // 新建商户（入驻：owner 操作，自动初始化术语与基础套餐）
+    createTenant: (data) => request("/cpages/admin/tenants", { method: "POST", data }),
     updateTenant: (id, data) => request(`/cpages/admin/tenants/${id}`, { method: "PATCH", data }),
     pageConfigs: (params) => request(`/cpages/admin/configs${query(params)}`),
     savePageConfig: (data) => request("/cpages/admin/configs", { method: "POST", data }),

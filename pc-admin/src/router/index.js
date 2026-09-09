@@ -4,6 +4,7 @@ import { getToken } from "../services/auth";
 const routes = [
   { path: "/login", name: "login", component: () => import("../views/LoginView.vue"), meta: { public: true, title: "登录" } },
   { path: "/", name: "dashboard", component: () => import("../views/DashboardView.vue"), meta: { title: "经营看板" } },
+  { path: "/tenants", name: "tenants", component: () => import("../views/TenantsView.vue"), meta: { title: "商户管理" } },
   { path: "/stores", name: "stores", component: () => import("../views/StoresView.vue"), meta: { title: "多门店" } },
   { path: "/services", name: "services", component: () => import("../views/ServicesView.vue"), meta: { title: "服务项目" } },
   { path: "/practitioners", name: "practitioners", component: () => import("../views/PractitionersView.vue"), meta: { title: "技师管理" } },

@@ -95,6 +95,72 @@ export const cpagesRouter = () => {
     return c.json({ data: rows });
   }));
 
+  // 管理端商户列表（owner 全部；商户管理员仅本商户；含当前生效套餐）
+  app.get("/admin/tenants", asyncHandler(async (c) => {
+    const scoped = tenantAdminScope(c);
+    const params = [];
+    let sql = `select t.id, t.name, t.slug, t.industry_template_key, t.subject_type, t.brand_tagline, t.theme_tokens, t.status,
+                      tp.plan_key as current_plan
+                 from tenants t
+                 left join lateral (
+                   select plan_key from tenant_plans tp2
+                    where tp2.tenant_id = t.id and (tp2.ended_at is null or tp2.ended_at > now())
+                    order by tp2.started_at desc limit 1
+                 ) tp on true`;
+    if (scoped) { sql += ` where t.id = $1`; params.push(scoped); }
+    sql += ` order by t.id`;
+    const { rows } = await query(sql, params);
+    return c.json({ data: rows });
+  }));
+
+  // 新建商户（入驻）：仅平台 owner；自动初始化术语字典并挂基础套餐
+  app.post("/admin/tenants", requireRole("owner"), asyncHandler(async (c) => {
+    const body = z.object({
+      name: z.string().min(1).max(100),
+      slug: z.string().min(2).max(80).regex(/^[a-z0-9][a-z0-9-]*$/, "slug 仅限小写字母、数字与连字符"),
+      industryTemplateKey: z.string().min(1).max(60),
+      subjectType: z.string().max(40).default("enterprise"),
+      brandTagline: z.string().max(200).optional(),
+      themeTokens: z.record(z.any()).optional()
+    }).parse(await c.req.json());
+
+    const slugExists = await query(`select 1 from tenants where slug = $1 limit 1`, [body.slug]);
+    if (slugExists.rows[0]) {
+      return c.json({ error: { code: "CONFLICT", message: "该 slug 已被其他商户使用" } }, 409);
+    }
+    const tmpl = await query(`select key, terms from industry_templates where key = $1`, [body.industryTemplateKey]);
+    if (!tmpl.rows[0]) {
+      return c.json({ error: { code: "NOT_FOUND", message: "业态模板不存在" } }, 404);
+    }
+
+    const { rows } = await query(
+      `insert into tenants (name, slug, industry_template_key, subject_type, brand_tagline, theme_tokens, status)
+       values ($1,$2,$3,$4,$5,$6,'active')
+       returning id, name, slug, industry_template_key, subject_type, brand_tagline, theme_tokens, status`,
+      [body.name, body.slug, body.industryTemplateKey, body.subjectType,
+       body.brandTagline ?? null, JSON.stringify(body.themeTokens ?? {})]
+    );
+    const tenant = rows[0];
+
+    // 初始化租户术语字典（复制模板默认术语，可后续在页面配置中覆盖）
+    const terms = tmpl.rows[0].terms || {};
+    for (const [termKey, label] of Object.entries(terms)) {
+      await query(
+        `insert into tenant_terms (tenant_id, term_key, label) values ($1,$2,$3) on conflict (tenant_id, term_key) do nothing`,
+        [tenant.id, termKey, String(label)]
+      );
+    }
+    // 挂默认基础套餐（plans 表未就绪时跳过，不阻断入驻）
+    const basic = await query(`select key from plans where key = 'basic' limit 1`);
+    if (basic.rows[0]) {
+      await query(
+        `insert into tenant_plans (tenant_id, plan_key) values ($1,'basic') on conflict (tenant_id, plan_key) do nothing`,
+        [tenant.id]
+      );
+    }
+    return c.json({ data: tenant }, 201);
+  }));
+
   // 更新租户品牌 / 主题 token（R6：品牌名、主色、标语）
   app.patch("/admin/tenants/:id", asyncHandler(async (c) => {
     const id = z.coerce.number().int().positive().parse(c.req.param("id"));

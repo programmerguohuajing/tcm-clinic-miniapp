@@ -114,8 +114,10 @@ export function createApp(env) {
   app.route("/api", userRouter());
   app.route("/api", favoritesRouter());
   app.route("/api", uploadRouter());
-  app.route("/api", cpagesRouter());
-  app.route("/api", paymentsRouter());
+  // cpages / payments 挂载带模块前缀：客户端（小程序 + 管理端）统一按
+  // /api/cpages/* 与 /api/payments/* 调用（page-engine、pay.js、admin-api 均为此约定）
+  app.route("/api/cpages", cpagesRouter());
+  app.route("/api/payments", paymentsRouter());
   app.route("/api", adminRouter());
 
   app.notFound(notFoundMiddleware);

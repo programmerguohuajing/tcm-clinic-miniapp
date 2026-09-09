@@ -5,6 +5,19 @@
 import { createApp } from "../src/app.js";
 import { SignJWT } from "jose";
 import { neon } from "@neondatabase/serverless";
+import { readFileSync } from "node:fs";
+
+function loadEnvFile() {
+  if (process.env.DATABASE_URL) return;
+  try {
+    const raw = readFileSync(new URL("../.env", import.meta.url), "utf8");
+    for (const line of raw.split("\n")) {
+      const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.+)\s*$/);
+      if (m && process.env[m[1]] === undefined) process.env[m[1]] = m[2].trim();
+    }
+  } catch { /* .env 不存在时忽略 */ }
+}
+loadEnvFile();
 
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
@@ -65,13 +78,13 @@ async function main() {
   record("owner GET /api/admin/users → 200 列表", res.status === 200 && Array.isArray(body?.data), `status=${res.status} count=${body?.data?.length}`);
 
   // 6. 套餐列表
-  res = await req("/api/admin/plans", { headers: adminAuth });
+  res = await req("/api/cpages/admin/plans", { headers: adminAuth });
   body = await res.json().catch(() => null);
   const planKeys = JSON.stringify(body?.data || body || []);
   record("GET /api/admin/plans → 200 含三档套餐", res.status === 200 && planKeys.includes("basic") && planKeys.includes("pro") && planKeys.includes("flagship"), `status=${res.status}`);
 
   // 7. 租户套餐（cpages）
-  res = await req("/api/admin/tenants/1/plan", { headers: adminAuth });
+  res = await req("/api/cpages/admin/tenants/1/plan", { headers: adminAuth });
   record("owner GET /api/admin/tenants/1/plan → 200", res.status === 200, `status=${res.status}`);
 
   // 8. 伪造普通用户 token（DB 中 can_manage=false 用户）
@@ -91,7 +104,7 @@ async function main() {
     record("普通用户 PATCH /api/admin/tenants/1 → 403 (鉴权缺口已修复)", res.status === 403, `status=${res.status}`);
 
     // 10. 普通用户改租户套餐
-    res = await req("/api/admin/tenants/1/plan", { method: "PUT", headers: normalAuth, body: JSON.stringify({ planKey: "flagship" }) });
+    res = await req("/api/cpages/admin/tenants/1/plan", { method: "PUT", headers: normalAuth, body: JSON.stringify({ planKey: "flagship" }) });
     record("普通用户 PUT /api/admin/tenants/1/plan → 403", res.status === 403, `status=${res.status}`);
   } else {
     record("普通用户越权场景", false, "DB 中无可用的普通用户");
@@ -117,9 +130,35 @@ async function main() {
     await db.query("delete from users where phone = $1", [testPhone]);
   }
 
-  // 13. 商户交易
-  res = await req("/api/admin/merchant/transactions", { headers: adminAuth });
-  record("owner GET /api/admin/merchant/transactions → 200", res.status === 200, `status=${res.status}`);
+  // 13. 商户交易（payments 挂载于 /api/payments）
+  res = await req("/api/payments/admin/merchant/transactions", { headers: adminAuth });
+  record("owner GET /api/payments/admin/merchant/transactions → 200", res.status === 200, `status=${res.status}`);
+
+  // 13b. 商户管理：列表 + 新建 + slug 冲突 + 清理
+  res = await req("/api/cpages/admin/tenants", { headers: adminAuth });
+  body = await res.json().catch(() => null);
+  record("owner GET /api/cpages/admin/tenants → 200 列表", res.status === 200 && Array.isArray(body?.data), `status=${res.status} count=${body?.data?.length}`);
+  const testSlug = "qa-smoke-tenant";
+  await db.query("delete from tenants where slug = $1", [testSlug]); // 幂等清理
+  res = await req("/api/cpages/admin/tenants", { method: "POST", headers: adminAuth, body: JSON.stringify({ name: "QA冒烟商户", slug: testSlug, industryTemplateKey: "tcm_clinic" }) });
+  body = await res.json().catch(() => null);
+  record("owner POST /api/cpages/admin/tenants → 201", res.status === 201, `status=${res.status} id=${body?.data?.id}`);
+  if (body?.data?.id) {
+    // 验证自动初始化：术语字典 + 基础套餐
+    const terms = await db.query("select count(*)::int as n from tenant_terms where tenant_id = $1", [body.data.id]);
+    const plan = await db.query("select plan_key from tenant_plans where tenant_id = $1", [body.data.id]);
+    record("新建商户自动初始化术语+基础套餐", terms[0].n > 0 && plan[0]?.plan_key === "basic", `terms=${terms[0].n} plan=${plan[0]?.plan_key || "none"}`);
+  }
+  res = await req("/api/cpages/admin/tenants", { method: "POST", headers: adminAuth, body: JSON.stringify({ name: "重复", slug: testSlug, industryTemplateKey: "tcm_clinic" }) });
+  record("重复 slug POST → 409", res.status === 409, `status=${res.status}`);
+  await db.query("delete from tenants where slug = $1", [testSlug]); // cascade 清理
+  record("清理测试商户", true, "slug=qa-smoke-tenant 已删除");
+
+  // 13c. 普通用户不能新建商户
+  if (normalAuth) {
+    res = await req("/api/cpages/admin/tenants", { method: "POST", headers: normalAuth, body: JSON.stringify({ name: "越权", slug: "qa-no-perm", industryTemplateKey: "gym" }) });
+    record("普通用户 POST /admin/tenants → 403", res.status === 403, `status=${res.status}`);
+  }
 
   // 14. 退款接口未带订单 → 期望 4xx（非 500）
   res = await req("/api/payments/refunds", { method: "POST", headers: adminAuth, body: JSON.stringify({ outTradeNo: "QA_NOT_EXIST_0001", amount: 1 }) });

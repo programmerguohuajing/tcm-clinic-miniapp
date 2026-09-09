@@ -6,7 +6,7 @@
 
 // 全量菜单清单（与 admin-shared navItems 的 key 对齐）
 export const ALL_MENUS = [
-  "dashboard", "stores", "services", "practitioners", "schedules",
+  "dashboard", "tenants", "stores", "services", "practitioners", "schedules",
   "technicianPortal", "orders", "commissions", "homepage", "pageConfig",
   "content", "users", "reviews", "audit", "transactions", "plans",
 ];
@@ -21,17 +21,17 @@ export const ALL_CAPABILITIES = [
 export const DEFAULT_PLANS = {
   basic: {
     key: "basic", name: "基础版",
-    menus: ["dashboard", "stores", "services", "orders", "users", "pageConfig"],
+    menus: ["dashboard", "tenants", "stores", "services", "orders", "users", "pageConfig"],
     capabilities: ["booking", "single_store"],
   },
   pro: {
     key: "pro", name: "专业版",
-    menus: ["dashboard", "stores", "services", "practitioners", "schedules", "orders", "commissions", "pageConfig", "content", "users", "reviews", "audit"],
+    menus: ["dashboard", "tenants", "stores", "services", "practitioners", "schedules", "orders", "commissions", "pageConfig", "content", "users", "reviews", "audit"],
     capabilities: ["booking", "multi_store", "marketing", "data_board", "pay"],
   },
   flagship: {
     key: "flagship", name: "旗舰版",
-    menus: ["dashboard", "stores", "services", "practitioners", "schedules", "technicianPortal", "orders", "commissions", "homepage", "pageConfig", "content", "users", "reviews", "audit"],
+    menus: ["dashboard", "tenants", "stores", "services", "practitioners", "schedules", "technicianPortal", "orders", "commissions", "homepage", "pageConfig", "content", "users", "reviews", "audit"],
     capabilities: ["booking", "multi_store", "marketing", "data_board", "pay", "technician_portal", "content_ops"],
   },
 };

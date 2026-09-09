@@ -33,11 +33,18 @@ create index if not exists idx_tenant_plans_tenant on tenant_plans(tenant_id);
 comment on table tenant_plans is '租户当前生效套餐（R13），与 tenants 解耦便于多套餐历史留存';
 
 -- 种子套餐：基础 / 专业 / 旗舰（菜单与能力随业态在管理端/小程序按模板再过滤）
+-- on conflict do update：套餐定义以本文件为准，重跑迁移即刷新（如新增 tenants 基础菜单）
 insert into plans (key, name, description, menus, capabilities, sort_order) values
-  ('basic', '基础版', '核心预约能力，单门店', '["dashboard","stores","services","orders","users","pageConfig","transactions","plans"]', '["booking","single_store"]', 1),
-  ('pro', '专业版', '多门店 + 营销 + 数据看板 + 支付', '["dashboard","stores","services","practitioners","schedules","orders","commissions","pageConfig","content","users","reviews","audit","transactions","plans"]', '["booking","multi_store","marketing","data_board","pay"]', 2),
-  ('flagship', '旗舰版', '专业版全部能力 + 技师工作台 + 内容深度运营', '["dashboard","stores","services","practitioners","schedules","technicianPortal","orders","commissions","homepage","pageConfig","content","users","reviews","audit","transactions","plans"]', '["booking","multi_store","marketing","data_board","pay","technician_portal","content_ops"]', 3)
-on conflict (key) do nothing;
+  ('basic', '基础版', '核心预约能力，单门店', '["dashboard","tenants","stores","services","orders","users","pageConfig","transactions","plans"]', '["booking","single_store"]', 1),
+  ('pro', '专业版', '多门店 + 营销 + 数据看板 + 支付', '["dashboard","tenants","stores","services","practitioners","schedules","orders","commissions","pageConfig","content","users","reviews","audit","transactions","plans"]', '["booking","multi_store","marketing","data_board","pay"]', 2),
+  ('flagship', '旗舰版', '专业版全部能力 + 技师工作台 + 内容深度运营', '["dashboard","tenants","stores","services","practitioners","schedules","technicianPortal","orders","commissions","homepage","pageConfig","content","users","reviews","audit","transactions","plans"]', '["booking","multi_store","marketing","data_board","pay","technician_portal","content_ops"]', 3)
+on conflict (key) do update set
+  name = excluded.name,
+  description = excluded.description,
+  menus = excluded.menus,
+  capabilities = excluded.capabilities,
+  sort_order = excluded.sort_order,
+  updated_at = now();
 
 -- 演示租户默认套餐关联（幂等）：青囊/动能 均挂专业版，便于展示套餐门控与商户交易视图
 insert into tenant_plans (tenant_id, plan_key)
