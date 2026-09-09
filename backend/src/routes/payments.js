@@ -121,7 +121,7 @@ export const paymentsRouter = () => {
     }
 
     const creds = await loadChannelCreds(body.storeId, decision.channel);
-    const mock = isMockMode(creds);
+    let mock = isMockMode(creds);
     const outTradeNo = buildOutTradeNo({ prefix: "PAY" });
 
     // 拉起参数构造：真实模式调网关；mock 模式占位
