@@ -69,7 +69,7 @@ async function load() {
   loading.value = true;
   try {
     const res = await adminApi.adminTenants();
-    rows.value = res?.data || [];
+    rows.value = Array.isArray(res) ? res : [];
   } finally {
     loading.value = false;
   }
@@ -125,7 +125,7 @@ onMounted(async () => {
   load();
   try {
     const res = await adminApi.templates();
-    const list = res?.data || [];
+    const list = Array.isArray(res) ? res : [];
     templateOptions.value = list.map((t) => ({ label: templateLabelMap[t.key] || t.name || t.key, value: t.key }));
   } catch {
     templateOptions.value = [
